@@ -205,3 +205,65 @@ Production migration / Auth URL / Vercel env changes belong to **explicit produc
 ## Production backup (pre-rollout)
 
 Supabase Free does not imply PITR. Before Production schema/ops windows, take a logical dump with operator credentials held outside `.env.local`, e.g. `pg_dump` against Production `DIRECT_URL` — never commit dump files.
+
+### Extension grant scopes — catalog read 2026-10-21
+
+Read-only session on the Production pooler (`aws-0-sa-east-1.pooler.supabase.com`, host fingerprint `3c193d95207920e0`, database `postgres`, Postgres 17.6), transaction `READ ONLY`. No migration, resolve, or write was run.
+
+| Fact | State |
+| --- | --- |
+| `20261020140000_extension_grant_scopes` | Pending. No finished, failed, or rolled-back row in `_prisma_migrations`. |
+| `20261020210000_extension_grant_scopes_legacy_default` | Pending. No finished, failed, or rolled-back row. |
+| Last finished migration | `20261005170000_account_personal_persistence` (`finished`, not rolled back, `applied_steps_count` 1). |
+| `applyflow_extension_grants.scopes` | Column absent. Nullability and DEFAULT do not exist yet. |
+
+`migrate resolve` stays a separate human decision after a later catalog check. Do not run it while both migrations are absent.
+
+### Backup evidence 2026-10-21
+
+“Backup mechanism present” is not “recovery tested”. The 2026-10-02 Phase 12C note in [`BETA_EVIDENCE.md`](./BETA_EVIDENCE.md) does not protect schema or data changes after that date.
+
+Checked, without creating or restoring a backup:
+
+- **WAL archiving is on.** `archive_mode=on`, `wal_level=logical`, `archive_timeout=120`, `archive_command` runs `wal-g` `wal-push`. `pg_stat_archiver`: `archived_count=7`, `failed_count=0`, `last_archived_time=2026-10-21T18:51:19.889Z`, `last_failed_time` null. The count can reset when the archiver restarts, so it is not a retention window. No Supabase management token was available, so the last restorable point, retention, and the console restore procedure were not read. PITR is not verified.
+- **Named Production dump was not found.** `applyflow-production-clean-20260927-195051.dump` (recorded SHA-256 `c6475f78e41dd4141fb48779ce8902421ef25d2f79619fa5cc8c99cb6d1f25ea`) is not in the repo, `apps/applyflow/.tmp`, Desktop, Documents, or Downloads. The Phase 12C custom dump (299388 bytes, SHA-256 not stored in git) was also not found. Neither file is available evidence for this window.
+- **Local drill is not a Production backup.** `apps/applyflow/.tmp/backup-drill/applyflow-local-drill.dump` (13194 bytes, 2026-10-01T17:19:20Z, SHA-256 `538384758b2f6f9f9bcb1cdb05ffd6fba4015082c53574ab2da257a61f85e803`) matches `drill-report.json`. `pg_restore -l` exits 0. The report records a restore into local `127.0.0.1` / `applyflow` with `ok: true` and `restoreExitStatus` 1, which the drill script accepts for ignorable version warnings. That tested a local database from 2026-10-01. It does not include Production data and predates `20261005170000`.
+
+The backup gate below was executed on 2026-10-21 after explicit approval. Merge, containment, migration, resolve, deploy, and flag changes were not part of that approval and were not run.
+
+### Current backup and isolated restore — executed 2026-10-21
+
+| Field | Value |
+| --- | --- |
+| File | `applyflow-production-pre-scopes-20261021T193045Z.dump` |
+| Directory | `C:\Users\Xakep\devflow-applyflow-backups\` (outside git; ACL limited to the operator account) |
+| Written (UTC) | 2026-10-21T19:30:49Z |
+| Bytes | 408023 |
+| SHA-256 | `b97a419cf4d7507c33e83fb7a9ce034522171b29b0b80de437336418f3eff604` |
+| `pg_restore -l` | exit 0, 664 TOC lines |
+| Source | Production session pooler, host fingerprint `3c193d95207920e0`, database `postgres`. `pg_dump` exited 0. Production was not written. |
+
+Isolated restore: disposable Postgres 17 on `127.0.0.1:5441`, database `applyflow_restore_check`, container `applyflow-pg-restore-check`. `pg_restore --no-owner --no-acl` exited 1 with two errors only: extension `supabase_vault` does not exist, and relation `vault.secrets` does not exist. Those are Supabase platform objects, not ApplyFlow tables. The ApplyFlow catalog in that database matched the pre-scopes Production state:
+
+- `20261005170000_account_personal_persistence` finished, not rolled back, `applied_steps_count` 1
+- both scopes migrations absent
+- `scopes` column absent
+- 11 `applyflow_%` tables in `public`
+
+The container was removed after those checks. The local database on port 5434 was not used. The dump file was kept. It is a copy of Production personal data and must not be committed, logged, or pasted. Deleting it requires a separate retention decision.
+
+### Scopes launch — executed 2026-10-21
+
+The catalog table above is the pre-migration read. After explicit approval, `prisma migrate deploy` (Prisma 6.19.2) applied both scopes migrations on the Production session pooler (host fingerprint `3c193d95207920e0`, port 5432, database `postgres`). `migrate resolve` was not used. A following `READ ONLY` check recorded:
+
+| Fact | State |
+| --- | --- |
+| `20261020140000_extension_grant_scopes` | Finished, not rolled back, `applied_steps_count` 1. |
+| `20261020210000_extension_grant_scopes_legacy_default` | Finished, not rolled back, `applied_steps_count` 1. |
+| `applyflow_extension_grants.scopes` | `NOT NULL`. DEFAULT is exactly `profile:read`, `profile:write`, `jobs:read`, `jobs:write`, `applications:read`, `applications:write`. No `contacts` scope. |
+
+PR #262 was merged to `main` as `2e7fb7509462accda468a9f6a95075795a7595b2`. Git branch `production` was fast-forwarded to that commit. The public alias `devflow-applyflow.vercel.app` serves production deployment `dpl_EkYCrFVa7gbri1DJbJtPfukZ2jJ2`, SHA `2e7fb7509462accda468a9f6a95075795a7595b2`, `READY`. `GET /api/applyflow/v2/extension/session` on that alias returned HTTP 401 `{"error":"unauthenticated"}`.
+
+`APPLYFLOW_PERSISTENCE_V2` stayed `false`. The temporary empty `APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS` was removed after the merged SHA was serving, then that SHA was redeployed so the running snapshot no longer has the variable. Absent and empty are equivalent while the flag is not exactly `true`; this did not turn persistence v2 on and did not add account ids. The project ignore command is `cd ../.. && node scripts/applyflow-vercel-ignore.mjs`. Old deployments were not deleted. The pre-scopes dump was kept.
+
+The same merge did not appear as a portal production deployment on its own. Portal project `devflow` (`production` branch `main`, no ignore command) was then deployed from git SHA `2e7fb7509462` as `dpl_DrZPQ6p5n2dprK5ohWuzvvQovg1F`. WhatsApp recorded a production deployment of that SHA as `CANCELED` (ignore step). Financeiro had no deployment of that SHA.
