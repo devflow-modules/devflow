@@ -311,13 +311,15 @@ Single account, redacted `9f78…99e5`, fingerprint `1ed3bf1a553c`. Production a
 | Gate | Result |
 |------|--------|
 | H empty activation | Done earlier by the account holder. `canonicalPersistence=v2_cloud`. |
-| I CRUD | Repository create + optimistic update on that account only. Job `job_pilot_smoke_20261022` and application `app_pilot_smoke_20261022`, both reread at version 2. Browser refresh and a second session were not verified. |
+| I CRUD | Repository create + optimistic update on that account only. Job `job_pilot_smoke_20261022` and application `app_pilot_smoke_20261022`, both reread at version 2. Logged-in Opera session: refresh kept the job page, and a second window showed 1 cloud opportunity and 1 cloud application. |
 | J revoke | Official CLI revoke, then re-grant. Canonical stayed `v2_cloud`. Revoked mode `v2_read_only` (read allowed, write `persistence_v2_read_only` 403). After re-grant, mode `v2_active` and `pilotEligible=true`. |
 | K kill switch | Flag `false`, redeploy `dpl_jg4YqsBx2FCPmVF57Z9vxGXYu8ZT`, mode `v2_paused` (`persistence_v2_paused` 503) with no V1 fallback. Flag restored to `true` and redeployed. Pilot returned to `v2_active`. |
 
-Follow-up the same day: `pnpm sentry:verify` reported `outcome=sent` for `applyflow_sentry_verify` (environment `development`, release `local-verify`). The Sentry project UI was not opened. A production extension bundle was built locally (`APPLYFLOW_EXTENSION_TARGET=production`, origin `https://devflow-applyflow.vercel.app`); `public/manifest.json` stays on the local origins. That bundle was not loaded in Chrome. The operator browser session for `9f78…99e5` was not available, so refresh, a second session, and "Ligar extensão" remain unverified.
+Follow-up the same day: `pnpm sentry:verify` reported `outcome=sent` for `applyflow_sentry_verify` (environment `development`, release `local-verify`). The Sentry UI was then opened in org `devflow-labs`, project slug `javascript-nextjs`, issue `JAVASCRIPT-NEXTJS-2`. There is no project named `applyflow`. The latest event is `2026-10-22T16:49:05Z`, title `Error: applyflow_sentry_verify`, transaction `applyflow:operator/sentry-verify`, tags `applyflow_area=server` and `applyflow_error_code=sentry_verify`, handled, empty URL, and a user with no email or IP. The issue has 4 events and was left unresolved. The message, tags, and user contain no cookie, authorization header, or DSN.
 
-Not closed: extension connect, Chrome Web Store, and any second invited account. The two excluded `v2_cloud` accounts stay paused. Old deployments `dpl_Fj6ov5wtDsTo4t6rV2cnnRy1B8xp` and `dpl_E2R5wBu1csKBeHaQoZfhHy7EKTDc` stay behind SSO. Dump `applyflow-production-pre-scopes-20261021T193045Z.dump` stays retained.
+A production extension bundle was built locally (`APPLYFLOW_EXTENSION_TARGET=production`, origin `https://devflow-applyflow.vercel.app`); `public/manifest.json` stays on the local origins. That bundle was loaded unpacked in Opera GX. On `/account` for `9f78…99e5`, import stayed unchecked, extension consent was checked, and "Ligar extensão" succeeded. One active grant remains, with the eight catalog scopes including `contacts:read` and `contacts:write`. Chrome opened `/account` logged out (`Entrar`), so the Chrome connect was not run. The account page has no control to edit, revoke, or switch that grant, and the grant was not revoked in the database.
+
+Not closed: Chrome sign-in and connect, Chrome Web Store, grant edit/revoke/account switch, and any second invited account. The two excluded `v2_cloud` accounts stay paused. Old deployments `dpl_Fj6ov5wtDsTo4t6rV2cnnRy1B8xp` and `dpl_E2R5wBu1csKBeHaQoZfhHy7EKTDc` stay behind SSO. Dump `applyflow-production-pre-scopes-20261021T193045Z.dump` stays retained.
 
 ---
 
