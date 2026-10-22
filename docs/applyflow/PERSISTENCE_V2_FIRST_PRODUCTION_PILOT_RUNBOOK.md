@@ -109,8 +109,9 @@ Before any Production pilot:
 ## Gate B — Recovery
 
 1. Verify an existing clean Production backup is available.
-   - Known clean backup (historical): `applyflow-production-clean-20260927-195051.dump`
-   - Known SHA-256: `c6475f78e41dd4141fb48779ce8902421ef25d2f79619fa5cc8c99cb6d1f25ea`
+   - Historical name only: `applyflow-production-clean-20260927-195051.dump`
+   - Historical SHA-256: `c6475f78e41dd4141fb48779ce8902421ef25d2f79619fa5cc8c99cb6d1f25ea`
+   - 2026-10-21 search did not find that file. It is not a current Production backup. The current pre-scopes dump and isolated restore are recorded in [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSISTENCE_V2_MIGRATION_RUNBOOK.md).
 2. **Do not assume that backup is sufficient forever.**
 3. On actual pilot day:
    - Create a **fresh** pre-pilot backup.
@@ -300,6 +301,23 @@ Pilot success requires all of:
 - No stale V1 fallback
 - No unexpected DB rows
 - CI healthy
+
+---
+
+## Pilot evidence — 2026-10-22
+
+Single account, redacted `9f78…99e5`, fingerprint `1ed3bf1a553c`. Production alias after the restore deploy: `dpl_46rKagmFJSBue7zxFze5jMx6JDd2`, SHA `bfb76b1c1e19`. `APPLYFLOW_PERSISTENCE_V2` is exactly `true`. Allowlist count is 1. Ignore command is `cd ../.. && node scripts/applyflow-vercel-ignore.mjs`.
+
+| Gate | Result |
+|------|--------|
+| H empty activation | Done earlier by the account holder. `canonicalPersistence=v2_cloud`. |
+| I CRUD | Repository create + optimistic update on that account only. Job `job_pilot_smoke_20261022` and application `app_pilot_smoke_20261022`, both reread at version 2. Browser refresh and a second session were not verified. |
+| J revoke | Official CLI revoke, then re-grant. Canonical stayed `v2_cloud`. Revoked mode `v2_read_only` (read allowed, write `persistence_v2_read_only` 403). After re-grant, mode `v2_active` and `pilotEligible=true`. |
+| K kill switch | Flag `false`, redeploy `dpl_jg4YqsBx2FCPmVF57Z9vxGXYu8ZT`, mode `v2_paused` (`persistence_v2_paused` 503) with no V1 fallback. Flag restored to `true` and redeployed. Pilot returned to `v2_active`. |
+
+Follow-up the same day: `pnpm sentry:verify` reported `outcome=sent` for `applyflow_sentry_verify` (environment `development`, release `local-verify`). The Sentry project UI was not opened. A production extension bundle was built locally (`APPLYFLOW_EXTENSION_TARGET=production`, origin `https://devflow-applyflow.vercel.app`); `public/manifest.json` stays on the local origins. That bundle was not loaded in Chrome. The operator browser session for `9f78…99e5` was not available, so refresh, a second session, and "Ligar extensão" remain unverified.
+
+Not closed: extension connect, Chrome Web Store, and any second invited account. The two excluded `v2_cloud` accounts stay paused. Old deployments `dpl_Fj6ov5wtDsTo4t6rV2cnnRy1B8xp` and `dpl_E2R5wBu1csKBeHaQoZfhHy7EKTDc` stay behind SSO. Dump `applyflow-production-pre-scopes-20261021T193045Z.dump` stays retained.
 
 ---
 
