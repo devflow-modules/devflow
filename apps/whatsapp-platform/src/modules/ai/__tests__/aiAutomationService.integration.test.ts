@@ -69,6 +69,14 @@ vi.mock("@/modules/billing/stripeUsageBillingService", () => ({
   billAiOverageIfApplicableAsync: vi.fn(),
 }));
 
+vi.mock("../faqGroundingService", () => ({
+  groundMessageWithTenantFaq: vi.fn().mockResolvedValue({
+    matches: [{ id: "f1", question: "ajuda", answer: "Sim", score: 3 }],
+    promptBlock: "FAQ aprovada",
+    supported: true,
+  }),
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),

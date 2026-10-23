@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 const patchSchema = z.object({
   aiEnabled: z.boolean().optional(),
   automationEnabled: z.boolean().optional(),
+  automaticDistributionEnabled: z.boolean().optional(),
 });
 
 /** PATCH — controlos operacionais do tenant (manager+, não é área DevFlow `/api/admin`). */
@@ -40,8 +41,17 @@ export async function PATCH(request: NextRequest) {
     return jsonError("VALIDATION_ERROR", "Dados inválidos", 400, { traceId });
   }
 
-  if (parsed.data.aiEnabled === undefined && parsed.data.automationEnabled === undefined) {
-    return jsonError("VALIDATION_ERROR", "Envie aiEnabled e/ou automationEnabled", 400, { traceId });
+  if (
+    parsed.data.aiEnabled === undefined &&
+    parsed.data.automationEnabled === undefined &&
+    parsed.data.automaticDistributionEnabled === undefined
+  ) {
+    return jsonError(
+      "VALIDATION_ERROR",
+      "Envie aiEnabled, automationEnabled e/ou automaticDistributionEnabled",
+      400,
+      { traceId }
+    );
   }
 
   const before = await getOrCreateTenantOperationalConfig(tenantId);
@@ -66,11 +76,28 @@ export async function PATCH(request: NextRequest) {
       { before: before.automationEnabled, after: row.automationEnabled }
     );
   }
+  if (
+    parsed.data.automaticDistributionEnabled !== undefined &&
+    parsed.data.automaticDistributionEnabled !== before.automaticDistributionEnabled
+  ) {
+    auditOperationalAction(
+      parsed.data.automaticDistributionEnabled
+        ? "operational_distribution_enabled"
+        : "operational_distribution_disabled",
+      tenantId,
+      userId,
+      {
+        before: before.automaticDistributionEnabled,
+        after: row.automaticDistributionEnabled,
+      }
+    );
+  }
 
   return jsonSuccess(
     {
       aiEnabled: row.aiEnabled,
       automationEnabled: row.automationEnabled,
+      automaticDistributionEnabled: row.automaticDistributionEnabled,
       updatedAt: row.updatedAt.toISOString(),
     },
     { traceId }

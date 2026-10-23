@@ -220,6 +220,9 @@ export async function waInboxCreateInbound(
         console.error("[wa-inbox] automation dispatch conversation_created", e)
       );
     }
+    // Distribuição automática (round-robin) — nunca bloqueia persistência inbound.
+    const { maybeAutoRouteAfterInbound } = await import("./automaticRoutingService");
+    void maybeAutoRouteAfterInbound({ tenantId, threadId: thread.id });
     // Reabre CLOSED/PENDING → OPEN via transição canónica (idempotente se já OPEN).
     // Falha/conflito da transição é observável mas não invalida a mensagem já persistida.
     const { autoUpdateStatusOnNewMessage } = await import("./threadStatusService");

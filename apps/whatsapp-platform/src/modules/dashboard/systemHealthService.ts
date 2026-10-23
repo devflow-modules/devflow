@@ -32,6 +32,7 @@ export type SystemHealthSnapshot = {
   operationalControls: {
     aiEnabled: boolean;
     automationEnabled: boolean;
+    automaticDistributionEnabled: boolean;
   };
   automationStatus: {
     /** IA automática pode correr (config + operação). */
@@ -228,6 +229,7 @@ export async function getSystemHealthSnapshot(tenantId: string): Promise<SystemH
     operationalControls: {
       aiEnabled: opCfg.aiEnabled,
       automationEnabled: opCfg.automationEnabled,
+      automaticDistributionEnabled: opCfg.automaticDistributionEnabled,
     },
     automationStatus: {
       aiActive,

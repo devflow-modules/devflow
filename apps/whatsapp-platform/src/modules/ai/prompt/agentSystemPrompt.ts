@@ -46,6 +46,8 @@ export type AgentPromptBuildOptions = {
   recentSummary?: string;
   playbookOverlay?: PlaybookJson | null;
   promptAugmentation?: string | null;
+  /** FAQ aprovada do tenant — grounding obrigatório quando presente. */
+  faqGroundingBlock?: string | null;
 };
 
 function playbookPromptBlock(opts: AgentPromptBuildOptions): string {
@@ -129,6 +131,17 @@ export function buildAgentSystemPrompt(
   }
   if (opts?.recentSummary?.trim()) {
     parts.push("Resumo das últimas mensagens (contexto):\n" + opts.recentSummary.trim());
+  }
+
+  if (opts?.faqGroundingBlock?.trim()) {
+    parts.push(opts.faqGroundingBlock.trim());
+  } else if (opts?.promptAugmentation?.trim()) {
+    // promptAugmentation legado — preferir faqGroundingBlock
+  }
+
+  const aug = opts?.promptAugmentation?.trim();
+  if (aug && !opts?.faqGroundingBlock?.trim()) {
+    parts.push(aug);
   }
 
   parts.push(WHATSAPP_FOOTER);

@@ -68,6 +68,7 @@ export async function getOrCreateAiAgentConfig(tenantId: string): Promise<AiAgen
     data: {
       tenantId,
       enabled: false,
+      autoReply: false,
       model: openAiConfig.model,
       tone: "NEUTRAL",
       maxTokens: openAiConfig.maxTokens,
@@ -590,11 +591,37 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     });
   }
 
+  const { groundMessageWithTenantFaq } = await import("./faqGroundingService");
+  const faqGrounding = await groundMessageWithTenantFaq({
+    tenantId,
+    messageText: textBody,
+  });
+
+  // Restricted auto + safe mode: sem FAQ aprovada → handoff (sem alucinar).
+  if (pilotCfg.safeMode && effectiveConfig.autoReply && !faqGrounding.supported) {
+    await commitAiDecision(
+      {
+        action: "handoff",
+        reason: "faq_unsupported",
+      },
+      {
+        tenantId,
+        threadId: thread.id,
+        inboundWaMessageId: waMsgId,
+        playbook,
+        leadScore: thread.leadScore,
+        correlationId: pipelineTraceId,
+      }
+    );
+    return;
+  }
+
   const promptOpts = {
     conversationState: playbook,
     recentSummary: buildRecentMessagesSummary(contextMessages, 3),
     playbookOverlay,
     promptAugmentation: rules.promptAugmentation,
+    faqGroundingBlock: faqGrounding.promptBlock,
   };
   const systemPrompt = buildAgentSystemPrompt(agentPromptInput, promptOpts);
   const modelUsedBase = config.model ?? openAiConfig.model;
@@ -740,6 +767,39 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
     return;
   }
 
+  // Path multi-tenant devolve texto plano (sem confidence/needs_human).
+  // Em safe mode: só auto-reply se FAQ grounding suportou a pergunta; senão handoff.
+  const llmDecision = resolveStructuredLlmDecision({
+    reply: gen.text,
+    confidence: faqGrounding.supported ? Math.max(pilotCfg.minConfidence, 0.7) : undefined,
+    parseUncertain: pilotCfg.safeMode && !faqGrounding.supported,
+    pilot: pilotCfg,
+  });
+
+  const canAutoReply = await commitAiDecision(llmDecision, {
+    tenantId,
+    threadId: thread.id,
+    inboundWaMessageId: waMsgId,
+    playbook,
+    leadScore: thread.leadScore,
+    tokensUsed: gen.tokensUsed,
+    durationMs: gen.durationMs,
+    responsePreview: gen.text,
+    modelUsed: modelUsedBase,
+    providerKind,
+    correlationId: pipelineTraceId,
+  });
+  if (!canAutoReply || llmDecision.action !== "auto_reply") {
+    trackAiUsage(tenantId, "AI_FALLBACK");
+    return;
+  }
+
+  const replyText = llmDecision.reply ?? gen.text;
+  if (!replyText.trim()) {
+    trackAiUsage(tenantId, "AI_FALLBACK");
+    return;
+  }
+
   trackAiUsage(tenantId, "AI_SUCCESS", gen.tokensUsed ?? 0);
   billAiOverageIfApplicableAsync({
     tenantId,
@@ -753,7 +813,7 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       tenant,
       to: from,
       inboxThreadId,
-      text: gen.text,
+      text: replyText,
       outboundKind: "ai",
       automaticTrigger: { inboundWaMessageId: waMsgId, triggerSource: "ai" },
       traceId: pipelineTraceId,
@@ -767,12 +827,13 @@ export async function runTenantAiAutoReply(input: RunTenantAiAutoReplyInput): Pr
       inboundWaMessageId: waMsgId,
       outboundWaMessageId: outboundWaId,
       promptUsed: gen.promptUsed,
-      responseGenerated: gen.text,
+      responseGenerated: replyText,
       tokensUsed: gen.tokensUsed,
       durationMs: gen.durationMs,
       eventKind: "auto_reply",
       modelUsed: modelUsedBase,
       providerKind,
+      decisionReason: formatAiDecisionReason(llmDecision),
       aiStateSnapshot: playbook,
       leadScoreSnapshot: thread.leadScore,
     });

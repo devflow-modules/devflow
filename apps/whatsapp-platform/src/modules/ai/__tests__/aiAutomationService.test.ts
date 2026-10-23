@@ -75,6 +75,18 @@ vi.mock("@/modules/operations/tenantOperationalConfigService", () => ({
   getOrCreateTenantOperationalConfig: (...a: unknown[]) => mockGetOrCreateOperational(...a),
 }));
 
+const mockGroundFaq = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    matches: [{ id: "f1", question: "ajuda", answer: "Sim", score: 3 }],
+    promptBlock: "FAQ aprovada",
+    supported: true,
+  })
+);
+
+vi.mock("../faqGroundingService", () => ({
+  groundMessageWithTenantFaq: (...a: unknown[]) => mockGroundFaq(...a),
+}));
+
 const mockPrisma = {
   aiAgentConfig: {
     findUnique: vi.fn(),
@@ -348,6 +360,11 @@ describe("checkTenantAiAutomationReady", () => {
 describe("runTenantAiAutoReply", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGroundFaq.mockResolvedValue({
+      matches: [{ id: "f1", question: "ajuda", answer: "Sim", score: 3 }],
+      promptBlock: "FAQ aprovada",
+      supported: true,
+    });
     mockPrisma.whatsappPhoneNumber.findFirst.mockResolvedValue({
       status: WhatsappPhoneNumberStatus.ACTIVE,
       accessTokenEncrypted: "dfwa1.k.a.b.c",
@@ -754,5 +771,39 @@ describe("runTenantAiAutoReply", () => {
       expect.objectContaining({ reason: "llm_low_confidence" })
     );
     expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+  });
+
+  it("safe mode + autoReply sem FAQ → handoff faq_unsupported sem LLM", async () => {
+    vi.stubEnv("WHATSAPP_AI_SAFE_MODE", "1");
+    isOpenAiConfigured.mockReturnValue(false);
+    setupReadyTenant();
+    mockGroundFaq.mockResolvedValue({
+      matches: [],
+      promptBlock: null,
+      supported: false,
+    });
+
+    const { runTenantAiAutoReply } = await import("../aiAutomationService");
+    await runTenantAiAutoReply({
+      tenant: {
+        id: "t1",
+        phoneNumberId: "p",
+        displayPhoneNumber: "",
+        accessToken: "tok",
+        channelStatus: WhatsappPhoneNumberStatus.ACTIVE,
+      },
+      message: {
+        id: "wam-nofaq",
+        from: "5511999999999",
+        type: "text",
+        text: { body: "pergunta sem base" },
+      } as never,
+      inboxThreadId: "c1",
+      textBody: "pergunta sem base",
+    });
+
+    expect(generateReply).not.toHaveBeenCalled();
+    expect(sendWebhookAutoReply).not.toHaveBeenCalled();
+    expect(applyNeedsHumanHandoff).toHaveBeenCalled();
   });
 });

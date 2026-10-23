@@ -27,6 +27,15 @@ describe("aiPilotDecision", () => {
     expect(getAiMinConfidenceThreshold()).toBe(0.65);
   });
 
+  it("evaluatePilotSafePreLlm força handoff clínico dentário", () => {
+    const d = evaluatePilotSafePreLlm({
+      messageText: "Estou com infecção e preciso de antibiótico",
+      safeMode: true,
+    });
+    expect(d?.action).toBe("handoff");
+    expect(d?.reason).toContain("pilot_clinical_topic");
+  });
+
   it("evaluatePilotSafePreLlm força handoff em orçamento", () => {
     const d = evaluatePilotSafePreLlm({
       messageText: "Qual o orçamento mensal?",
