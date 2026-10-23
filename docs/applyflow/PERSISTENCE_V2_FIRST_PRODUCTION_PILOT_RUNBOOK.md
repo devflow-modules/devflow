@@ -109,8 +109,9 @@ Before any Production pilot:
 ## Gate B — Recovery
 
 1. Verify an existing clean Production backup is available.
-   - Known clean backup (historical): `applyflow-production-clean-20260927-195051.dump`
-   - Known SHA-256: `c6475f78e41dd4141fb48779ce8902421ef25d2f79619fa5cc8c99cb6d1f25ea`
+   - Historical name only: `applyflow-production-clean-20260927-195051.dump`
+   - Historical SHA-256: `c6475f78e41dd4141fb48779ce8902421ef25d2f79619fa5cc8c99cb6d1f25ea`
+   - 2026-10-21 search did not find that file. It is not a current Production backup. The current pre-scopes dump and isolated restore are recorded in [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSISTENCE_V2_MIGRATION_RUNBOOK.md).
 2. **Do not assume that backup is sufficient forever.**
 3. On actual pilot day:
    - Create a **fresh** pre-pilot backup.
@@ -300,6 +301,25 @@ Pilot success requires all of:
 - No stale V1 fallback
 - No unexpected DB rows
 - CI healthy
+
+---
+
+## Pilot evidence — 2026-10-22
+
+Single account, redacted `9f78…99e5`, fingerprint `1ed3bf1a553c`. Production alias after the restore deploy: `dpl_46rKagmFJSBue7zxFze5jMx6JDd2`, SHA `bfb76b1c1e19`. `APPLYFLOW_PERSISTENCE_V2` is exactly `true`. Allowlist count is 1. Ignore command is `cd ../.. && node scripts/applyflow-vercel-ignore.mjs`.
+
+| Gate | Result |
+|------|--------|
+| H empty activation | Done earlier by the account holder. `canonicalPersistence=v2_cloud`. |
+| I CRUD | Repository create + optimistic update on that account only. Job `job_pilot_smoke_20261022` and application `app_pilot_smoke_20261022`, both reread at version 2. Logged-in Opera session: refresh kept the job page, and a second window showed 1 cloud opportunity and 1 cloud application. |
+| J revoke | Official CLI revoke, then re-grant. Canonical stayed `v2_cloud`. Revoked mode `v2_read_only` (read allowed, write `persistence_v2_read_only` 403). After re-grant, mode `v2_active` and `pilotEligible=true`. |
+| K kill switch | Flag `false`, redeploy `dpl_jg4YqsBx2FCPmVF57Z9vxGXYu8ZT`, mode `v2_paused` (`persistence_v2_paused` 503) with no V1 fallback. Flag restored to `true` and redeployed. Pilot returned to `v2_active`. |
+
+Follow-up the same day: `pnpm sentry:verify` reported `outcome=sent` for `applyflow_sentry_verify` (environment `development`, release `local-verify`). The Sentry UI was then opened in org `devflow-labs`, project slug `javascript-nextjs`, issue `JAVASCRIPT-NEXTJS-2`. There is no project named `applyflow`. The latest event is `2026-10-22T16:49:05Z`, title `Error: applyflow_sentry_verify`, transaction `applyflow:operator/sentry-verify`, tags `applyflow_area=server` and `applyflow_error_code=sentry_verify`, handled, empty URL, and a user with no email or IP. The issue has 4 events and was left unresolved. The message, tags, and user contain no cookie, authorization header, or DSN.
+
+A production extension bundle was built locally (`APPLYFLOW_EXTENSION_TARGET=production`, origin `https://devflow-applyflow.vercel.app`); `public/manifest.json` stays on the local origins. That bundle, version `0.2.0` and extension id `mjigahpnpgcopnjfofcpopkaehohfknh`, was loaded unpacked in Opera GX and later in Chrome. On `/account` for `9f78…99e5`, import stayed unchecked, extension consent was checked, and "Ligar extensão" succeeded in both browsers. Chrome was signed in as that same account. The Chrome extension then reported `signedIn` with the eight catalog scopes, including `contacts:read` and `contacts:write`. A read-only session-pooler check showed two active grants for that account: `9423…c917` from the Opera connect and `3eb9…87ba` from the Chrome connect at `2026-10-22T20:38:26Z`, expiring `2026-10-29T20:38:26Z`. Mint does not revoke the previous grant. The account page has no control to edit, revoke, or switch one grant, and neither grant was revoked in the database.
+
+Not closed: Chrome Web Store, grant edit/revoke/account switch, and any second invited account. The two excluded `v2_cloud` accounts stay paused. Old deployments `dpl_Fj6ov5wtDsTo4t6rV2cnnRy1B8xp` and `dpl_E2R5wBu1csKBeHaQoZfhHy7EKTDc` stay behind SSO. Dump `applyflow-production-pre-scopes-20261021T193045Z.dump` stays retained.
 
 ---
 
