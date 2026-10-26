@@ -1,6 +1,7 @@
 import type { Evidence } from "./evidence-types.js";
 import type { JobRequirement } from "./job-requirement-types.js";
 import { locationMentionsMatch, normalizeJobTextForIntel } from "./job-intelligence.js";
+import { textMentionsTechnology } from "./technology-identity.js";
 import {
   documentedYearsFromMonths,
   evidenceMonthRange,
@@ -135,7 +136,7 @@ function skillOverlap(req: JobRequirement, evidence: Evidence): boolean {
   const evTokens = new Set([...tokens(evidence.label), ...(evidence.technologies ?? []).map(fold)]);
   const evBlob = evidenceBlob(evidence);
   if (hint) {
-    return evTokens.has(hint) || evBlob.includes(hint);
+    return evTokens.has(hint) || textMentionsTechnology(evBlob, hint);
   }
   if (req.requirementType === "years") {
     return evidence.id === "profile-experience-total-years" || /total professional experience/.test(fold(evidence.label));
@@ -454,10 +455,8 @@ function isEducationRequirement(req: JobRequirement): boolean {
 }
 
 function mentionsSkill(item: Evidence, hint: string): boolean {
-  const needle = fold(hint);
-  const aliases = needle === "react" ? ["react", "next.js", "nextjs"] : [needle];
-  const blob = `${evidenceBlob(item)} ${fold(item.topic ?? "")}`;
-  return aliases.some((alias) => blob.includes(alias));
+  const blob = [item.label, item.description, item.topic ?? "", ...(item.technologies ?? [])].join(" ");
+  return textMentionsTechnology(blob, hint);
 }
 
 function matchEducationRequirement(req: JobRequirement, evidence: Evidence[]): EvidenceMatch | null {
@@ -760,9 +759,9 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
     };
   }
 
-  const direct =
-    (req.skillHint && hasAny(evidenceBlob(best), [req.skillHint])) ||
-    hasAny(evidenceBlob(best), tokens(req.label).filter((item) => item.length >= 4));
+  const direct = req.skillHint
+    ? textMentionsTechnology(evidenceBlob(best), req.skillHint)
+    : tokens(req.label).some((token) => token.length >= 4 && textMentionsTechnology(evidenceBlob(best), token));
   if (!direct && relevant.length > 0) {
     return {
       requirement: req,
