@@ -115,6 +115,14 @@ export type {
 export type { EvidenceMatch, EvidenceMatchStatus } from "./evidence-matching.js";
 export type { ClaimAudit, ClaimSafety, DeclaredClaimFacts } from "./claim-safety.js";
 export {
+  deriveEvidencePassages,
+  explainProvenance,
+  provenanceForEvidence,
+  rankEvidenceForRequirement,
+  EVIDENCE_SOURCE_KINDS,
+} from "./evidence-provenance.js";
+export type { EvidencePassage, EvidenceProvenance, EvidenceSourceKind, EvidenceSupport } from "./evidence-provenance.js";
+export {
   APPLICATION_DECISIONS,
   INCOMPLETE_ANALYSIS_MESSAGE,
   isInconclusiveDecision,

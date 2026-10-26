@@ -4,9 +4,10 @@ import { generateApplicationAnswers, type ApplicationAnswer } from "./applicatio
 import type { ApplicationGate } from "./application-gates.js";
 import type { CandidateInputRequest } from "./candidate-input.js";
 import type { ClaimAuditResult } from "./claim-safety.js";
-import { buildClaimAuditResult, recommendedClaims } from "./claim-safety.js";
+import { auditClaim, buildClaimAuditResult, recommendedClaims } from "./claim-safety.js";
 import { recommendCompensation, type CompensationRecommendation } from "./compensation.js";
 import type { Evidence } from "./evidence-types.js";
+import { buildCandidateEvidence } from "./evidence-from-profile.js";
 import { buildCvPersonalizationPlan, type CvPersonalizationPlan } from "./cv-personalization.js";
 import { buildFollowUpPlan, type FollowUpPlan, type FollowUpStrategy } from "./follow-up-plan.js";
 import { buildInterviewBrief, type InterviewBrief } from "./interview-brief.js";
@@ -110,20 +111,24 @@ export function createApplicationPackV2(input: {
     now: input.now,
   });
   const selectedProfile = resume.variant.profile;
+  const selectedEvidence = evidenceForSelectedResume(input.evidence, input.profile, resume);
+  const scopedDecision = scopeDecisionEvidence(input.decision, selectedEvidence);
   const cv = buildCvPersonalizationPlan({
     profile: selectedProfile,
-    evidence: input.evidence,
-    decision: input.decision,
+    evidence: selectedEvidence,
+    decision: scopedDecision,
     resume,
     jobId: input.jobId,
   });
   const answers = generateApplicationAnswers({
     profile: selectedProfile,
-    evidence: input.evidence,
-    decision: input.decision,
+    evidence: selectedEvidence,
+    decision: scopedDecision,
     companyName: input.companyName,
     jobId: input.jobId,
     jobText: input.jobText,
+    resumeVariantId: resume.variant.id,
+    resumeVariantName: resume.variant.name,
   });
   const compensation = recommendCompensation({
     jobText: input.jobText,
@@ -133,8 +138,8 @@ export function createApplicationPackV2(input: {
   });
   const networking = buildNetworkingPlan({
     jobText: input.jobText,
-    decision: input.decision,
-    evidence: input.evidence,
+    decision: scopedDecision,
+    evidence: selectedEvidence,
     companyName: input.companyName,
     roleTitle: input.jobTitle,
   });
@@ -143,8 +148,8 @@ export function createApplicationPackV2(input: {
     jobText: input.jobText,
     jobTitle: input.jobTitle,
     companyName: input.companyName,
-    decision: input.decision,
-    evidence: input.evidence,
+    decision: scopedDecision,
+    evidence: selectedEvidence,
     salary: compensation.recommendation,
   });
 
@@ -155,8 +160,20 @@ export function createApplicationPackV2(input: {
     ...(compensation.candidateInput ? [compensation.candidateInput] : []),
   ];
 
+  const sameEvidence =
+    selectedEvidence.length === input.evidence.length &&
+    selectedEvidence.every((item, index) => item.id === input.evidence[index]?.id);
+  const decisionClaims = sameEvidence
+    ? input.decision.claims
+    : input.decision.claims.map((item) =>
+        auditClaim(item.claim, selectedEvidence, {
+          resumeVariantId: resume.variant.id,
+          resumeVariantName: resume.variant.name,
+          englishLevel: selectedProfile.facts.englishLevel ?? selectedProfile.englishLevel,
+        }),
+      );
   const allClaims = [
-    ...input.decision.claims,
+    ...decisionClaims,
     ...answers.answers.flatMap((item) => item.claimAudit.claims),
   ];
   const claimAudit = buildClaimAuditResult(allClaims);
@@ -180,5 +197,31 @@ export function createApplicationPackV2(input: {
     },
     candidateInputs,
     gates,
+  };
+}
+
+function evidenceForSelectedResume(
+  callerEvidence: readonly Evidence[],
+  callerProfile: CandidateProfile,
+  resume: ResumeRecommendationV2,
+): readonly Evidence[] {
+  if (resume.variant.id === "profile-default" || resume.variant.profile === callerProfile) return callerEvidence;
+  return buildCandidateEvidence(resume.variant.profile);
+}
+
+function scopeDecisionEvidence(decision: JobDecisionV2, evidence: readonly Evidence[]): JobDecisionV2 {
+  const ids = new Set(evidence.map((item) => item.id));
+  return {
+    ...decision,
+    matches: decision.matches.map((match) => {
+      const matchedEvidence = match.matchedEvidence.filter((item) => ids.has(item.id));
+      if (matchedEvidence.length > 0 || match.matchedEvidence.length === 0) return { ...match, matchedEvidence };
+      return {
+        ...match,
+        matchedEvidence,
+        status: match.status === "proven" ? "unknown" : match.status,
+        reason: "The selected resume does not contain this evidence.",
+      };
+    }),
   };
 }

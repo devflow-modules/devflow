@@ -117,6 +117,8 @@ export function generateApplicationAnswers(input: {
   extraQuestions?: { id: string; question: string }[];
   jobId?: string;
   jobText?: string;
+  resumeVariantId?: string;
+  resumeVariantName?: string;
 }): { answers: ApplicationAnswer[]; candidateInputs: CandidateInputRequest[] } {
   const { profile, evidence, decision } = input;
   const employer = input.jobText ? parseEmployerCompensation(input.jobText) : undefined;
@@ -126,6 +128,8 @@ export function generateApplicationAnswers(input: {
     englishLevel: typeof english === "string" ? english : undefined,
     salaryPreferences: expectation ? [expectation.label] : [],
     answerBankTexts: Object.values(profile.answerBank).filter((item) => item.trim().length >= 8),
+    resumeVariantId: input.resumeVariantId,
+    resumeVariantName: input.resumeVariantName,
   };
   const inputs: CandidateInputRequest[] = [];
   const answers: ApplicationAnswer[] = [];

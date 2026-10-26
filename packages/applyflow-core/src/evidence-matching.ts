@@ -1,4 +1,5 @@
 import type { Evidence } from "./evidence-types.js";
+import { provenanceForEvidence, rankEvidenceForRequirement, type EvidenceProvenance } from "./evidence-provenance.js";
 import type { JobRequirement } from "./job-requirement-types.js";
 import { locationMentionsMatch, normalizeJobTextForIntel } from "./job-intelligence.js";
 import { textMentionsTechnology } from "./technology-identity.js";
@@ -20,7 +21,20 @@ export type EvidenceMatch = {
   status: EvidenceMatchStatus;
   matchedEvidence: Evidence[];
   reason: string;
+  provenance?: EvidenceProvenance;
 };
+
+function evidenceFitness(req: JobRequirement, item: Evidence): number {
+  let penalty = 0;
+  if (typeof req.minYears === "number") {
+    const years = yearsDeclaredInEvidence(item);
+    if (years === undefined) penalty += 2;
+    else if (years < req.minYears) penalty += 1;
+  }
+  if (item.confidence === "partial" && (req.importance === "fundamental" || (req.qualifiers ?? []).length > 0)) penalty += 4;
+  if (!item.usableForClaims && req.importance === "fundamental") penalty += 4;
+  return penalty;
+}
 
 function fold(value: string): string {
   return normalizeJobTextForIntel(value);
@@ -642,10 +656,18 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
     };
   }
   const reqText = requirementBlob(req);
-  const relevant = evidence.filter((item) => {
+  const passageSupports = (item: Evidence) => {
+    const rankedPassage = rankEvidenceForRequirement(reqText, [item])[0];
+    return (rankedPassage?.score ?? 0) > 0 && rankedPassage?.passage.ambiguous !== true;
+  };
+  const skillRelevant = evidence.filter((item) => {
     if (isFalseFriend(req, item) && !skillOverlap(req, item)) return false;
     return skillOverlap(req, item) || Boolean(transferableReason(req, item));
   });
+  const relevant =
+    skillRelevant.length > 0
+      ? skillRelevant
+      : evidence.filter((item) => !isFalseFriend(req, item) && passageSupports(item));
 
   if (relevant.length === 0) {
     const anyBlob = evidence.map(evidenceBlob).join(" ");
@@ -667,6 +689,13 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
 
   const negatives = relevant.filter(isNegativeEvidence);
   const positives = relevant.filter((item) => !isNegativeEvidence(item));
+  const ranked = rankEvidenceForRequirement(requirementBlob(req), positives);
+  const baseline = positives[0];
+  const baselineFitness = baseline ? evidenceFitness(req, baseline) : 0;
+  const preferred = ranked
+    .filter((item) => evidenceFitness(req, item.evidence) === baselineFitness)
+    .sort((left, right) => right.score - left.score);
+  const best = skillRelevant.length > 0 ? baseline : preferred[0]?.evidence ?? baseline;
 
   if (positives.length === 0 && negatives.length > 0) {
     return {
@@ -677,7 +706,6 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
     };
   }
 
-  const best = positives[0];
   if (!best) {
     return {
       requirement: req,
@@ -686,6 +714,10 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
       reason: "Related mentions exist but are inconclusive.",
     };
   }
+
+  const passage = best
+    ? rankEvidenceForRequirement(requirementBlob(req), [best])[0]?.passage
+    : preferred[0]?.passage;
 
   const related = transferableReason(req, best);
   if (related) {
@@ -774,8 +806,11 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
   return {
     requirement: req,
     status: "proven",
-    matchedEvidence: positives.slice(0, 3),
-    reason: "Direct evidence supports this requirement.",
+    matchedEvidence: [best, ...positives.filter((item) => item.id !== best.id)].slice(0, 3),
+    reason: passage?.projectName
+      ? `Direct evidence supports this requirement. ${passage.projectName}: ${passage.text}`
+      : "Direct evidence supports this requirement.",
+    provenance: provenanceForEvidence(best, requirementBlob(req), { requirementId: req.id, support: "direct" }),
   };
 }
 
