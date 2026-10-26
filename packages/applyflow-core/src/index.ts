@@ -113,7 +113,7 @@ export type {
   JobRequirementType,
 } from "./job-requirement-types.js";
 export type { EvidenceMatch, EvidenceMatchStatus } from "./evidence-matching.js";
-export type { ClaimAudit, ClaimSafety } from "./claim-safety.js";
+export type { ClaimAudit, ClaimSafety, DeclaredClaimFacts } from "./claim-safety.js";
 export {
   APPLICATION_DECISIONS,
   INCOMPLETE_ANALYSIS_MESSAGE,
@@ -342,14 +342,30 @@ export { parseResumeLibraryImport, serializeResumeLibraryImport } from "./import
 export type { ParsedResumeLibraryImport } from "./imported-resume-library-schema.js";
 export { recommendResumeV2, forbiddenKeywordsFromDecision, isApplyDecision, RESUME_STRATEGIES_V2 } from "./resume-router-v2.js";
 export type { ResumeRecommendationV2, ResumeStrategyV2 } from "./resume-router-v2.js";
+export {
+  classifyJobLanguage,
+  classifyResumeLanguage,
+  routeResumeLanguage,
+  resumeLanguageOfProfile,
+  RESUME_LANGUAGES,
+} from "./job-language.js";
+export type { ResumeLanguage, ResumeLanguageRoute } from "./job-language.js";
 export { buildCvPersonalizationPlan } from "./cv-personalization.js";
 export type { CvChange, CvPersonalizationPlan } from "./cv-personalization.js";
 export { generateApplicationAnswers, APPLICATION_ANSWER_TYPES, APPLICATION_ANSWER_STATUSES } from "./application-answers-v2.js";
 export type { ApplicationAnswer, ApplicationAnswerStatus, ApplicationAnswerType } from "./application-answers-v2.js";
 export { recommendBinaryAnswer, applyBinaryKnockouts } from "./binary-answers.js";
 export type { BinaryAnswer, BinaryAnswerRecommendation } from "./binary-answers.js";
-export { recommendCompensation } from "./compensation.js";
-export type { CompensationRecommendation } from "./compensation.js";
+export { recommendCompensation, parseEmployerCompensation, selectCandidateExpectation, assessCompensationCompatibility } from "./compensation.js";
+export type {
+  CompensationRecommendation,
+  CompensationCompatibility,
+  CompensationContext,
+  CompensationCurrency,
+  CompensationPeriod,
+  EmployerCompensation,
+  CandidateCompensationExpectation,
+} from "./compensation.js";
 export {
   CONTACT_TYPES,
   CONTACT_STATUSES,

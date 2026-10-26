@@ -30,7 +30,28 @@ const EXAGGERATIONS: { pattern: RegExp; reason: string }[] = [
   { pattern: /\bstrong aws experience\b|\bprofessional aws\b|\baws architect/i, reason: "Professional AWS experience is not supported." },
   { pattern: /\bproduction ai agents?\b|\bbuilt production ai agents?\b/i, reason: "Production AI Agents are not supported." },
   { pattern: /\bc1\+?\b|\bc2\b|\bcertified english\b/i, reason: "Certified C1/C2 English is not recorded." },
+  { pattern: /\bnative english\b|\bnative speaker\b|\bbilingual\b/i, reason: "Native or bilingual English is not a declared proficiency." },
 ];
+
+export type DeclaredClaimFacts = {
+  englishLevel?: string;
+  salaryPreferences?: readonly string[];
+  answerBankTexts?: readonly string[];
+};
+
+function isDeclaredEnglish(text: string, declared: DeclaredClaimFacts | undefined): boolean {
+  if (!declared?.englishLevel) return false;
+  const level = declared.englishLevel.toLowerCase();
+  return new RegExp(`\\b(?:recorded|declared)\\s+english\\s+level:\\s*${level}\\b`, "i").test(text);
+}
+
+function isDeclaredSalary(text: string, declared: DeclaredClaimFacts | undefined): boolean {
+  return (declared?.salaryPreferences ?? []).some((preference) => preference.trim().length > 0 && text.includes(preference.trim()));
+}
+
+function isLimitation(text: string): boolean {
+  return /\b(not a c1|not certified|not native|not past earnings|not prior earnings|not previous compensation)\b/i.test(text);
+}
 
 function isExplicitDenial(text: string): boolean {
   return /\b(have not|has not|did not|do not|no professional|not built|rather than|is not|are not|do not claim|without claiming|not a c1|not certified)\b/i.test(
@@ -38,11 +59,51 @@ function isExplicitDenial(text: string): boolean {
   );
 }
 
-export function auditClaim(claim: string, evidence: readonly Evidence[]): ClaimAudit {
+export function auditClaim(claim: string, evidence: readonly Evidence[], declared?: DeclaredClaimFacts): ClaimAudit {
   const text = claim.trim();
   const folded = fold(text);
   const usable = evidence.filter((item) => item.usableForClaims);
   const denial = isExplicitDenial(text);
+  if (isDeclaredEnglish(text, declared)) {
+    if (/\b(native|bilingual|c2)\b/i.test(text) && !isLimitation(text)) {
+      return {
+        claim: text,
+        supportingEvidence: [],
+        status: "remove",
+        reason: "Declared English proficiency is not native fluency or a certificate.",
+      };
+    }
+    return {
+      claim: text,
+      supportingEvidence: [],
+      status: "defensible",
+      reason: "Candidate-declared English proficiency. Not a certificate or verified spoken fluency.",
+    };
+  }
+  if (isDeclaredSalary(text, declared)) {
+    if (/\b(earned|previous salary|past compensation|historically paid)\b/i.test(text) && !isLimitation(text)) {
+      return {
+        claim: text,
+        supportingEvidence: [],
+        status: "remove",
+        reason: "A salary preference is not evidence of past earnings.",
+      };
+    }
+    return {
+      claim: text,
+      supportingEvidence: [],
+      status: "defensible",
+      reason: "Candidate-declared compensation preference. Not prior earnings or an approved offer.",
+    };
+  }
+  if (isLimitation(text)) {
+    return {
+      claim: text,
+      supportingEvidence: [],
+      status: "defensible",
+      reason: "The sentence limits a claim. It does not assert unsupported experience.",
+    };
+  }
 
   for (const rule of EXAGGERATIONS) {
     if (!rule.pattern.test(text)) continue;
@@ -60,6 +121,15 @@ export function auditClaim(claim: string, evidence: readonly Evidence[]): ClaimA
         reason: rule.reason,
       };
     }
+  }
+
+  if ((declared?.answerBankTexts ?? []).some((item) => item.includes(text))) {
+    return {
+      claim: text,
+      supportingEvidence: [],
+      status: "defensible",
+      reason: "Candidate-authored answer from the selected resume. Not new evidence.",
+    };
   }
 
   const direct = usable.filter((item) => {
@@ -99,8 +169,12 @@ export function auditClaim(claim: string, evidence: readonly Evidence[]): ClaimA
   };
 }
 
-export function auditClaims(claims: readonly string[], evidence: readonly Evidence[]): ClaimAudit[] {
-  return claims.map((claim) => auditClaim(claim, evidence));
+export function auditClaims(
+  claims: readonly string[],
+  evidence: readonly Evidence[],
+  declared?: DeclaredClaimFacts,
+): ClaimAudit[] {
+  return claims.map((claim) => auditClaim(claim, evidence, declared));
 }
 
 export function recommendedClaims(audits: readonly ClaimAudit[]): ClaimAudit[] {
@@ -141,17 +215,18 @@ export function splitTextClaims(text: string): string[] {
 export function sanitizeTextWithClaimAudit(
   text: string,
   evidence: readonly Evidence[],
+  declared?: DeclaredClaimFacts,
 ): { text: string; audit: ClaimAuditResult } {
   const parts = splitTextClaims(text);
   if (parts.length === 0) {
-    const single = auditClaim(text, evidence);
+    const single = auditClaim(text, evidence, declared);
     const audit = buildClaimAuditResult(text.trim() ? [single] : []);
     return {
       text: single.status === "remove" ? "" : text.trim(),
       audit,
     };
   }
-  const audits = auditClaims(parts, evidence);
+  const audits = auditClaims(parts, evidence, declared);
   const kept = audits.filter((item) => item.status !== "remove").map((item) => item.claim);
   return { text: kept.join(" ").trim(), audit: buildClaimAuditResult(audits) };
 }

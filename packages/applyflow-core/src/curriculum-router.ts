@@ -1,4 +1,5 @@
 import { evaluateJobMatch } from "./evaluate-job-match.js";
+import { routeResumeLanguage } from "./job-language.js";
 import {
   CURRICULUM_ROUTER_DELTA_BANDS_V1,
   CURRICULUM_ROUTER_VERSION,
@@ -71,7 +72,7 @@ function toCandidate(
 export function recommendCurriculum(
   job: NormalizedJobSkills,
   library: ResumeLibrary,
-  options?: { now?: Date },
+  options?: { now?: Date; jobText?: string },
 ): CurriculumRecommendation | undefined {
   if (library.variants.length < 2) return undefined;
 
@@ -80,11 +81,20 @@ export function recommendCurriculum(
     library.variants.map((variant) => toCandidate(variant, job, now)),
     library.defaultVariantId,
   );
-  const recommended = candidates[0];
-  const runnerUp = candidates[1];
-  if (!recommended || !runnerUp) return undefined;
-
-  const scoreDelta = Math.max(0, recommended.score - runnerUp.score);
+  const skillTop = candidates[0];
+  const runnerUpSkill = candidates[1];
+  if (!skillTop || !runnerUpSkill) return undefined;
+  const routed = options?.jobText
+    ? routeResumeLanguage({
+        library,
+        candidates,
+        jobText: options.jobText,
+        rank: (items) => rankResumeMatchCandidates(items, library.defaultVariantId),
+      })
+    : undefined;
+  const recommended = candidates.find((item) => item.variantId === routed?.variantId) ?? skillTop;
+  const runnerUp = candidates.find((item) => item.variantId !== recommended.variantId) ?? runnerUpSkill;
+  const scoreDelta = Math.max(0, skillTop.score - runnerUpSkill.score);
 
   return {
     recommendedVariantId: recommended.variantId,

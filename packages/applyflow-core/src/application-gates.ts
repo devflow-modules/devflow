@@ -110,13 +110,13 @@ export function evaluateApplicationGates(input: {
     label: "Salary",
     required: false,
     candidateValue: pretension,
-    result: intel.salaryMentioned ? "unknown" : "pass",
+    result: "unknown",
     reason: intel.salaryMentioned
       ? salaryMatch?.reason ??
         `Compensation is mentioned${intel.compensation ? ` as "${intel.compensation.extractedText}"` : ""}. Periodicity is ${
           intel.compensation?.periodicity === "unknown" || !intel.compensation ? "not stated" : intel.compensation.periodicity
         }. Financial compatibility stays pending and is not a technical knockout.`
-      : "No salary knockout to evaluate.",
+      : "Employer compensation is not stated. Missing salary is unknown and is not a confirmed fit.",
   });
 
   if (intel.schedule) {

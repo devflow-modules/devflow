@@ -109,23 +109,25 @@ export function createApplicationPackV2(input: {
     source: input.source,
     now: input.now,
   });
+  const selectedProfile = resume.variant.profile;
   const cv = buildCvPersonalizationPlan({
-    profile: input.profile,
+    profile: selectedProfile,
     evidence: input.evidence,
     decision: input.decision,
     resume,
     jobId: input.jobId,
   });
   const answers = generateApplicationAnswers({
-    profile: input.profile,
+    profile: selectedProfile,
     evidence: input.evidence,
     decision: input.decision,
     companyName: input.companyName,
     jobId: input.jobId,
+    jobText: input.jobText,
   });
   const compensation = recommendCompensation({
     jobText: input.jobText,
-    profile: input.profile,
+    profile: selectedProfile,
     decision: input.decision,
     jobId: input.jobId,
   });

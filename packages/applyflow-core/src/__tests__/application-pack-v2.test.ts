@@ -179,7 +179,7 @@ describe("P1 Application Pack V2", () => {
     expect(recommendation.floor).toBeUndefined();
     expect(recommendation.needsCandidateInput).toBe(true);
     expect(candidateInput).toBeDefined();
-    expect(recommendation.reasoning.join(" ")).toMatch(/do not invent|not auto-select|Published minimum/i);
+    expect(recommendation.reasoning.join(" ")).toMatch(/currency is not reliable|do not invent|not auto-select|Published minimum/i);
 
     const withPref = recommendCompensation({
       jobText: "Product Engineer. Salary range 4500-6000. React Next.js.",

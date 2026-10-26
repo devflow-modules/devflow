@@ -75,7 +75,7 @@ export function ingestApplyFlowJob(input: IngestApplyFlowJobInput): ApplyFlowJob
   const jobMatch = evaluateJobMatch(profile, skills, { now });
   const snapshot = snapshotJobDescription(description);
   const curriculumRecommendation = input.resumeLibrary
-    ? recommendCurriculum(skills, input.resumeLibrary, { now })
+    ? recommendCurriculum(skills, input.resumeLibrary, { now, jobText: description })
     : undefined;
 
   return {
@@ -133,7 +133,9 @@ export function reevaluateApplyFlowJobMatch(
   const skills = { skills: detectedSkills };
   const jobMatch = evaluateJobMatch(evalProfile, skills, { now });
   const curriculumRecommendation =
-    library && library.variants.length >= 2 ? recommendCurriculum(skills, library, { now }) : job.curriculumRecommendation;
+    library && library.variants.length >= 2
+      ? recommendCurriculum(skills, library, { now, jobText: snapshot || undefined })
+      : job.curriculumRecommendation;
   /** Preserve user-intent status — reevaluation must never auto-ignore or restore. */
   const status = job.status;
   const skillsUnchanged =
@@ -145,7 +147,9 @@ export function reevaluateApplyFlowJobMatch(
     skillsUnchanged &&
     job.evaluatedWith?.variantId === evaluatedWith?.variantId &&
     job.evaluatedWith?.variantName === evaluatedWith?.variantName;
-  if (sameDecision && !isJobMatchStale(job, library ?? null)) {
+  const routerChanged =
+    curriculumRecommendation?.recommendedVariantId !== job.curriculumRecommendation?.recommendedVariantId;
+  if (sameDecision && !routerChanged && !isJobMatchStale(job, library ?? null)) {
     return job;
   }
   return {
