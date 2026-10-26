@@ -183,6 +183,18 @@ export { parseApplyFlowApplicationsImport, parseApplyFlowImportJsonString } from
 export type { ParsedApplyFlowImportResult } from "./imported-application-schema.js";
 export { evaluateJobMatch, profileSkillLabels } from "./evaluate-job-match.js";
 export {
+  assessJobEligibility,
+  canonicalizeCandidateLocation,
+  eligibilitySortRank,
+} from "./job-eligibility.js";
+export type {
+  CanonicalCandidateLocation,
+  EligibilityDimension,
+  EligibilityFinding,
+  EligibilityStatus,
+  JobEligibility,
+} from "./job-eligibility.js";
+export {
   JOB_MATCH_THRESHOLDS_V1,
   decideJobMatchV1,
   decideJobMatchV1WithCoverage,

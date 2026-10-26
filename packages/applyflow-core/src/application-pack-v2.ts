@@ -80,13 +80,15 @@ export function createApplicationPackV2(input: {
     ...gates.filter((item) => item.required && item.result === "fail").map((item) => item.label),
   ];
 
-  if (decision === "skip" || decision === "needs_info") {
+  const hardEligibility = input.decision.eligibility?.findings.find((item) => item.status === "ineligible");
+  if (input.decision.eligibility?.status === "ineligible" || decision === "skip" || decision === "needs_info") {
     return {
       version: 2,
       jobId: input.jobId,
       status: "blocked",
-      reason:
-        decision === "needs_info"
+      reason: hardEligibility
+        ? hardEligibility.reason
+        : decision === "needs_info"
           ? "Complete seu perfil para concluir a análise. Pack não é uma recomendação de candidatura."
           : "Decision is SKIP — pack is not a recommended application.",
       blockingRequirements: blocking,

@@ -2,8 +2,10 @@ import { isOpenableJobUrl } from "./application-pack.js";
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
 import type { ApplyFlowApplicationV2Envelope } from "./application-record-v2.js";
 import { isJobMatchStale } from "./ingest-applyflow-job.js";
+import { assessJobEligibility } from "./job-eligibility.js";
 import type { ApplyFlowJob } from "./job-match-types.js";
 import type { ResumeLibrary } from "./resume-library-types.js";
+import { getDefaultResumeVariant } from "./resume-library.js";
 
 export type ApplicationReadinessItemState = "ready" | "attention" | "missing";
 
@@ -111,7 +113,20 @@ export function deriveApplicationReadiness(input: {
     });
   }
 
-  if (job.jobMatch.decision === "needs_info" || unknownSkillCount > 0) {
+  const matchProfile = resumeProfile(resumeLibrary);
+  const eligibility =
+    matchProfile && job.descriptionSnapshot?.trim()
+      ? assessJobEligibility(matchProfile, job.descriptionSnapshot)
+      : undefined;
+
+  if (eligibility?.status === "ineligible") {
+    items.push({
+      id: "gaps",
+      state: "attention",
+      reason: "ineligible",
+      detail: eligibility.findings.find((item) => item.status === "ineligible")?.reason,
+    });
+  } else if (job.jobMatch.decision === "needs_info" || unknownSkillCount > 0) {
     items.push({
       id: "gaps",
       state: "attention",
@@ -166,4 +181,13 @@ export function deriveApplicationReadiness(input: {
     missingSkillCount,
     unknownSkillCount,
   };
+}
+
+function resumeProfile(library: ResumeLibrary | null | undefined) {
+  if (!library) return undefined;
+  try {
+    return getDefaultResumeVariant(library).profile;
+  } catch {
+    return undefined;
+  }
 }

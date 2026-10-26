@@ -8,6 +8,7 @@ import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
 import { ApplyFlowTabs } from "@/components/ui/ApplyFlowTabs";
 import { applyFlowControlClass } from "@/components/ui/apply-flow-control-classes";
 import { matchDecisionTone } from "@/components/ui/status-tones";
+import { resolveInboxMatchProfile } from "@/lib/resolve-inbox-match-profile";
 import {
   APPLICATION_PACK_ANSWER_LABELS,
   APPLICATION_PACK_ANSWERS_HINT,
@@ -718,8 +719,9 @@ export function JobInboxPanel({
         sort: queueSort,
         decision: decisionFilter,
         source: sourceFilter,
+        profile: resolveInboxMatchProfile(resumeLibrary) ?? undefined,
       }),
-    [jobs, queueView, queueSort, decisionFilter, sourceFilter],
+    [jobs, queueView, queueSort, decisionFilter, sourceFilter, resumeLibrary],
   );
 
   const emptyMessage =

@@ -1,8 +1,11 @@
 import {
+  assessJobEligibility,
+  eligibilitySortRank,
   getDefaultResumeVariant,
   hashJobDescription,
   type ApplyFlowJobMatch,
   type CandidateProfile,
+  type JobEligibility,
   type JobMatchDecision,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
@@ -21,6 +24,8 @@ export type DiscoveryPreviewStatus = "idle" | "evaluating" | "ready" | "needs_de
 export type DiscoveryHitPreviewState = {
   status: DiscoveryPreviewStatus;
   preview?: JobMatchPreview;
+  /** Separate from the technical preview score. */
+  eligibility?: JobEligibility;
   /** Fingerprint used to detect stale previews. */
   fingerprint?: string;
 };
@@ -79,7 +84,7 @@ export function evaluateDiscoveredJobHitPreview(
     now?: Date;
   },
 ):
-  | { ok: true; preview: JobMatchPreview }
+  | { ok: true; preview: JobMatchPreview; eligibility: JobEligibility }
   | { ok: false; reason: "missing_description" | "invalid_external_id" | "evaluation_failed" } {
   try {
     const prepared = ingestDiscoveredJobHit(hit, options);
@@ -90,7 +95,11 @@ export function evaluateDiscoveredJobHitPreview(
       };
     }
     // Discard temporary ApplyFlowJob — only the Match Engine projection is retained.
-    return { ok: true, preview: projectJobMatch(prepared.job.jobMatch) };
+    return {
+      ok: true,
+      preview: projectJobMatch(prepared.job.jobMatch),
+      eligibility: assessJobEligibility(options.profile, hit.description ?? ""),
+    };
   } catch {
     return { ok: false, reason: "evaluation_failed" };
   }
@@ -125,6 +134,9 @@ export function sortDiscoveryHitsByMatch(
     const leftReady = leftState?.status === "ready" && leftState.preview;
     const rightReady = rightState?.status === "ready" && rightState.preview;
     if (leftReady && rightReady) {
+      const byEligibility =
+        eligibilitySortRank(leftState.eligibility?.status) - eligibilitySortRank(rightState.eligibility?.status);
+      if (byEligibility !== 0) return byEligibility;
       if (leftState.preview!.score !== rightState.preview!.score) {
         return rightState.preview!.score - leftState.preview!.score;
       }

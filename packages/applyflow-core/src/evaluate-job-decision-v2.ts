@@ -1,4 +1,5 @@
 import { auditClaims, recommendedClaims } from "./claim-safety.js";
+import { assessJobEligibility } from "./job-eligibility.js";
 import { buildCandidateInputRequests } from "./candidate-input.js";
 import { evaluateApplicationGates, hasFailingRequiredGate } from "./application-gates.js";
 import type { Evidence } from "./evidence-types.js";
@@ -299,6 +300,24 @@ export function evaluateJobDecisionV2(input: {
       reasons = [...reasons, "Muitos requisitos estão sem evidência. Isso não é uma recomendação forte de candidatura."];
     }
   }
+  const eligibility = input.profile ? assessJobEligibility(input.profile, input.jobText) : undefined;
+  if (eligibility?.status === "ineligible" && decision !== "skip") {
+    decision = "skip";
+    reasons = [
+      ...reasons,
+      ...eligibility.findings.filter((item) => item.status === "ineligible").map((item) => item.reason),
+    ];
+  } else if (
+    eligibility?.status === "unknown" &&
+    (decision === "apply_high" || decision === "apply_normal" || decision === "apply_stretch")
+  ) {
+    decision = "needs_info";
+    reasons = [
+      ...reasons,
+      "Elegibilidade não confirmada. Cobertura técnica não fecha a recomendação.",
+      ...eligibility.findings.filter((item) => item.status === "unknown").map((item) => item.reason),
+    ];
+  }
   const claims = auditClaims(input.claims ?? defaultClaims(input.jobText, matches), input.evidence);
   const candidateInputRequests = buildCandidateInputRequests({ matches, jobId: input.jobId });
   const priority =
@@ -330,5 +349,6 @@ export function evaluateJobDecisionV2(input: {
     gates,
     candidateInputRequests,
     reasons,
+    eligibility,
   };
 }

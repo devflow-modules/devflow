@@ -2,6 +2,7 @@ import type { ClaimAudit } from "./claim-safety.js";
 import type { EvidenceMatch } from "./evidence-matching.js";
 import type { ApplicationGate } from "./application-gates.js";
 import type { CandidateInputRequest } from "./candidate-input.js";
+import type { JobEligibility } from "./job-eligibility.js";
 import type { Confidence } from "./types.js";
 
 export const APPLICATION_DECISIONS = ["apply_high", "apply_normal", "apply_stretch", "needs_info", "skip"] as const;
@@ -65,4 +66,6 @@ export type JobDecisionV2 = {
   gates: ApplicationGate[];
   candidateInputRequests: CandidateInputRequest[];
   reasons: string[];
+  /** Separate from overall/technical coverage. Absent on older snapshots. */
+  eligibility?: JobEligibility;
 };

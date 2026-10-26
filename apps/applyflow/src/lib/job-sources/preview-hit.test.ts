@@ -144,4 +144,31 @@ describe("preview fingerprints and sorting", () => {
     const sorted = sortDiscoveryHitsByMatch(hits, previews).map((item) => item.externalId);
     expect(sorted).toEqual(["high", "low", "need"]);
   });
+
+  it("ranks an eligible hit ahead of an equal technical score that is geographically ineligible", () => {
+    const preview = {
+      score: 100,
+      decision: "apply" as const,
+      matchedSkills: ["React"],
+      missingSkills: [],
+      scoringVersion: "v1" as const,
+    };
+    const hits: JobSearchHit[] = [
+      hit({ externalId: "us", title: "US" }),
+      hit({ externalId: "br", title: "BR" }),
+    ];
+    const previews: Record<string, DiscoveryHitPreviewState> = {
+      "theirstack:us": {
+        status: "ready",
+        preview,
+        eligibility: { status: "ineligible", findings: [] },
+      },
+      "theirstack:br": {
+        status: "ready",
+        preview,
+        eligibility: { status: "eligible", findings: [] },
+      },
+    };
+    expect(sortDiscoveryHitsByMatch(hits, previews).map((item) => item.externalId)).toEqual(["br", "us"]);
+  });
 });
