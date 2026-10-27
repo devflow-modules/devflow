@@ -345,6 +345,14 @@ describe("inbound response detection", () => {
       source: "paste",
       status: "reviewing",
       jobContext: { skills: ["React"] },
+      jobMatch: {
+        score: 88,
+        decision: "apply",
+        matchedSkills: ["React"],
+        missingSkills: [],
+        evaluatedAt: "2026-09-12T16:53:30.919Z",
+        scoringVersion: "v1",
+      },
       createdAt: "2026-09-12T16:53:30.919Z",
       updatedAt: "2026-09-12T16:53:30.919Z",
     };
