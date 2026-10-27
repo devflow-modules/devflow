@@ -1,4 +1,5 @@
 import { isOpenableJobUrl } from "./application-pack.js";
+import type { ApplicationPackV2 } from "./application-pack-v2.js";
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
 import type { ApplyFlowApplicationV2Envelope } from "./application-record-v2.js";
 import { isJobMatchStale } from "./ingest-applyflow-job.js";
@@ -13,6 +14,8 @@ export type ApplicationReadinessItemId =
   | "analyzed"
   | "curriculum"
   | "gaps"
+  | "pack"
+  | "claims"
   | "source"
   | "application"
   | "submission";
@@ -57,6 +60,8 @@ export function deriveApplicationReadiness(input: {
   job: ApplyFlowJob;
   resumeLibrary?: ResumeLibrary | null;
   application?: ApplyFlowApplicationV2Envelope | null;
+  /** V2 pack for this job; its evaluation, confirmations and claim handling gate readiness. */
+  pack?: ApplicationPackV2 | null;
 }): ApplicationReadiness {
   const { job, resumeLibrary } = input;
   const application = input.application ?? null;
@@ -113,11 +118,13 @@ export function deriveApplicationReadiness(input: {
     });
   }
 
+  const pack = input.pack ?? null;
   const matchProfile = resumeProfile(resumeLibrary);
   const eligibility =
-    matchProfile && job.descriptionSnapshot?.trim()
+    pack?.evaluation?.eligibility ??
+    (matchProfile && job.descriptionSnapshot?.trim()
       ? assessJobEligibility(matchProfile, job.descriptionSnapshot)
-      : undefined;
+      : undefined);
 
   if (eligibility?.status === "ineligible") {
     items.push({
@@ -146,6 +153,8 @@ export function deriveApplicationReadiness(input: {
   } else {
     items.push({ id: "gaps", state: "ready", reason: "no_explicit_gaps" });
   }
+
+  if (pack) items.push(...packItems(pack));
 
   items.push(
     hasSourceUrl
@@ -181,6 +190,60 @@ export function deriveApplicationReadiness(input: {
     missingSkillCount,
     unknownSkillCount,
   };
+}
+
+function packItems(pack: ApplicationPackV2): ApplicationReadinessItem[] {
+  if (pack.status === "blocked") {
+    return [{ id: "pack", state: "missing", reason: "pack_blocked", ...(pack.reason ? { detail: pack.reason } : {}) }];
+  }
+
+  const items: ApplicationReadinessItem[] = [];
+  const unknownHard = (pack.evaluation?.matches ?? []).filter(
+    (item) =>
+      item.status === "unknown" &&
+      item.requirement.mandatory &&
+      item.requirement.requirementType !== "salary" &&
+      item.requirement.requirementType !== "schedule",
+  );
+  if (pack.status === "needs_confirmation") {
+    items.push({
+      id: "pack",
+      state: "attention",
+      reason: "language_confirmation_required",
+      detail: (pack.confirmations ?? []).map((item) => item.reason).join(" ") || pack.reason,
+    });
+  } else if (unknownHard.length > 0) {
+    items.push({
+      id: "pack",
+      state: "attention",
+      reason: "unknown_hard_requirement",
+      detail: unknownHard.map((item) => item.requirement.label).join(", "),
+    });
+  } else {
+    items.push({ id: "pack", state: "ready", reason: "pack_ready" });
+  }
+
+  const handling = pack.claimHandling;
+  if (handling && handling.unsafeInOutput.length > 0) {
+    items.push({ id: "claims", state: "missing", reason: "unsafe_claim_present", detail: handling.unsafeInOutput.join(" | ") });
+  } else if (handling && handling.removedMaterial.length > 0) {
+    items.push({
+      id: "claims",
+      state: "ready",
+      reason: "material_claims_removed",
+      detail: String(handling.removedMaterial.length),
+    });
+  } else if (handling && handling.removedOptional.length > 0) {
+    items.push({
+      id: "claims",
+      state: "ready",
+      reason: "optional_claims_removed",
+      detail: String(handling.removedOptional.length),
+    });
+  } else {
+    items.push({ id: "claims", state: "ready", reason: "claims_supported" });
+  }
+  return items;
 }
 
 function resumeProfile(library: ResumeLibrary | null | undefined) {

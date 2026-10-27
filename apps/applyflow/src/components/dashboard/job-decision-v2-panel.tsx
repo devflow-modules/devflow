@@ -87,6 +87,7 @@ import {
   JOB_DECISION_V2_OUTCOME_NOTE,
   JOB_DECISION_V2_PACK_BLOCKED,
   JOB_DECISION_V2_PACK_INCOMPLETE,
+  JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION,
   JOB_DECISION_V2_INCOMPLETE,
   JOB_DECISION_V2_PRIMARY_TABS,
   JOB_DECISION_V2_REQUIREMENTS,
@@ -135,7 +136,10 @@ const EMPTY_CONTACTS: Contact[] = [];
 function readinessItemLabel(item: ApplicationReadinessItem): string {
   const base = JOB_READINESS_ITEM_LABELS[item.id];
   const reason = JOB_READINESS_REASON_LABELS[item.reason] ?? item.reason;
-  if (item.detail && (item.id === "gaps" || item.id === "analyzed" || item.id === "curriculum")) {
+  if (
+    item.detail &&
+    (item.id === "gaps" || item.id === "analyzed" || item.id === "curriculum" || item.id === "pack" || item.id === "claims")
+  ) {
     return `${base}: ${reason}${item.detail ? ` (${item.detail})` : ""}`;
   }
   return `${base}: ${reason}`;
@@ -561,8 +565,9 @@ export function JobDecisionV2Panel({
       job,
       resumeLibrary: ctx.ok ? ctx.library : null,
       application,
+      pack,
     });
-  }, [job, application]);
+  }, [job, application, pack]);
 
   const registeredAnalysis = useMemo(
     () => registeredAnalysisFromSnapshot(registeredSnapshot),
@@ -1130,6 +1135,16 @@ export function JobDecisionV2Panel({
               </ApplyFlowCard>
             ) : (
               <div className="grid gap-4">
+                {pack.status === "needs_confirmation" ? (
+                  <ApplyFlowCard variant="warning" padding="md" data-testid="job-decision-v2-pack-confirmation">
+                    <p className="text-sm text-[color:var(--af-text)]">{JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION}</p>
+                    {(pack.confirmations ?? []).map((item) => (
+                      <p key={item.id} className="mt-2 text-xs text-[color:var(--af-text-muted)]">
+                        {item.reason}
+                      </p>
+                    ))}
+                  </ApplyFlowCard>
+                ) : null}
                 <ApplyFlowCard padding="md">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
                     Resume

@@ -5,8 +5,7 @@ import { computeClosedLoopV1Backfill } from "@/lib/persist-application-decision"
 import { resolveV2CandidateContext } from "@/lib/v2-candidate-context";
 import { loadDashboardJobs } from "@/lib/local-job-storage";
 import {
-  createApplicationPackV2,
-  evaluateJobDecisionV2,
+  evaluateJobApplicationV2,
   findApplicationForJob,
   getApplicationLifecycleView,
   type ApplicationCareerEvent,
@@ -120,26 +119,16 @@ export function loadJobDecisionV2Snapshot(
     return { ...base, needsResume: true };
   }
 
-  const decision = evaluateJobDecisionV2({
-    jobText: text,
-    evidence: ctx.evidence,
-    profile: ctx.profile,
+  const { decision, pack } = evaluateJobApplicationV2({
     jobId: found.id,
+    jobText: text,
+    jobTitle: found.title,
+    companyName: found.company,
+    source: found.source,
+    profile: ctx.profile,
+    evidence: ctx.evidence,
+    resumeLibrary: ctx.library,
   });
 
-  return {
-    ...base,
-    decision,
-    pack: createApplicationPackV2({
-      jobId: found.id,
-      jobText: text,
-      jobTitle: found.title,
-      companyName: found.company,
-      source: found.source,
-      profile: ctx.profile,
-      evidence: ctx.evidence,
-      decision,
-      resumeLibrary: ctx.library,
-    }),
-  };
+  return { ...base, decision, pack };
 }

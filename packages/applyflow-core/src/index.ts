@@ -348,7 +348,13 @@ export { ensureResumeLibrary } from "./migrate-resume-library.js";
 export type { EnsureResumeLibraryResult } from "./migrate-resume-library.js";
 export { parseResumeLibraryImport, serializeResumeLibraryImport } from "./imported-resume-library-schema.js";
 export type { ParsedResumeLibraryImport } from "./imported-resume-library-schema.js";
-export { recommendResumeV2, forbiddenKeywordsFromDecision, isApplyDecision, RESUME_STRATEGIES_V2 } from "./resume-router-v2.js";
+export {
+  recommendResumeV2,
+  selectResumeVariantForJob,
+  forbiddenKeywordsFromDecision,
+  isApplyDecision,
+  RESUME_STRATEGIES_V2,
+} from "./resume-router-v2.js";
 export type { ResumeRecommendationV2, ResumeStrategyV2 } from "./resume-router-v2.js";
 export {
   classifyJobLanguage,
@@ -470,8 +476,18 @@ export { recommendCases } from "./case-match.js";
 export type { CaseRecommendation } from "./case-match.js";
 export { buildInterviewBrief } from "./interview-brief.js";
 export type { InterviewBrief } from "./interview-brief.js";
-export { createApplicationPackV2, canCreateApplicationPackV2, APPLICATION_PACK_V2_VERSION } from "./application-pack-v2.js";
-export type { ApplicationPackV2, ApplicationPackV2Status } from "./application-pack-v2.js";
+export {
+  createApplicationPackV2,
+  evaluateJobApplicationV2,
+  canCreateApplicationPackV2,
+  APPLICATION_PACK_V2_VERSION,
+} from "./application-pack-v2.js";
+export type {
+  ApplicationPackV2,
+  ApplicationPackV2Status,
+  ApplicationPackConfirmation,
+  ApplicationPackClaimHandling,
+} from "./application-pack-v2.js";
 export { attachApplicationV2Meta, applicationMetaFromDecision, stripApplicationV2Meta } from "./application-record-v2.js";
 export type { ApplyFlowApplicationV2Envelope, ApplyFlowApplicationV2Meta } from "./application-record-v2.js";
 export {

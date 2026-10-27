@@ -8,6 +8,7 @@ import type { ResumeLibrary, ResumeVariant } from "./resume-library-types.js";
 import { getDefaultResumeVariant } from "./resume-library.js";
 import { classifyJobLanguage, classifyResumeLanguage, routeResumeLanguage, type ResumeLanguage } from "./job-language.js";
 import { recommendCurriculum } from "./curriculum-router.js";
+import { extractJobRequirements } from "./extract-job-requirements.js";
 
 export const RESUME_STRATEGIES_V2 = ["ats", "recruiter", "personalized_ats", "personalized_recruiter"] as const;
 export type ResumeStrategyV2 = (typeof RESUME_STRATEGIES_V2)[number];
@@ -111,31 +112,16 @@ function variantFromProfile(profile: CandidateProfile, now: Date): ResumeVariant
   };
 }
 
-export function recommendResumeV2(input: {
+function selectVariant(input: {
   jobText: string;
-  decision: JobDecisionV2;
+  skills: string[];
   profile: CandidateProfile;
   library?: ResumeLibrary;
-  source?: ApplyFlowJobSource;
   now?: Date;
-}): ResumeRecommendationV2 {
-  const intel = extractJobIntelligence(input.jobText);
-  const recruiter = recruiterChannel(input.jobText, input.source);
-  const ats = atsChannel(input.jobText, input.source) && !recruiter;
-  const stretch = input.decision.decision === "apply_stretch" || input.decision.careerUpside === "very_high";
-  const specific = specificRequirements(input.decision.matches);
-  const highPriority = input.decision.priority >= 70 || input.decision.decision === "apply_high";
-  const personalize = (highPriority && specific) || stretch;
-
-  let strategy: ResumeStrategyV2;
-  if (recruiter && personalize) strategy = "personalized_recruiter";
-  else if (ats && personalize) strategy = "personalized_ats";
-  else if (recruiter) strategy = "recruiter";
-  else strategy = "ats";
-
+}) {
   const library = input.library;
   const ranked = library && library.variants.length >= 2
-    ? recommendCurriculum({ skills: input.decision.matches.map((item) => item.requirement.skillHint ?? item.requirement.label) }, library, {
+    ? recommendCurriculum({ skills: input.skills }, library, {
         now: input.now,
         jobText: input.jobText,
       })
@@ -165,6 +151,52 @@ export function recommendResumeV2(input: {
   const variant = library
     ? library.variants.find((item) => item.id === (routed?.variantId ?? ranked?.recommendedVariantId)) ?? getDefaultResumeVariant(library)
     : variantFromProfile(input.profile, now);
+  return { variant, ranked, routed };
+}
+
+/**
+ * Selects the resume variant from the posting and the library only — before any evidence is
+ * matched — so the decision can be evaluated with the selected variant's evidence.
+ */
+export function selectResumeVariantForJob(input: {
+  jobText: string;
+  profile: CandidateProfile;
+  library?: ResumeLibrary;
+  now?: Date;
+}): ResumeVariant {
+  const skills = extractJobRequirements(input.jobText).map((item) => item.skillHint ?? item.label);
+  return selectVariant({ ...input, skills }).variant;
+}
+
+export function recommendResumeV2(input: {
+  jobText: string;
+  decision: JobDecisionV2;
+  profile: CandidateProfile;
+  library?: ResumeLibrary;
+  source?: ApplyFlowJobSource;
+  now?: Date;
+}): ResumeRecommendationV2 {
+  const intel = extractJobIntelligence(input.jobText);
+  const recruiter = recruiterChannel(input.jobText, input.source);
+  const ats = atsChannel(input.jobText, input.source) && !recruiter;
+  const stretch = input.decision.decision === "apply_stretch" || input.decision.careerUpside === "very_high";
+  const specific = specificRequirements(input.decision.matches);
+  const highPriority = input.decision.priority >= 70 || input.decision.decision === "apply_high";
+  const personalize = (highPriority && specific) || stretch;
+
+  let strategy: ResumeStrategyV2;
+  if (recruiter && personalize) strategy = "personalized_recruiter";
+  else if (ats && personalize) strategy = "personalized_ats";
+  else if (recruiter) strategy = "recruiter";
+  else strategy = "ats";
+
+  const { variant, ranked, routed } = selectVariant({
+    jobText: input.jobText,
+    skills: input.decision.matches.map((item) => item.requirement.skillHint ?? item.requirement.label),
+    profile: input.profile,
+    library: input.library,
+    now: input.now,
+  });
 
   const forbidden = forbiddenKeywordsFromDecision({
     matches: input.decision.matches,

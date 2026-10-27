@@ -1,17 +1,29 @@
 // @vitest-environment jsdom
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { ApplyFlowApplicationV2Envelope, ApplyFlowJob } from "@devflow/applyflow-core";
+import {
+  addResumeVariant,
+  createResumeLibraryFromProfile,
+  EMPTY_ANSWER_BANK,
+  validateCandidateProfile,
+  type ApplyFlowApplicationV2Envelope,
+  type ApplyFlowJob,
+} from "@devflow/applyflow-core";
 
 import { APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY } from "@/lib/local-analytics-storage";
 import { persistDashboardJobs } from "@/lib/local-job-storage";
+import { persistResumeLibrary } from "@/lib/local-resume-library-storage";
 import { persistApplicationWithOutcome } from "@/lib/persist-application-decision";
 
 import { JobDecisionV2Panel } from "./job-decision-v2-panel";
 import { testBootstrapV1 } from "./test-persistence-bootstrap";
-import { JOB_DECISION_V2_MISSING, JOB_DECISION_V2_TITLE } from "./job-decision-v2-content";
+import {
+  JOB_DECISION_V2_MISSING,
+  JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION,
+  JOB_DECISION_V2_TITLE,
+} from "./job-decision-v2-content";
 
 const jobA: ApplyFlowJob = {
   id: "job_a",
@@ -44,7 +56,50 @@ afterEach(() => {
   cleanup();
 });
 
+function persistLanguageMismatchLibrary() {
+  const profile = (language: "en" | "pt", skills: Record<string, number>) =>
+    validateCandidateProfile({
+      name: "Candidato Sintético",
+      location: "Santos, SP, Brazil",
+      englishLevel: "Advanced",
+      roles: ["Senior Full Stack Engineer"],
+      skills,
+      facts: { location: "Santos, SP, Brazil", totalYearsExperience: 6, remotePreference: "remote", englishLevel: "Advanced" },
+      answerBank: { ...EMPTY_ANSWER_BANK, tellUsAboutYourself: `${language === "en" ? "EN" : "PT"} intro: React and TypeScript.` },
+    });
+  const stack = { React: 6, Nextjs: 3, TypeScript: 5, Nodejs: 6 };
+  const now = new Date("2026-10-27T15:00:00.000Z");
+  const seeded = createResumeLibraryFromProfile(profile("pt", { ...stack, PostgreSQL: 3 }), {
+    now,
+    id: "rv_pt",
+    name: "CV ATS PT-BR 2026",
+  });
+  const added = addResumeVariant(seeded, { profile: profile("en", stack), name: "CV ATS EN 2026", id: "rv_en", now });
+  if (!added.ok) throw new Error(added.error);
+  persistResumeLibrary(added.library);
+}
+
 describe("JobDecisionV2Panel", () => {
+  it("I20C mostra a confirmação de idioma na preparação e no pack", () => {
+    persistLanguageMismatchLibrary();
+    persistDashboardJobs([
+      {
+        ...jobA,
+        descriptionSnapshot:
+          "We are looking for a Senior Software Engineer. Remote - Brazil. PostgreSQL. React, Next.js, TypeScript and Node.js. Minimum 5 years.",
+      },
+    ]);
+    render(<JobDecisionV2Panel jobId={jobA.id} persistenceBootstrap={testBootstrapV1} />);
+
+    fireEvent.click(screen.getByTestId("application-readiness-toggle"));
+    expect(screen.getByText(/Confirme o idioma do currículo/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Pack" }));
+    expect(screen.getByTestId("job-decision-v2-pack-confirmation").textContent).toContain(
+      JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION,
+    );
+  });
+
   it("renderiza o estado de carregamento no servidor", () => {
     const html = renderToStaticMarkup(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
     expect(html).toContain("A carregar");
