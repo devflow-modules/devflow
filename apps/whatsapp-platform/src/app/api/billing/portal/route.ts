@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isStripeEnvironmentDeniedError } from "@devflow/billing-core";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { createBillingPortalSession } from "@/modules/billing/billingService";
@@ -28,6 +29,9 @@ export async function POST(request: NextRequest) {
     const { portalUrl } = await createBillingPortalSession(auth.payload.tenantId, returnUrl);
     return jsonSuccess({ url: portalUrl });
   } catch (e) {
+    if (isStripeEnvironmentDeniedError(e)) {
+      return jsonError("stripe_unavailable_in_environment", "Stripe is unavailable in this environment", 503);
+    }
     console.error("[billing/portal]", e);
     const msg = e instanceof Error ? e.message : "Portal indisponível";
     return jsonError("BILLING_PORTAL_FAILED", msg, 400);

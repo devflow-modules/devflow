@@ -40,7 +40,6 @@ export type CreateMeterEventParams = {
 export async function createMeterEvent(
   params: CreateMeterEventParams
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const stripe = getStripe();
   const ts = params.timestamp ?? Math.floor(Date.now() / 1000);
   const prefix =
     params.eventName === METER_EVENT_MESSAGES
@@ -52,6 +51,8 @@ export async function createMeterEvent(
     params.identifier ?? `${prefix}_${params.stripeCustomerId}_${Date.now()}`;
 
   try {
+    // getStripe() enforces fail-closed runtime policy before any network call.
+    const stripe = getStripe();
     await stripe.billing.meterEvents.create({
       event_name: params.eventName,
       payload: {

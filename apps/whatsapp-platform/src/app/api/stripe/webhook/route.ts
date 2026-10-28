@@ -13,6 +13,10 @@
 
 import type Stripe from "stripe";
 import { NextRequest } from "next/server";
+import {
+  isStripeEnvironmentDeniedError,
+  isStripeWebhookProcessingAllowed,
+} from "@devflow/billing-core";
 import { validateWebhook } from "@/modules/stripe/stripeWebhook";
 import {
   claimStripeWebhookEvent,
@@ -31,6 +35,11 @@ import { recordPlatformAudit } from "@/lib/platformAuditLog";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  // --- 0. Fail-closed: Preview / non-production hosts must not mutate billing ---
+  if (!isStripeWebhookProcessingAllowed()) {
+    return new Response("Stripe unavailable in this environment", { status: 503 });
+  }
+
   // --- 1. Segurança: validar assinatura ---
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
@@ -48,6 +57,9 @@ export async function POST(request: NextRequest) {
   try {
     event = validateWebhook(signature, payload) as Stripe.Event;
   } catch (err) {
+    if (isStripeEnvironmentDeniedError(err)) {
+      return new Response("Stripe unavailable in this environment", { status: 503 });
+    }
     logWebhookInvalidSignature(err);
     return new Response("Webhook Error", { status: 400 });
   }

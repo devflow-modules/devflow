@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { isStripeEnvironmentDeniedError } from "@devflow/billing-core";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession, isStripeConfigured, type StripePlanKey } from "@/modules/stripe";
@@ -87,6 +88,12 @@ export async function POST(request: NextRequest) {
       data: { url: checkoutUrl },
     });
   } catch (e) {
+    if (isStripeEnvironmentDeniedError(e)) {
+      return NextResponse.json(
+        { success: false, error: "Stripe is unavailable in this environment", code: "stripe_unavailable_in_environment" },
+        { status: 503 }
+      );
+    }
     console.error("[stripe/checkout]", e);
     const msg = e instanceof Error ? e.message : "Checkout indisponível";
     return NextResponse.json({ success: false, error: msg }, { status: 502 });
