@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isStripeEnvironmentDeniedError } from "@devflow/billing-core";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
 import { prisma } from "@/lib/prisma";
 import { createPortalSession } from "@/modules/stripe";
@@ -64,6 +65,12 @@ export async function POST(request: NextRequest) {
       data: { url: portalUrl },
     });
   } catch (e) {
+    if (isStripeEnvironmentDeniedError(e)) {
+      return NextResponse.json(
+        { success: false, error: "Stripe is unavailable in this environment", code: "stripe_unavailable_in_environment" },
+        { status: 503 }
+      );
+    }
     console.error("[stripe/portal]", e);
     const msg = e instanceof Error ? e.message : "Portal indisponível";
     return NextResponse.json({ success: false, error: msg }, { status: 400 });

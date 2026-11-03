@@ -2,6 +2,8 @@
  * Adapter do Stripe Customer Portal.
  * Cria sessões de self-service para o usuário gerenciar sua assinatura.
  * Arquitetura permite substituição por outro gateway sem alterar o serviço.
+ *
+ * Live financial ops require verified Vercel Production — see stripeRuntimePolicy.
  */
 
 import Stripe from "stripe";
@@ -10,18 +12,21 @@ import type {
   CreateCustomerPortalResult,
   CustomerPortalAdapter,
 } from "../types";
+import { assertStripeSecretKeyAllowed } from "../stripeRuntimePolicy";
 
 function getSecretKey(): string {
-  const isDev = process.env.NODE_ENV !== "production";
+  const preferTestVars = process.env.NODE_ENV !== "production";
   const testKey = process.env.STRIPE_TEST_SECRET_KEY;
   const liveKey = process.env.STRIPE_SECRET_KEY;
-  if (isDev && testKey) return testKey;
+  if (preferTestVars && testKey) return testKey;
   if (liveKey) return liveKey;
   throw new Error("STRIPE_SECRET_KEY is not set");
 }
 
 function getStripe(): Stripe {
-  return new Stripe(getSecretKey());
+  const secretKey = getSecretKey();
+  assertStripeSecretKeyAllowed(secretKey);
+  return new Stripe(secretKey);
 }
 
 export async function createCustomerPortalSession(

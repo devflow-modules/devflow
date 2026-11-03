@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { isStripeEnvironmentDeniedError } from "@devflow/billing-core";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getAuthFromRequest, requireRole, ROLES_MANAGER_PLUS } from "@/modules/auth";
@@ -62,6 +63,9 @@ export async function POST(request: NextRequest) {
     );
     return jsonSuccess({ url: checkoutUrl });
   } catch (e) {
+    if (isStripeEnvironmentDeniedError(e)) {
+      return jsonError("stripe_unavailable_in_environment", "Stripe is unavailable in this environment", 503);
+    }
     console.error("[billing/checkout]", e);
     const msg = e instanceof Error ? e.message : "Checkout indisponível";
     return jsonError("CHECKOUT_UNAVAILABLE", msg, 502);

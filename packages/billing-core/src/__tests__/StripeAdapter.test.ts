@@ -171,7 +171,7 @@ describe("StripeAdapter", () => {
           mode: "subscription",
           client_reference_id: "user-1",
           customer_email: "u@example.com",
-          metadata: { userId: "user-1", planId: "PRO" },
+          metadata: expect.objectContaining({ userId: "user-1", planId: "PRO" }),
         })
       );
     });

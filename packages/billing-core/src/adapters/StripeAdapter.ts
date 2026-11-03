@@ -1,6 +1,9 @@
 /**
  * Adapter de pagamento Stripe: checkout session e webhooks.
  * Arquitetura permite trocar por Lemon, Paddle, Mercado Pago sem alterar o resto.
+ *
+ * Live financial ops require verified Vercel Production — see stripeRuntimePolicy.
+ * NODE_ENV only selects which env var names to read; it is not a security boundary.
  */
 
 import Stripe from "stripe";
@@ -10,17 +13,21 @@ import type {
   WebhookParsedEvent,
   PlanIdPaid,
 } from "../types";
+import {
+  assertStripeSecretKeyAllowed,
+  assertStripeWebhookProcessingAllowed,
+} from "../stripeRuntimePolicy";
 
 /**
- * Em desenvolvimento, usa STRIPE_TEST_SECRET_KEY se disponível (cartões de teste).
- * Em produção, usa STRIPE_SECRET_KEY (chave live).
+ * Prefer STRIPE_TEST_SECRET_KEY outside NODE_ENV=production.
+ * Authorization of the resolved key is enforced separately (fail-closed).
  */
 const getSecretKey = (): string => {
-  const isDev = process.env.NODE_ENV !== "production";
+  const preferTestVars = process.env.NODE_ENV !== "production";
   const testKey = process.env.STRIPE_TEST_SECRET_KEY;
   const liveKey = process.env.STRIPE_SECRET_KEY;
 
-  if (isDev && testKey) return testKey;
+  if (preferTestVars && testKey) return testKey;
   if (liveKey) return liveKey;
   throw new Error("STRIPE_SECRET_KEY is not set");
 };
@@ -32,18 +39,21 @@ const getWebhookSecret = (): string => {
 };
 
 const getPriceId = (planId: PlanIdPaid): string => {
-  const isDev = process.env.NODE_ENV !== "production";
+  const preferTestVars = process.env.NODE_ENV !== "production";
   const baseKey = planId === "PRO" ? "PRICE_PRO" : "PRICE_TEAM";
   const testKey = `STRIPE_TEST_${baseKey}`;
   const liveKey = `STRIPE_${baseKey}`;
 
-  const priceId = (isDev && process.env[testKey]) ? process.env[testKey] : process.env[liveKey];
-  if (!priceId) throw new Error(`${isDev ? testKey : liveKey} is not set`);
+  const priceId =
+    preferTestVars && process.env[testKey] ? process.env[testKey] : process.env[liveKey];
+  if (!priceId) throw new Error(`${preferTestVars ? testKey : liveKey} is not set`);
   return priceId;
 };
 
 function getStripe(): Stripe {
-  return new Stripe(getSecretKey());
+  const secretKey = getSecretKey();
+  assertStripeSecretKeyAllowed(secretKey);
+  return new Stripe(secretKey);
 }
 
 /**
@@ -88,6 +98,7 @@ export async function createCheckoutSession(
  * Valida a assinatura do webhook e retorna o evento construído.
  */
 export function validateWebhook(signature: string, payload: string | Buffer): Stripe.Event {
+  assertStripeWebhookProcessingAllowed();
   const secret = getWebhookSecret();
   const stripe = getStripe();
   return stripe.webhooks.constructEvent(payload, signature, secret);
