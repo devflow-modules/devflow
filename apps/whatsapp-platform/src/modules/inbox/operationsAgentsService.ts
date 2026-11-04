@@ -15,6 +15,8 @@ export type OperationalAgentRow = {
   email: string;
   /** Valor em `whatsapp_users.role` (operator | manager | platform_admin). */
   role: string;
+  /** Lifecycle: pending | active | disabled. */
+  accountStatus: string;
   /** Estado em `whatsapp_agent_status`; fallback `offline` se não existir registo. */
   status: string;
   /** Threads não fechadas atribuídas ao utilizador. */
@@ -46,6 +48,7 @@ export async function listOperationalAgents(tenantId: string): Promise<Operation
       name: true,
       email: true,
       role: true,
+      status: true,
       agentStatus: { select: { status: true, updatedAt: true } },
       waInboxQueueMemberships: {
         where: { isActive: true },
@@ -102,6 +105,7 @@ export async function listOperationalAgents(tenantId: string): Promise<Operation
       name: u.name,
       email: u.email,
       role: u.role,
+      accountStatus: u.status ?? "active",
       status: u.agentStatus?.status ?? "offline",
       activeThreadCount: countByUser.get(u.id) ?? 0,
       queues,

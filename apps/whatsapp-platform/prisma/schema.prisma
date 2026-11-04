@@ -206,13 +206,17 @@ model Commission {
 
 /** Controlo operacional por tenant (pausas manuais sem alterar AiAgentConfig). */
 model TenantOperationalConfig {
-  id                  String   @id @default(cuid())
-  tenantId            String   @unique @map("tenant_id")
-  aiEnabled           Boolean  @default(true) @map("ai_enabled")
-  automationEnabled   Boolean  @default(true) @map("automation_enabled")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  updatedByUserId     String?  @map("updated_by_user_id") @db.VarChar(128)
-  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                            String   @id @default(cuid())
+  tenantId                      String   @unique @map("tenant_id")
+  aiEnabled                     Boolean  @default(true) @map("ai_enabled")
+  automationEnabled             Boolean  @default(true) @map("automation_enabled")
+  /** Client 1: round-robin automático em threads elegíveis sem responsável. */
+  automaticDistributionEnabled  Boolean  @default(false) @map("automatic_distribution_enabled")
+  /** Cursor estável de round-robin (tenant-scoped quando a thread não tem fila). */
+  routingRoundRobinCursor       Int      @default(0) @map("routing_round_robin_cursor")
+  updatedAt                     DateTime @updatedAt @map("updated_at")
+  updatedByUserId               String?  @map("updated_by_user_id") @db.VarChar(128)
+  tenant                        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_operational_configs")
 }
@@ -411,7 +415,7 @@ model AiAgentConfig {
   rules            String[] @default([]) @map("rules")
   forbiddenTopics  String[] @default([]) @map("forbidden_topics")
   handoffTriggers  String[] @default([]) @map("handoff_triggers")
-  autoReply        Boolean @default(true) @map("auto_reply")
+  autoReply        Boolean @default(false) @map("auto_reply")
   outOfHoursReply  String? @map("out_of_hours_reply") @db.Text
   /** ruleBased | openAI | claude — null herda Tenant.ai_driver */
   runtimeDriver    String? @map("runtime_driver") @db.VarChar(32)
@@ -571,19 +575,21 @@ enum WaInboxDeliveryStatus {
 }
 
 model WaInboxQueue {
-  id               String   @id @default(cuid())
-  tenantId         String   @map("tenant_id")
-  name             String   @map("name")
-  slug             String   @map("slug")
-  description      String?  @map("description") @db.Text
-  color            String?  @map("color") @db.VarChar(32)
-  slaTargetMinutes Int?     @map("sla_target_minutes")
-  isActive         Boolean  @default(true) @map("is_active")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  threads          WaInboxThread[]
-  memberships      WaInboxQueueMembership[]
+  id                    String   @id @default(cuid())
+  tenantId              String   @map("tenant_id")
+  name                  String   @map("name")
+  slug                  String   @map("slug")
+  description           String?  @map("description") @db.Text
+  color                 String?  @map("color") @db.VarChar(32)
+  slaTargetMinutes      Int?     @map("sla_target_minutes")
+  isActive              Boolean  @default(true) @map("is_active")
+  /** Cursor round-robin por fila (membros activos ordenados por userId). */
+  routingRoundRobinCursor Int    @default(0) @map("routing_round_robin_cursor")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  threads               WaInboxThread[]
+  memberships           WaInboxQueueMembership[]
 
   @@unique([tenantId, slug])
   @@index([tenantId])
@@ -897,6 +903,14 @@ model User {
   passwordHash          String          @map("password_hash")
   name                  String
   role                  String
+  /**
+   * Lifecycle do membro do tenant: pending (aguarda activação) | active | disabled.
+   * Utilizadores existentes backfill → active.
+   */
+  status                String          @default("active") @map("status") @db.VarChar(32)
+  /** SHA-256 hex do token de activação one-shot (nunca persistir o token em claro). */
+  activationTokenHash   String?         @map("activation_token_hash") @db.VarChar(64)
+  activationExpiresAt   DateTime?       @map("activation_expires_at")
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
   tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -908,6 +922,7 @@ model User {
   waInboxQueueMemberships WaInboxQueueMembership[]
 
   @@index([tenantId])
+  @@index([tenantId, status])
   @@index([email])
   @@map("whatsapp_users")
 }

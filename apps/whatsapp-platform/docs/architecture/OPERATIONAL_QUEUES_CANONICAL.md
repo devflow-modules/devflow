@@ -53,9 +53,16 @@ Não usar tabelas Supabase `queues` / `conversations` antigas para definir fila 
 
 ---
 
-## 6. Evolução (roteamento automático / distribuição)
+## 6. Distribuição automática v1 (Client 1)
 
-A distribuição automática de conversas para agentes (round-robin, carga) deve, quando existir, assentar em **`WaInboxQueue`**, `WaInboxQueueMembership` e threads Prisma — não recriar um segundo modelo de filas.
+Round-robin opt-in via `TenantOperationalConfig.automaticDistributionEnabled` (default `false`).
+
+- Implementação: `src/modules/inbox/automaticRoutingService.ts`
+- Gatilho: pós-inbound (`maybeAutoRouteAfterInbound`) — nunca bloqueia persistência
+- Assignment: sempre `assignThread` (CAS); cursor em `WaInboxQueue.routingRoundRobinCursor` quando há `queueId`, senão cursor no tenant
+- Elegibilidade: tenant + role operacional + `User.status=active` + membership activa quando a thread tem fila
+- Presença online/offline **não** entra na elegibilidade v1
+- Sem elegíveis: thread permanece unassigned
 
 ---
 

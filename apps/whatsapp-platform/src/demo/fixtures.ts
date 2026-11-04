@@ -170,6 +170,7 @@ export const DEMO_AGENTS: OperationalAgentRow[] = [
     name: "Ana Gestora",
     email: "demo.manager@showcase.devflow.local",
     role: "manager",
+    accountStatus: "active",
     status: "available",
     activeThreadCount: 4,
     queues: [{ id: DEMO_QUEUE_VENDAS, name: "Vendas" }],
@@ -180,6 +181,7 @@ export const DEMO_AGENTS: OperationalAgentRow[] = [
     name: "Bruno Operador",
     email: "demo.operator@showcase.devflow.local",
     role: "operator",
+    accountStatus: "active",
     status: "busy",
     activeThreadCount: 7,
     queues: [

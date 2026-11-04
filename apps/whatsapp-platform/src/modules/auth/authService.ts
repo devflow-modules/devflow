@@ -76,7 +76,15 @@ export async function verifyToken(token: string): Promise<JwtPayload | null> {
   return r.ok ? r.payload : null;
 }
 
-export async function findUserByEmail(email: string): Promise<{ id: string; email: string; name: string; role: string; tenantId: string; passwordHash: string } | null> {
+export async function findUserByEmail(email: string): Promise<{
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  tenantId: string;
+  passwordHash: string;
+  status: string;
+} | null> {
   const user = await prisma.user.findUnique({
     where: { email: email.trim().toLowerCase() },
   });
@@ -138,6 +146,12 @@ export async function updateUserPassword(userId: string, newPassword: string): P
 export async function login(email: string, password: string): Promise<{ user: UserSafe } | { error: string }> {
   const user = await findUserByEmail(email);
   if (!user) return { error: "Credenciais inválidas" };
+  if (user.status === "pending") {
+    return { error: "Conta pendente de activação. Use o link enviado pelo gestor." };
+  }
+  if (user.status === "disabled") {
+    return { error: "Conta desactivada. Contacte o gestor da organização." };
+  }
   const ok = await verifyPassword(password, user.passwordHash);
   if (!ok) return { error: "Credenciais inválidas" };
   return {
