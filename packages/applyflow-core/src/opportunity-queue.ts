@@ -1,5 +1,7 @@
 import type { ApplyFlowApplicationStatus } from "./application-types.js";
+import { assessJobEligibility, eligibilitySortRank } from "./job-eligibility.js";
 import type { ApplyFlowJob, ApplyFlowJobSource, JobMatchDecision } from "./job-match-types.js";
+import type { CandidateProfile } from "./profile-schema.js";
 
 /** Explicitly saved jobs always start under review — Match decision is evidence only. */
 export const INITIAL_SAVED_JOB_STATUS = "reviewing" as const satisfies ApplyFlowApplicationStatus;
@@ -54,14 +56,19 @@ export function filterOpportunityJobs(
   });
 }
 
-/** Stable sort: score desc then createdAt desc then id asc; or createdAt desc then id. */
+/** Stable sort: eligibility, then score desc, then createdAt desc, then id. */
 export function sortOpportunityJobs(
   jobs: readonly ApplyFlowJob[],
   sort: OpportunityQueueSort,
+  profile?: CandidateProfile,
 ): ApplyFlowJob[] {
   const copy = [...jobs];
   if (sort === "match") {
     copy.sort((a, b) => {
+      if (profile) {
+        const byEligibility = eligibilitySortRank(jobEligibilityStatus(a, profile)) - eligibilitySortRank(jobEligibilityStatus(b, profile));
+        if (byEligibility !== 0) return byEligibility;
+      }
       const byScore = b.jobMatch.score - a.jobMatch.score;
       if (byScore !== 0) return byScore;
       const byCreated = b.createdAt.localeCompare(a.createdAt);
@@ -85,6 +92,7 @@ export function selectOpportunityQueueJobs(
     sort: OpportunityQueueSort;
     decision?: JobMatchDecision | "all";
     source?: ApplyFlowJobSource | "all";
+    profile?: CandidateProfile;
   },
 ): ApplyFlowJob[] {
   const viewed = filterJobsByQueueView(jobs, options.view);
@@ -92,7 +100,13 @@ export function selectOpportunityQueueJobs(
     decision: options.decision,
     source: options.source,
   });
-  return sortOpportunityJobs(filtered, options.sort);
+  return sortOpportunityJobs(filtered, options.sort, options.profile);
+}
+
+function jobEligibilityStatus(job: ApplyFlowJob, profile: CandidateProfile) {
+  const text = job.descriptionSnapshot?.trim();
+  if (!text) return undefined;
+  return assessJobEligibility(profile, text).status;
 }
 
 /** Human dismisses an opportunity — persists as ignored; does not delete. */

@@ -72,10 +72,11 @@ jobs:
 
   test-applyflow:
     runs-on: ubuntu-latest
-    # Extra headroom: Playwright apt deps can stall on flaky Azure mirrors.
-    timeout-minutes: 30
+    # Extra headroom: Playwright apt deps + isolated Next.js build.
+    timeout-minutes: 45
     # Matches apps/applyflow/docker-compose.yml local Persistence V2 contract.
     # Required by AF-REL-001 PostgreSQL concurrency suite (fail-closed if unreachable).
+    # Migrations MUST target only this disposable service (assert-ci-db gate).
     services:
       postgres:
         image: postgres:16-alpine
@@ -92,6 +93,7 @@ jobs:
           --health-retries 10
     env:
       # CI-only non-secret credentials aligned with apps/applyflow/.env.example + docker-compose.yml
+      # Never replace these with repository secrets or Production URLs.
       DATABASE_URL: postgresql://applyflow:applyflow_local_dev@localhost:5434/applyflow
       DIRECT_URL: postgresql://applyflow:applyflow_local_dev@localhost:5434/applyflow
       APPLYFLOW_DB_TARGET: local
@@ -114,8 +116,20 @@ jobs:
           pnpm --filter @devflow/career-sync build
           pnpm --filter @devflow/career-core build
 
+      # Full core typecheck including __tests__ (tsconfig.build excludes tests).
+      - name: Typecheck ApplyFlow core (including tests)
+        run: pnpm --filter @devflow/applyflow-core exec tsc --noEmit -p tsconfig.json
+
+      # Core unit suite covers technology-identity, eligibility, I20C decision-consistency, etc.
+      - name: Test ApplyFlow core
+        run: pnpm --filter @devflow/applyflow-core test
+
       - name: Generate ApplyFlow Prisma client
         run: pnpm --filter applyflow db:generate
+
+      - name: Assert disposable CI Postgres target
+        working-directory: apps/applyflow
+        run: node ./scripts/ci/release-gates.cjs assert-ci-db
 
       - name: Migrate ApplyFlow schema on service Postgres
         working-directory: apps/applyflow
@@ -141,8 +155,59 @@ jobs:
       - name: Lint ApplyFlow
         run: pnpm --filter applyflow exec eslint "src/**/*.{ts,tsx}"
 
+      - name: Typecheck ApplyFlow app
+        run: pnpm --filter applyflow exec tsc --noEmit -p tsconfig.json
+
       - name: Test ApplyFlow
         run: pnpm --filter applyflow test
+
+      # Isolated production-style build: synthetic DB, Preview markers, no Production secrets.
+      # Limitation: GitHub-hosted runners do not provide verified OS-level network isolation;
+      # preflight fails closed on prohibited credentials and secret .env* files.
+      - name: Assert isolated ApplyFlow build environment
+        working-directory: apps/applyflow
+        env:
+          VERCEL: "1"
+          VERCEL_ENV: preview
+          APPLYFLOW_PERSISTENCE_V2: "false"
+          NEXT_TELEMETRY_DISABLED: "1"
+          # Override job-level CI Postgres URLs with synthetic unreachable hosts.
+          DATABASE_URL: postgresql://ci_build:ci_build@db.ci-build-isolated.invalid:5432/applyflow
+          DIRECT_URL: postgresql://ci_build:ci_build@db.ci-build-isolated.invalid:5432/applyflow
+          # Explicitly clear auth/provider vars if a future job env adds them.
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+          OPENAI_API_KEY: ""
+          THEIRSTACK_API_KEY: ""
+          APPLYFLOW_THEIRSTACK_API_KEY: ""
+          NANGO_SECRET_KEY: ""
+          STRIPE_SECRET_KEY: ""
+        run: |
+          set -euo pipefail
+          node ./scripts/ci/release-gates.cjs assert-no-secret-env-files
+          node ./scripts/ci/release-gates.cjs assert-isolated-build-env
+
+      - name: Build ApplyFlow Next.js (isolated)
+        working-directory: apps/applyflow
+        env:
+          VERCEL: "1"
+          VERCEL_ENV: preview
+          APPLYFLOW_PERSISTENCE_V2: "false"
+          NEXT_TELEMETRY_DISABLED: "1"
+          DATABASE_URL: postgresql://ci_build:ci_build@db.ci-build-isolated.invalid:5432/applyflow
+          DIRECT_URL: postgresql://ci_build:ci_build@db.ci-build-isolated.invalid:5432/applyflow
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+          OPENAI_API_KEY: ""
+          THEIRSTACK_API_KEY: ""
+          APPLYFLOW_THEIRSTACK_API_KEY: ""
+          NANGO_SECRET_KEY: ""
+          STRIPE_SECRET_KEY: ""
+        run: |
+          set -euo pipefail
+          node ./scripts/ci/release-gates.cjs assert-isolated-build-env
+          pnpm exec prisma generate
+          pnpm exec next build --webpack
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

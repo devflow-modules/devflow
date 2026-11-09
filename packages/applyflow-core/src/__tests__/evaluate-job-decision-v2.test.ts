@@ -15,7 +15,7 @@ const NOW = new Date("2026-09-09T12:00:00.000Z");
 const evidence = buildCandidateEvidence(gustavoProfile, gustavoEvidenceSeed, NOW);
 
 const SENIOR_PRODUCT_ENGINEER = `
-Senior Product Engineer — Remote SaaS
+Senior Product Engineer — Remote - Brazil
 
 We need a Senior Product Engineer who owns discovery and delivery end-to-end.
 
@@ -30,7 +30,7 @@ Nice to have:
 `;
 
 const PRODUCT_ENGINEER_AI = `
-Product Engineer + AI — Remote
+Product Engineer + AI — Remote - Brazil
 
 Core role is Product Engineer with React, Next.js, TypeScript and Node.js.
 You will also help with AI features.

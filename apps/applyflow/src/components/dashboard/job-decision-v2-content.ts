@@ -56,6 +56,8 @@ export const JOB_DECISION_V2_PRIMARY_TABS = ["overview", "requirements", "applic
 export const JOB_DECISION_V2_MORE_TABS = ["evidence", "interview"] as const;
 export const JOB_DECISION_V2_MORE_LABEL = "Mais detalhes";
 export const JOB_DECISION_V2_PACK_BLOCKED = "Pack bloqueado — SKIP não gera candidatura recomendada.";
+export const JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION =
+  "Pack aguardando confirmação — o idioma do currículo não corresponde ao do anúncio. Não está pronto para envio.";
 export const JOB_DECISION_V2_INCOMPLETE = "Complete seu perfil para concluir a análise";
 export const JOB_DECISION_V2_PACK_INCOMPLETE =
   "Pack bloqueado — complete o perfil antes de preparar a candidatura.";
@@ -86,6 +88,8 @@ export const JOB_READINESS_ITEM_LABELS = {
   analyzed: "Vaga analisada",
   curriculum: "Currículo",
   gaps: "Lacunas de skills",
+  pack: "Pack de candidatura",
+  claims: "Afirmações do pack",
   source: "Anúncio disponível",
   application: "Candidatura registada",
   submission: "Envio externo",
@@ -101,6 +105,15 @@ export const JOB_READINESS_REASON_LABELS: Record<string, string> = {
   missing_skills: "Rever lacunas explícitas",
   unknown_skills: "Há skills não informadas na vaga",
   needs_info: "Informações insuficientes na análise",
+  ineligible: "Vaga inelegível para o seu perfil",
+  pack_blocked: "Pack bloqueado",
+  pack_ready: "Pack coerente com o currículo selecionado",
+  language_confirmation_required: "Confirme o idioma do currículo",
+  unknown_hard_requirement: "Requisito obrigatório por confirmar",
+  unsafe_claim_present: "Afirmação removida ainda aparece no texto",
+  material_claims_removed: "Afirmações sem evidência removidas",
+  optional_claims_removed: "Afirmações opcionais removidas",
+  claims_supported: "Afirmações com evidência",
   source_url_available: "Link do anúncio disponível",
   source_url_missing: "Sem link de anúncio guardado",
   application_registered: "Registo de candidatura presente",

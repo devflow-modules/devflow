@@ -236,6 +236,21 @@ function skillLine(label: string, skills: readonly string[], cap: number) {
   );
 }
 
+const ELIGIBILITY_LABELS = {
+  eligible: "Elegibilidade: compatível",
+  unknown: "Elegibilidade: confirmação necessária",
+  ineligible: "Elegibilidade: incompatível",
+} as const;
+
+function eligibilityReason(eligibility: { findings: { dimension: string; status: string; reason: string }[] }): string | undefined {
+  const finding =
+    eligibility.findings.find((item) => item.status === "ineligible") ??
+    eligibility.findings.find((item) => item.dimension === "work_mode" && item.status === "unknown") ??
+    eligibility.findings.find((item) => item.status === "unknown") ??
+    eligibility.findings[0];
+  return finding?.reason;
+}
+
 export function DiscoveryMatchPreviewBlock({
   state,
 }: {
@@ -277,6 +292,12 @@ export function DiscoveryMatchPreviewBlock({
           {JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX}
         </span>
       </div>
+      {state.eligibility ? (
+        <p className="text-xs text-[color:var(--af-text-muted)]" data-testid="discovery-eligibility" data-eligibility={state.eligibility.status}>
+          {ELIGIBILITY_LABELS[state.eligibility.status]}
+          {eligibilityReason(state.eligibility) ? ` — ${eligibilityReason(state.eligibility)}` : ""}
+        </p>
+      ) : null}
       {skillLine(JOB_DISCOVERY_PREVIEW_MATCHED, preview.matchedSkills, MATCHED_CAP)}
       {skillLine(JOB_DISCOVERY_PREVIEW_MISSING, preview.missingSkills, MISSING_CAP)}
       {skillLine(JOB_DISCOVERY_PREVIEW_UNKNOWN, preview.unknownSkills ?? [], UNKNOWN_CAP)}
@@ -504,6 +525,7 @@ function computePreviewMap(
     next[key] = {
       status: "ready",
       preview: evaluated.preview,
+      eligibility: evaluated.eligibility,
       fingerprint: fingerprint ?? undefined,
     };
   }

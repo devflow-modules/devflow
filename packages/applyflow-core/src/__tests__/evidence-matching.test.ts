@@ -75,4 +75,68 @@ describe("matchRequirementsToEvidence", () => {
     );
     expect(match?.status).toBe("unknown");
   });
+
+  it("não trata JavaScript como Java", () => {
+    const [match] = matchRequirementsToEvidence(
+      [req({ id: "java", label: "Java", skillHint: "Java" })],
+      [evidence({ id: "e1", label: "Frontend", description: "Interfaces em JavaScript", technologies: ["JavaScript", "React", "TypeScript"] })],
+    );
+    expect(match?.status).not.toBe("proven");
+    expect(match?.status).toBe("unknown");
+  });
+
+  it("não trata ReceitaWS como AWS", () => {
+    const [match] = matchRequirementsToEvidence(
+      [req({ id: "aws", label: "AWS", category: "cloud", skillHint: "AWS" })],
+      [evidence({ id: "e1", label: "Integração fiscal", description: "Integração com ReceitaWS", technologies: ["ReceitaWS"] })],
+    );
+    expect(match?.status).not.toBe("proven");
+    expect(match?.status).not.toBe("partial");
+    expect(match?.status).toBe("unknown");
+  });
+
+  it("não infere anos de AWS a partir de ReceitaWS", () => {
+    const [match] = matchRequirementsToEvidence(
+      [req({
+        id: "aws-years",
+        label: "AWS architecture (5+ years)",
+        category: "cloud",
+        skillHint: "AWS",
+        qualifiers: ["architecture"],
+        minYears: 5,
+        requirementType: "years",
+      })],
+      [evidence({
+        id: "pt_investiga",
+        label: "Integração fiscal",
+        description: "Integração com ReceitaWS para consulta cadastral.",
+        technologies: ["ReceitaWS"],
+        kind: "experience_period",
+        periodStart: "2025-05",
+        periodEnd: "2025-08",
+      })],
+    );
+    expect(match?.status).not.toBe("proven");
+    expect(match?.status).not.toBe("partial");
+    expect(match?.matchedEvidence).toEqual([]);
+  });
+
+  it("mantém AWS, React.js e Postgres como identidades legítimas", () => {
+    const evidenceRows = [
+      evidence({ id: "aws", label: "Cloud", description: "Amazon Web Services", technologies: ["AWS"] }),
+      evidence({ id: "react", label: "UI", description: "React.js components", technologies: ["React.js"] }),
+      evidence({ id: "pg", label: "Dados", description: "Postgres", technologies: ["Postgres"] }),
+    ];
+    const [aws, react, postgres] = matchRequirementsToEvidence(
+      [
+        req({ id: "aws", label: "AWS", category: "cloud", skillHint: "AWS" }),
+        req({ id: "react", label: "React", category: "frontend", skillHint: "React" }),
+        req({ id: "pg", label: "PostgreSQL", category: "data", skillHint: "PostgreSQL" }),
+      ],
+      evidenceRows,
+    );
+    expect(aws?.status).toBe("proven");
+    expect(react?.status).toBe("proven");
+    expect(postgres?.status).toBe("proven");
+  });
 });

@@ -28,7 +28,7 @@ const NOW = new Date("2026-08-18T15:00:00.000Z");
 const LATER = new Date("2026-08-18T16:00:00.000Z");
 
 const APPLY_POSTING = `Senior Product Engineer
-Remote · CLT
+Remote - Brazil · CLT
 
 We need React, Next.js, TypeScript and Node.js to ship product integrations.
 `;

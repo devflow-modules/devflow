@@ -6,7 +6,9 @@ import { extractJobIntelligence, normalizeJobTextForIntel } from "./job-intellig
 import type { CandidateProfile } from "./profile-schema.js";
 import type { ResumeLibrary, ResumeVariant } from "./resume-library-types.js";
 import { getDefaultResumeVariant } from "./resume-library.js";
+import { classifyJobLanguage, classifyResumeLanguage, routeResumeLanguage, type ResumeLanguage } from "./job-language.js";
 import { recommendCurriculum } from "./curriculum-router.js";
+import { extractJobRequirements } from "./extract-job-requirements.js";
 
 export const RESUME_STRATEGIES_V2 = ["ats", "recruiter", "personalized_ats", "personalized_recruiter"] as const;
 export type ResumeStrategyV2 = (typeof RESUME_STRATEGIES_V2)[number];
@@ -21,6 +23,9 @@ export type ResumeRecommendationV2 = {
   sectionsToDeemphasize: string[];
   allowedKeywords: string[];
   forbiddenKeywords: string[];
+  jobLanguage?: ResumeLanguage;
+  resumeLanguage?: ResumeLanguage;
+  requiresLanguageConfirmation?: boolean;
 };
 
 function folded(text: string): string {
@@ -107,6 +112,62 @@ function variantFromProfile(profile: CandidateProfile, now: Date): ResumeVariant
   };
 }
 
+function selectVariant(input: {
+  jobText: string;
+  skills: string[];
+  profile: CandidateProfile;
+  library?: ResumeLibrary;
+  now?: Date;
+}) {
+  const library = input.library;
+  const ranked = library && library.variants.length >= 2
+    ? recommendCurriculum({ skills: input.skills }, library, {
+        now: input.now,
+        jobText: input.jobText,
+      })
+    : undefined;
+  const now = input.now ?? new Date();
+  const routed = library
+    ? routeResumeLanguage({
+        library,
+        candidates: ranked?.candidates ?? library.variants.map((item) => ({
+          variantId: item.id,
+          variantName: item.name,
+          score: 0,
+          decision: "needs_info" as const,
+          matchedSkills: [],
+          missingSkills: [],
+        })),
+        jobText: input.jobText,
+        rank: (items) =>
+          [...items].sort((left, right) => {
+            if (left.score !== right.score) return right.score - left.score;
+            const leftDefault = left.variantId === library.defaultVariantId ? 0 : 1;
+            const rightDefault = right.variantId === library.defaultVariantId ? 0 : 1;
+            return leftDefault - rightDefault || left.variantId.localeCompare(right.variantId);
+          }),
+      })
+    : undefined;
+  const variant = library
+    ? library.variants.find((item) => item.id === (routed?.variantId ?? ranked?.recommendedVariantId)) ?? getDefaultResumeVariant(library)
+    : variantFromProfile(input.profile, now);
+  return { variant, ranked, routed };
+}
+
+/**
+ * Selects the resume variant from the posting and the library only — before any evidence is
+ * matched — so the decision can be evaluated with the selected variant's evidence.
+ */
+export function selectResumeVariantForJob(input: {
+  jobText: string;
+  profile: CandidateProfile;
+  library?: ResumeLibrary;
+  now?: Date;
+}): ResumeVariant {
+  const skills = extractJobRequirements(input.jobText).map((item) => item.skillHint ?? item.label);
+  return selectVariant({ ...input, skills }).variant;
+}
+
 export function recommendResumeV2(input: {
   jobText: string;
   decision: JobDecisionV2;
@@ -129,16 +190,13 @@ export function recommendResumeV2(input: {
   else if (recruiter) strategy = "recruiter";
   else strategy = "ats";
 
-  const library = input.library;
-  const ranked = library && library.variants.length >= 2
-    ? recommendCurriculum({ skills: input.decision.matches.map((item) => item.requirement.skillHint ?? item.requirement.label) }, library, {
-        now: input.now,
-      })
-    : undefined;
-  const now = input.now ?? new Date();
-  const variant = library
-    ? library.variants.find((item) => item.id === ranked?.recommendedVariantId) ?? getDefaultResumeVariant(library)
-    : variantFromProfile(input.profile, now);
+  const { variant, ranked, routed } = selectVariant({
+    jobText: input.jobText,
+    skills: input.decision.matches.map((item) => item.requirement.skillHint ?? item.requirement.label),
+    profile: input.profile,
+    library: input.library,
+    now: input.now,
+  });
 
   const forbidden = forbiddenKeywordsFromDecision({
     matches: input.decision.matches,
@@ -150,13 +208,16 @@ export function recommendResumeV2(input: {
   ].slice(0, 6);
   const deemphasize = forbidden.slice(0, 6);
 
-  const reason = personalize
-    ? stretch
-      ? `Strategic/stretch role — ${strategy} so changes stay evidence-safe.`
-      : `High priority with specific requirements — ${strategy}.`
-    : recruiter
-      ? "Direct recruiter/referral channel — recruiter-readable resume."
-      : "ATS/portal channel — parseable resume without invented keywords.";
+  const reason = [
+    routed?.reason,
+    personalize
+      ? stretch
+        ? `Strategic/stretch role — ${strategy} so changes stay evidence-safe.`
+        : `High priority with specific requirements — ${strategy}.`
+      : recruiter
+        ? "Direct recruiter/referral channel — recruiter-readable resume."
+        : "ATS/portal channel — parseable resume without invented keywords.",
+  ].filter(Boolean).join(" ");
 
   const confidence = ranked?.confidence === "clear" || (highPriority && !stretch) ? "high" : stretch ? "medium" : "medium";
 
@@ -170,6 +231,9 @@ export function recommendResumeV2(input: {
     sectionsToDeemphasize: deemphasize,
     allowedKeywords: allowedKeywords(input.decision.matches).filter((item) => !forbidden.some((bad) => item.toLowerCase().includes(bad.toLowerCase()))),
     forbiddenKeywords: forbidden,
+    jobLanguage: routed?.jobLanguage ?? classifyJobLanguage(input.jobText),
+    resumeLanguage: routed?.resumeLanguage ?? classifyResumeLanguage(variant),
+    requiresLanguageConfirmation: routed?.requiresConfirmation ?? false,
   };
 }
 

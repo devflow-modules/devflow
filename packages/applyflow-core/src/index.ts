@@ -113,7 +113,15 @@ export type {
   JobRequirementType,
 } from "./job-requirement-types.js";
 export type { EvidenceMatch, EvidenceMatchStatus } from "./evidence-matching.js";
-export type { ClaimAudit, ClaimSafety } from "./claim-safety.js";
+export type { ClaimAudit, ClaimSafety, DeclaredClaimFacts } from "./claim-safety.js";
+export {
+  deriveEvidencePassages,
+  explainProvenance,
+  provenanceForEvidence,
+  rankEvidenceForRequirement,
+  EVIDENCE_SOURCE_KINDS,
+} from "./evidence-provenance.js";
+export type { EvidencePassage, EvidenceProvenance, EvidenceSourceKind, EvidenceSupport } from "./evidence-provenance.js";
 export {
   APPLICATION_DECISIONS,
   INCOMPLETE_ANALYSIS_MESSAGE,
@@ -182,6 +190,18 @@ export type { ApplicationMetrics, ApplicationsPeriodFilter } from "./application
 export { parseApplyFlowApplicationsImport, parseApplyFlowImportJsonString } from "./imported-application-schema.js";
 export type { ParsedApplyFlowImportResult } from "./imported-application-schema.js";
 export { evaluateJobMatch, profileSkillLabels } from "./evaluate-job-match.js";
+export {
+  assessJobEligibility,
+  canonicalizeCandidateLocation,
+  eligibilitySortRank,
+} from "./job-eligibility.js";
+export type {
+  CanonicalCandidateLocation,
+  EligibilityDimension,
+  EligibilityFinding,
+  EligibilityStatus,
+  JobEligibility,
+} from "./job-eligibility.js";
 export {
   JOB_MATCH_THRESHOLDS_V1,
   decideJobMatchV1,
@@ -328,16 +348,38 @@ export { ensureResumeLibrary } from "./migrate-resume-library.js";
 export type { EnsureResumeLibraryResult } from "./migrate-resume-library.js";
 export { parseResumeLibraryImport, serializeResumeLibraryImport } from "./imported-resume-library-schema.js";
 export type { ParsedResumeLibraryImport } from "./imported-resume-library-schema.js";
-export { recommendResumeV2, forbiddenKeywordsFromDecision, isApplyDecision, RESUME_STRATEGIES_V2 } from "./resume-router-v2.js";
+export {
+  recommendResumeV2,
+  selectResumeVariantForJob,
+  forbiddenKeywordsFromDecision,
+  isApplyDecision,
+  RESUME_STRATEGIES_V2,
+} from "./resume-router-v2.js";
 export type { ResumeRecommendationV2, ResumeStrategyV2 } from "./resume-router-v2.js";
+export {
+  classifyJobLanguage,
+  classifyResumeLanguage,
+  routeResumeLanguage,
+  resumeLanguageOfProfile,
+  RESUME_LANGUAGES,
+} from "./job-language.js";
+export type { ResumeLanguage, ResumeLanguageRoute } from "./job-language.js";
 export { buildCvPersonalizationPlan } from "./cv-personalization.js";
 export type { CvChange, CvPersonalizationPlan } from "./cv-personalization.js";
 export { generateApplicationAnswers, APPLICATION_ANSWER_TYPES, APPLICATION_ANSWER_STATUSES } from "./application-answers-v2.js";
 export type { ApplicationAnswer, ApplicationAnswerStatus, ApplicationAnswerType } from "./application-answers-v2.js";
 export { recommendBinaryAnswer, applyBinaryKnockouts } from "./binary-answers.js";
 export type { BinaryAnswer, BinaryAnswerRecommendation } from "./binary-answers.js";
-export { recommendCompensation } from "./compensation.js";
-export type { CompensationRecommendation } from "./compensation.js";
+export { recommendCompensation, parseEmployerCompensation, selectCandidateExpectation, assessCompensationCompatibility } from "./compensation.js";
+export type {
+  CompensationRecommendation,
+  CompensationCompatibility,
+  CompensationContext,
+  CompensationCurrency,
+  CompensationPeriod,
+  EmployerCompensation,
+  CandidateCompensationExpectation,
+} from "./compensation.js";
 export {
   CONTACT_TYPES,
   CONTACT_STATUSES,
@@ -434,8 +476,18 @@ export { recommendCases } from "./case-match.js";
 export type { CaseRecommendation } from "./case-match.js";
 export { buildInterviewBrief } from "./interview-brief.js";
 export type { InterviewBrief } from "./interview-brief.js";
-export { createApplicationPackV2, canCreateApplicationPackV2, APPLICATION_PACK_V2_VERSION } from "./application-pack-v2.js";
-export type { ApplicationPackV2, ApplicationPackV2Status } from "./application-pack-v2.js";
+export {
+  createApplicationPackV2,
+  evaluateJobApplicationV2,
+  canCreateApplicationPackV2,
+  APPLICATION_PACK_V2_VERSION,
+} from "./application-pack-v2.js";
+export type {
+  ApplicationPackV2,
+  ApplicationPackV2Status,
+  ApplicationPackConfirmation,
+  ApplicationPackClaimHandling,
+} from "./application-pack-v2.js";
 export { attachApplicationV2Meta, applicationMetaFromDecision, stripApplicationV2Meta } from "./application-record-v2.js";
 export type { ApplyFlowApplicationV2Envelope, ApplyFlowApplicationV2Meta } from "./application-record-v2.js";
 export {

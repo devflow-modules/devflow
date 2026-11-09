@@ -1,11 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
+import { createDeniedApplyFlowPrisma, resolveApplyFlowRuntimeDbAccess } from "./runtime-db-guard";
+
 declare global {
   var applyflowPrisma: PrismaClient | undefined;
 }
 
-export const applyflowPrisma = globalThis.applyflowPrisma ?? new PrismaClient();
+const access = resolveApplyFlowRuntimeDbAccess();
 
-if (process.env.NODE_ENV !== "production") {
+export const applyflowPrisma: PrismaClient = access.allowed
+  ? (globalThis.applyflowPrisma ?? new PrismaClient())
+  : createDeniedApplyFlowPrisma<PrismaClient>(access);
+
+if (access.allowed && process.env.NODE_ENV !== "production") {
   globalThis.applyflowPrisma = applyflowPrisma;
 }

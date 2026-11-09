@@ -18,6 +18,7 @@ import {
   APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY,
   persistDashboardJobs,
 } from "@/lib/local-job-storage";
+import { resolveDashboardPersistenceBootstrap } from "@/lib/persistence-v2/dashboard/resolve-dashboard-persistence-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
 import { selectDashboardPersistenceMode } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { applyFlowApplicationService } from "@/lib/persistence-v2/applications/application-service";
@@ -75,6 +76,7 @@ import { isApplyFlowPersistenceV2Enabled } from "@/lib/persistence-v2/feature-fl
 import {
   ApplyFlowAuthError,
   requireApplyFlowAccount,
+  type ApplyFlowAccountRecord,
 } from "@/lib/persistence-v2/require-applyflow-account";
 import { POST as migrationPost } from "@/app/api/applyflow/v2/migration/route";
 
@@ -83,13 +85,7 @@ describe.skipIf(!RUN)(
   () => {
   const fingerprints = new Set<string>();
   let accountId = "";
-  let accountRecord: {
-    id: string;
-    authProviderSub: string;
-    email: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  } | null = null;
+  let accountRecord: ApplyFlowAccountRecord | null = null;
 
   beforeAll(async () => {
     // Must run before any Prisma mutation. Production / remote Supabase → throw.
@@ -99,12 +95,30 @@ describe.skipIf(!RUN)(
 
     const account = await applyflowPrisma.applyFlowAccount.upsert({
       where: { authProviderSub: F35_LOCAL_AUTH_SUB },
-      create: { authProviderSub: F35_LOCAL_AUTH_SUB, email: null },
-      update: {},
-      select: { id: true, authProviderSub: true, email: true, createdAt: true, updatedAt: true },
+      create: {
+        authProviderSub: F35_LOCAL_AUTH_SUB,
+        email: null,
+        pilotEligible: true,
+        canonicalPersistence: "v1_local",
+      },
+      update: {
+        pilotEligible: true,
+        canonicalPersistence: "v1_local",
+      },
+      select: {
+        id: true,
+        authProviderSub: true,
+        email: true,
+        pilotEligible: true,
+        canonicalPersistence: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     accountId = account.id;
     accountRecord = account;
+    process.env.APPLYFLOW_PERSISTENCE_V2 = "true";
+    process.env.APPLYFLOW_PERSISTENCE_V2_ROLLOUT_ACCOUNTS = account.id;
     vi.mocked(requireApplyFlowAccount).mockResolvedValue(accountRecord);
     vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(true);
 
@@ -146,6 +160,18 @@ describe.skipIf(!RUN)(
     if (!prep.ok) throw new Error("prepare failed");
     fingerprints.add(prep.bundle.fingerprint);
     return prep.bundle.fingerprint;
+  }
+
+  async function authoritativeBootstrap() {
+    const result = await resolveDashboardPersistenceBootstrap();
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("bootstrap_unavailable");
+    return result.bootstrap;
+  }
+
+  async function openAuthoritative(fetchImpl: typeof fetch) {
+    const bootstrap = await authoritativeBootstrap();
+    return openDashboardPersistence({ bootstrap, fetchImpl, accountId });
   }
 
   function createFetchImpl(options?: { unauthenticated?: boolean }) {
@@ -202,11 +228,8 @@ describe.skipIf(!RUN)(
     expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY)).toBeTruthy();
     expect(window.localStorage.getItem(APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY)).toBeNull();
 
-    const opened = await openDashboardPersistence({
-      persistenceV2Enabled: true,
-      fetchImpl: createFetchImpl(),
-      accountId,
-    });
+    const opened = await openAuthoritative(createFetchImpl());
+    expect((await authoritativeBootstrap()).mode).toBe("v2_offering");
     expect(opened.kind).toBe("migration_required");
 
     const prep = prepareMigration();
@@ -225,7 +248,7 @@ describe.skipIf(!RUN)(
     expect(loadMigrationMarker(accountId)).toBeNull();
   });
 
-  it("happy path: UI → coordinator → POST route → Prisma → marker → v2_ready", async () => {
+  it("happy path: UI → coordinator → POST route → Prisma → marker → pending activation", async () => {
     const snap = seedF35BrowserV1Fixture();
     const fingerprint = trackFingerprint();
     const fetchImpl = createFetchImpl();
@@ -269,15 +292,10 @@ describe.skipIf(!RUN)(
       snap.analyticsRaw,
     );
 
-    const opened = await openDashboardPersistence({
-      persistenceV2Enabled: true,
-      fetchImpl,
-      accountId,
-    });
-    expect(opened.kind).toBe("ready");
-    if (opened.kind !== "ready") return;
-    expect(opened.jobs.some((j) => j.id === F35_JOB_1)).toBe(true);
-    expect(opened.applications.some((a) => a.id === F35_APP_LINKED)).toBe(true);
+    const opened = await openAuthoritative(fetchImpl);
+    expect(opened.kind).toBe("migration_complete_pending_activation");
+    if (opened.kind !== "migration_complete_pending_activation") return;
+    expect(opened.persistence.mode).toBe("v1");
   });
 
   it("idempotent retry reuses completed session without duplicates", async () => {
@@ -373,11 +391,7 @@ describe.skipIf(!RUN)(
     jobs[0] = { ...jobs[0], title: "E2E Persistence Engineer CHANGED" };
     persistDashboardJobs(jobs);
 
-    const opened = await openDashboardPersistence({
-      persistenceV2Enabled: true,
-      fetchImpl,
-      accountId,
-    });
+    const opened = await openAuthoritative(fetchImpl);
     expect(opened.kind).toBe("migration_required");
     // old marker still physically present but fingerprint mismatch
     const rawMarker = window.localStorage.getItem(APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY);
@@ -502,9 +516,14 @@ describe.skipIf(!RUN)(
     const v1Raw = window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY);
 
     expect(selectDashboardPersistenceMode(false)).toBe("v1");
+    vi.mocked(isApplyFlowPersistenceV2Enabled).mockReturnValue(false);
+    const disabled = await authoritativeBootstrap();
+    expect(disabled.mode).toBe("v1");
+    expect(disabled.reason).toBe("global_disabled");
     const opened = await openDashboardPersistence({
-      persistenceV2Enabled: false,
+      bootstrap: disabled,
       fetchImpl,
+      accountId,
     });
     expect(opened.kind).toBe("v1");
     expect(window.localStorage.getItem(APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY)).toBe(v1Raw);
@@ -514,56 +533,25 @@ describe.skipIf(!RUN)(
     expect(jobsAfter).toBe(jobsBefore);
   });
 
-  it("reload after marker yields v2_ready; before marker remains migration_required", async () => {
+  it("reload after marker stays pending activation; before marker remains migration_required", async () => {
     seedF35BrowserV1Fixture();
     trackFingerprint();
     const fetchImpl = createFetchImpl();
 
-    // before migration
-    expect(
-      (
-        await openDashboardPersistence({
-          persistenceV2Enabled: true,
-          fetchImpl,
-          accountId,
-        })
-      ).kind,
-    ).toBe("migration_required");
+    expect((await openAuthoritative(fetchImpl)).kind).toBe("migration_required");
 
     await runMigration({ fetchImpl, accountId });
-    // after marker
-    expect(
-      (
-        await openDashboardPersistence({
-          persistenceV2Enabled: true,
-          fetchImpl,
-          accountId,
-        })
-      ).kind,
-    ).toBe("ready");
+    expect((await openAuthoritative(fetchImpl)).kind).toBe(
+      "migration_complete_pending_activation",
+    );
 
-    // after server completion before marker
     window.localStorage.removeItem(APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY);
-    expect(
-      (
-        await openDashboardPersistence({
-          persistenceV2Enabled: true,
-          fetchImpl,
-          accountId,
-        })
-      ).kind,
-    ).toBe("migration_required");
+    expect((await openAuthoritative(fetchImpl)).kind).toBe("migration_required");
     const recovered = await resumeMigration({ fetchImpl, accountId });
     expect(recovered.ok).toBe(true);
-    expect(
-      (
-        await openDashboardPersistence({
-          persistenceV2Enabled: true,
-          fetchImpl,
-          accountId,
-        })
-      ).kind,
-    ).toBe("ready");
+    expect((await openAuthoritative(fetchImpl)).kind).toBe(
+      "migration_complete_pending_activation",
+    );
   });
 
   it("ownership: browser cannot force accountId via query; server uses session account", async () => {
@@ -590,6 +578,59 @@ describe.skipIf(!RUN)(
     });
     expect(owned).toBe(2);
     expect(vi.mocked(requireApplyFlowAccount)).toHaveBeenCalled();
+  });
+
+  it("ineligible account is denied with 403 and writes nothing", async () => {
+    seedF35BrowserV1Fixture();
+    const prep = prepareMigrationBundle();
+    expect(prep.ok && !prep.empty).toBe(true);
+    if (!prep.ok || prep.empty) return;
+    fingerprints.add(prep.bundle.fingerprint);
+    expect(accountRecord).not.toBeNull();
+    if (!accountRecord) return;
+
+    const other = await applyflowPrisma.applyFlowAccount.create({
+      data: {
+        authProviderSub: `e2e_f35_other_${accountId.replace(/-/g, "").slice(0, 24)}`,
+        email: null,
+        pilotEligible: false,
+        canonicalPersistence: "v1_local",
+      },
+    });
+
+    try {
+      vi.mocked(requireApplyFlowAccount).mockResolvedValue({
+        ...accountRecord,
+        pilotEligible: false,
+        canonicalPersistence: "v1_local",
+      });
+
+      const response = await migrationPost(
+        new Request("http://localhost/api/applyflow/v2/migration", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(prep.bundle),
+        }),
+      );
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({ error: "persistence_v2_not_eligible" });
+
+      const jobs = await applyflowPrisma.applyFlowJob.count({
+        where: { accountId, id: { startsWith: "e2e_f35_" } },
+      });
+      const sessions = await applyflowPrisma.applyFlowMigrationSession.count({
+        where: { accountId },
+      });
+      const otherJobs = await applyflowPrisma.applyFlowJob.count({
+        where: { accountId: other.id },
+      });
+      expect(jobs).toBe(0);
+      expect(sessions).toBe(0);
+      expect(otherJobs).toBe(0);
+      expect(loadMigrationMarker(accountId)).toBeNull();
+    } finally {
+      await applyflowPrisma.applyFlowAccount.delete({ where: { id: other.id } });
+    }
   });
   },
   60_000,

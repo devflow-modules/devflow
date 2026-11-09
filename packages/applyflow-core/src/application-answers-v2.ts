@@ -1,6 +1,7 @@
 import type { CandidateInputRequest } from "./candidate-input.js";
-import type { ClaimAuditResult } from "./claim-safety.js";
+import type { ClaimAuditResult, DeclaredClaimFacts } from "./claim-safety.js";
 import { auditClaim, buildClaimAuditResult, sanitizeTextWithClaimAudit } from "./claim-safety.js";
+import { parseEmployerCompensation, selectCandidateExpectation } from "./compensation.js";
 import type { Evidence } from "./evidence-types.js";
 import type { JobDecisionV2 } from "./application-decision-types.js";
 import type { CandidateProfile } from "./profile-schema.js";
@@ -69,6 +70,7 @@ function answerOf(
   text: string | undefined,
   evidence: readonly Evidence[],
   extras: Partial<ApplicationAnswer>,
+  declared?: DeclaredClaimFacts,
 ): ApplicationAnswer {
   if (!text?.trim()) {
     return {
@@ -82,7 +84,7 @@ function answerOf(
       ...extras,
     };
   }
-  const sanitized = sanitizeTextWithClaimAudit(text, evidence);
+  const sanitized = sanitizeTextWithClaimAudit(text, evidence, declared);
   if (!sanitized.text) {
     return {
       id: `answer-${type}`,
@@ -114,8 +116,21 @@ export function generateApplicationAnswers(input: {
   companyName?: string;
   extraQuestions?: { id: string; question: string }[];
   jobId?: string;
+  jobText?: string;
+  resumeVariantId?: string;
+  resumeVariantName?: string;
 }): { answers: ApplicationAnswer[]; candidateInputs: CandidateInputRequest[] } {
   const { profile, evidence, decision } = input;
+  const employer = input.jobText ? parseEmployerCompensation(input.jobText) : undefined;
+  const expectation = employer ? selectCandidateExpectation(profile, employer) : undefined;
+  const english = profile.facts.englishLevel ?? profile.englishLevel;
+  const declared: DeclaredClaimFacts = {
+    englishLevel: typeof english === "string" ? english : undefined,
+    salaryPreferences: expectation ? [expectation.label] : [],
+    answerBankTexts: Object.values(profile.answerBank).filter((item) => item.trim().length >= 8),
+    resumeVariantId: input.resumeVariantId,
+    resumeVariantName: input.resumeVariantName,
+  };
   const inputs: CandidateInputRequest[] = [];
   const answers: ApplicationAnswer[] = [];
 
@@ -136,11 +151,11 @@ export function generateApplicationAnswers(input: {
       status: tell ? "ready" : "needs_candidate_input",
       candidateInputRequestId: tell ? undefined : `input-tell-${input.jobId ?? "job"}`,
       risk: "low",
-    }),
+    }, declared),
   );
 
   const whyFit = profile.answerBank.whyGoodFit.trim();
-  answers.push(answerOf("why_good_fit", QUESTIONS.why_good_fit, whyFit || undefined, evidence, { risk: "low" }));
+  answers.push(answerOf("why_good_fit", QUESTIONS.why_good_fit, whyFit || undefined, evidence, { risk: "low" }, declared));
 
   inputs.push({
     id: `input-why-role-${input.jobId ?? "job"}`,
@@ -176,24 +191,29 @@ export function generateApplicationAnswers(input: {
     }),
   );
 
-  const product = evidence.find((item) => item.subject === "project" && item.usableForClaims);
+  const productCase = profile.answerBank.productCase.trim();
+  const product = productCase ? undefined : evidence.find((item) => item.subject === "project" && item.usableForClaims);
   answers.push(
     answerOf(
       "end_to_end_product",
       QUESTIONS.end_to_end_product,
-      product ? `${product.label}. ${product.description}` : profile.answerBank.productCase.trim(),
+      product ? `${product.label}. ${product.description}` : productCase || undefined,
       evidence,
       { supportingEvidenceIds: product ? [product.id] : [], risk: "low" },
+      declared,
     ),
   );
 
+  const frontendCase = profile.answerBank.frontendCase.trim();
   answers.push(
     answerOf(
       "react_next_node",
       QUESTIONS.react_next_node,
-      "I have professional experience building production web products with React, Next.js, TypeScript and Node.js.",
+      frontendCase ||
+        "I have professional experience building production web products with React, Next.js, TypeScript and Node.js.",
       evidence,
       { supportingEvidenceIds: evidence.filter((item) => (item.technologies ?? []).some((t) => /react|next|node/i.test(t))).map((item) => item.id), risk: "low" },
+      declared,
     ),
   );
 
@@ -206,7 +226,7 @@ export function generateApplicationAnswers(input: {
     answerOf("python", QUESTIONS.python, pythonText, evidence, {
       supportingEvidenceIds: evidenceIds(decision, /python/i),
       risk: pythonStatus === "proven" ? "low" : "medium",
-    }),
+    }, declared),
   );
 
   const awsStatus = matchStatus(decision, /aws/i);
@@ -220,7 +240,7 @@ export function generateApplicationAnswers(input: {
       supportingEvidenceIds: evidenceIds(decision, /aws/i),
       status: awsAudit.status === "safe" ? "ready" : "ready",
       risk: awsStatus === "proven" ? "low" : "high",
-    }),
+    }, declared),
   );
 
   const aiStatus = matchStatus(decision, /agent|genai|llm/i);
@@ -231,10 +251,9 @@ export function generateApplicationAnswers(input: {
       supportingEvidenceIds: evidenceIds(decision, /agent|genai|llm/i),
       status: aiStatus === "proven" ? "ready" : "ready",
       risk: "high",
-    }),
+    }, declared),
   );
 
-  const english = profile.facts.englishLevel ?? profile.englishLevel;
   if (!english) {
     inputs.push({
       id: `input-english-${input.jobId ?? "job"}`,
@@ -257,15 +276,18 @@ export function generateApplicationAnswers(input: {
         candidateInputRequestId: english ? undefined : `input-english-${input.jobId ?? "job"}`,
         risk: "low",
       },
+      declared,
     ),
   );
 
-  const salaryPref = profile.salary.usdMonthly?.trim() ?? "";
+  const salaryPref = expectation?.label ?? "";
   if (!salaryPref) {
     inputs.push({
       id: `input-salary-${input.jobId ?? "job"}`,
       question: "Qual é a sua pretensão salarial para esta vaga?",
-      reason: "Salary preference is not recorded. Do not invent a floor.",
+      reason: employer
+        ? "No matching salary preference is recorded for this employment context. Do not invent a floor."
+        : "Salary preference is not recorded. Do not invent a floor.",
       relatedJobId: input.jobId,
       expectedType: "text",
       status: "pending",
@@ -277,7 +299,7 @@ export function generateApplicationAnswers(input: {
       status: salaryPref ? "ready" : "needs_candidate_input",
       candidateInputRequestId: salaryPref ? undefined : `input-salary-${input.jobId ?? "job"}`,
       risk: "high",
-    }),
+    }, declared),
   );
 
   const scopedHours = evidence.find(
@@ -310,11 +332,11 @@ export function generateApplicationAnswers(input: {
       supportingEvidenceIds: scopedHours ? [scopedHours.id] : [],
       candidateInputRequestId: availability ? undefined : `input-availability-${input.jobId ?? "job"}`,
       risk: "medium",
-    }),
+    }, declared),
   );
 
   for (const extra of input.extraQuestions ?? []) {
-    answers.push(answerOf("custom", extra.question, undefined, evidence, { status: "needs_candidate_input" }));
+    answers.push(answerOf("custom", extra.question, undefined, evidence, { status: "needs_candidate_input" }, declared));
   }
 
   return { answers, candidateInputs: inputs };

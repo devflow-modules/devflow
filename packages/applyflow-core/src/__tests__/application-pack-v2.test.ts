@@ -25,7 +25,7 @@ const NOW = new Date("2026-09-09T12:00:00.000Z");
 const evidence = buildCandidateEvidence(gustavoProfile, gustavoEvidenceSeed, NOW);
 
 const REACT_NEXT_NODE = `
-Senior Product Engineer — Remote SaaS
+Senior Product Engineer — Remote - Brazil
 
 We need a Senior Product Engineer who owns discovery and delivery end-to-end.
 
@@ -37,7 +37,7 @@ Requirements:
 `;
 
 const PRODUCT_ENGINEER_AI = `
-Product Engineer + AI — Remote
+Product Engineer + AI — Remote - Brazil
 
 Core role is Product Engineer with React, Next.js, TypeScript and Node.js.
 You will also help with AI features.
@@ -179,7 +179,7 @@ describe("P1 Application Pack V2", () => {
     expect(recommendation.floor).toBeUndefined();
     expect(recommendation.needsCandidateInput).toBe(true);
     expect(candidateInput).toBeDefined();
-    expect(recommendation.reasoning.join(" ")).toMatch(/do not invent|not auto-select|Published minimum/i);
+    expect(recommendation.reasoning.join(" ")).toMatch(/currency is not reliable|do not invent|not auto-select|Published minimum/i);
 
     const withPref = recommendCompensation({
       jobText: "Product Engineer. Salary range 4500-6000. React Next.js.",

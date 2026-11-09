@@ -9,8 +9,14 @@ import {
   markApplicationSubmitted,
   outcomeBelongsToApplication,
 } from "../application-identity.js";
+import type { ApplyFlowApplicationV2Envelope } from "../application-record-v2.js";
 import type { JobDecisionV2 } from "../application-decision-types.js";
+import type { ApplyFlowApplication } from "../application-types.js";
 import type { ApplyFlowJob } from "../job-match-types.js";
+
+function isApplicationV2Envelope(application: ApplyFlowApplication): application is ApplyFlowApplicationV2Envelope {
+  return "v2" in application;
+}
 
 const NOW = new Date("2026-09-09T12:00:00.000Z");
 
@@ -141,6 +147,8 @@ describe("application / outcome identity", () => {
     const submitted = markApplicationSubmitted(created.application, later);
 
     expect(submitted.id).toBe(created.application.id);
+    expect(isApplicationV2Envelope(submitted)).toBe(true);
+    if (!isApplicationV2Envelope(submitted)) return;
     expect(submitted.v2?.sourceJobId).toBe("job-99");
     expect(submitted.status).toBe("applied");
     expect(submitted.updatedAt).toBe(later.toISOString());
