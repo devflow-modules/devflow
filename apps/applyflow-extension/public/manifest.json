@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ApplyFlow",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Copiloto assistido para LinkedIn Easy Apply (DevFlow Labs). Não envia candidaturas automaticamente.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqfkOvqR9+3GCs6XHjpkoVy9WZ5WmdGWCc/zu/5k2y2lU0yvVR+1kEaxuGQeXOd1cm8rrz17PYb+VmtvDV+Ct0xuHqaiU5H/SDcLI9GyV28Spk9LXNaCsFJTxDv4e3N3F0etRe0QE+i28eC3hYAZJ7sR7EIH7bd4mraUvBGezKnu9U/UWSJo/9nrcOtGPAU4gDsZ3JHKi4+otBZq6kt1uFYcfoujNMQdu4VvitBadALZZlFKulaTUtXgOnfrAkWFvunn2s7nthsvzVKFPd+uKOpSfT0sW+vwAJhPHZE7URcl0U6yx59wiZdx5a7g2gmFxanD8YE0AH9frAk0DqHChgQIDAQAB",
   "permissions": [
@@ -12,6 +12,7 @@
     "http://127.0.0.1:3012/*",
     "http://localhost:3010/*",
     "http://localhost:3012/*",
+    "https://devflow-applyflow.vercel.app/*",
     "https://www.linkedin.com/*",
     "https://api.openai.com/*"
   ],
@@ -20,7 +21,8 @@
       "http://127.0.0.1:3010/*",
       "http://127.0.0.1:3012/*",
       "http://localhost:3010/*",
-      "http://localhost:3012/*"
+      "http://localhost:3012/*",
+      "https://devflow-applyflow.vercel.app/*"
     ]
   },
   "options_ui": {
