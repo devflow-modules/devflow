@@ -6,3 +6,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+f3-5-*-result.json
+scopes-default-*-result.json
+f3-5-ci-result.json
+scopes-default-ci-result.json

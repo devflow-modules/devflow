@@ -39,6 +39,7 @@ if (!process.env.DATABASE_URL?.trim()) {
 }
 
 // Always pin V2 E2E webServer to isolated local Docker — never inherit remote .env.local.
+// Strip platform markers that fail-close the E2E session route (VERCEL=1 → 404/seed refuse).
 const v2WebServerEnv = {
   ...process.env,
   DATABASE_URL: LOCAL_DATABASE_URL,
@@ -55,6 +56,10 @@ const v2WebServerEnv = {
   THEIRSTACK_API_KEY: "should-not-be-used",
   NEXT_PUBLIC_APPLYFLOW_URL: "http://127.0.0.1:3012",
 };
+delete v2WebServerEnv.VERCEL;
+delete v2WebServerEnv.VERCEL_ENV;
+delete v2WebServerEnv.APPLYFLOW_PRODUCTION_DIRECT_URL;
+delete v2WebServerEnv.APPLYFLOW_PRODUCTION_DATABASE_URL;
 
 module.exports = defineConfig({
   testDir: "./tests/e2e",
