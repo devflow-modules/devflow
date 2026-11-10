@@ -30,7 +30,7 @@ A extensão **não** sincroniza contatos nem respostas inbound (módulos do dash
 
 Matriz completa e isolamento: [`docs/ACCOUNT_CLOUD_SYNC.md`](docs/ACCOUNT_CLOUD_SYNC.md). Publicação / checklist Chrome: `docs/applyflow/ACCOUNT_PERSISTENCE_PUBLICATION_PREP.md`.
 
-**Permissões de host:** build local (`APPLYFLOW_EXTENSION_TARGET` omitido) = `127.0.0.1` / `localhost` nas portas 3010 e 3012. Produção = `https://devflow-applyflow.vercel.app`. Bearer só no service worker (`chrome.storage.session`); content scripts não o recebem.
+**Permissões de host / externally_connectable:** o manifest gerado inclui localhost/`127.0.0.1` (3010/3012) **e** a origem canónica `https://devflow-applyflow.vercel.app` (sem wildcards `*.vercel.app`). Bearer só no service worker (`chrome.storage.session`); content scripts não o recebem.
 
 ## Local-first (modo desligado)
 

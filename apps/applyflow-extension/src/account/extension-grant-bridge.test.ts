@@ -52,6 +52,39 @@ describe("extension grant bridge", () => {
     ).toBe(false);
   });
 
+  it("accepts the canonical Production origin and rejects sibling vercel.app hosts", () => {
+    const productionOrigins = extensionOriginsForTarget("production");
+    const union = [...extensionOriginsForTarget("local"), ...productionOrigins];
+    const productionGrant = {
+      ...GRANT,
+      origin: "https://devflow-applyflow.vercel.app",
+    };
+    expect(
+      acceptExternalGrant({
+        message: { type: "APPLYFLOW_BIND_GRANT", ...productionGrant },
+        senderUrl: "https://devflow-applyflow.vercel.app/account",
+        allowedOrigins: union,
+        now: Date.parse("2026-10-05T12:00:00.000Z"),
+      }).ok,
+    ).toBe(true);
+    expect(
+      acceptExternalGrant({
+        message: { type: "APPLYFLOW_BIND_GRANT", ...productionGrant },
+        senderUrl: "https://devflow-applyflow-git-main-gustavos-projects-74c68bcc.vercel.app/account",
+        allowedOrigins: union,
+        now: Date.parse("2026-10-05T12:00:00.000Z"),
+      }).ok,
+    ).toBe(false);
+    expect(
+      acceptExternalGrant({
+        message: { type: "APPLYFLOW_BIND_GRANT", ...productionGrant },
+        senderUrl: "https://evil.example/account",
+        allowedOrigins: union,
+        now: Date.parse("2026-10-05T12:00:00.000Z"),
+      }).ok,
+    ).toBe(false);
+  });
+
   it("replaces the previous account grant and drops an expired one", () => {
     const next = replaceStoredGrant(GRANT, {
       accountId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
