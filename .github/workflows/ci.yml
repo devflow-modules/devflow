@@ -71,7 +71,8 @@ jobs:
         run: pnpm --filter @devflow/app-financeiro test
 
   test-applyflow:
-    runs-on: ubuntu-latest
+    # Pin away from ubuntu-latest (26.04): Playwright Chromium does not yet support it.
+    runs-on: ubuntu-24.04
     # Extra headroom: Playwright apt deps + isolated Next.js build.
     timeout-minutes: 45
     # Matches apps/applyflow/docker-compose.yml local Persistence V2 contract.
@@ -172,7 +173,8 @@ jobs:
           set -euo pipefail
           pnpm exec vitest run src/lib/persistence-v2/migration/f3-5-migration-e2e.test.tsx \
             --reporter=default --reporter=json --outputFile=f3-5-ci-result.json
-          node ./scripts/ci/assert-vitest-json-passed.cjs ./f3-5-ci-result.json --min-passed=17
+          # Strict by default: rejects pending/todo/skipped and inconsistent Vitest JSON.
+          node ./scripts/ci/assert-vitest-json-passed.cjs ./f3-5-ci-result.json --min-passed=17 --strict
 
       # Scopes-default harness needs a second disposable Postgres (port 5439) so it never
       # mutates the main ApplyFlow CI database on 5434.
@@ -205,7 +207,7 @@ jobs:
           set -euo pipefail
           pnpm exec vitest run --config vitest.scopes-default.config.ts \
             --reporter=default --reporter=json --outputFile=scopes-default-ci-result.json
-          node ./scripts/ci/assert-vitest-json-passed.cjs ./scopes-default-ci-result.json --min-passed=3
+          node ./scripts/ci/assert-vitest-json-passed.cjs ./scopes-default-ci-result.json --min-passed=3 --strict
 
       - name: Stop scopes-default disposable Postgres
         if: always()

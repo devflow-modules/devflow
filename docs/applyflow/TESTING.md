@@ -59,11 +59,17 @@ Both suites refuse non-local base URLs.
 
 ## CI (`.github/workflows/ci.yml` — `test-applyflow`)
 
-Ephemeral Postgres service → migrate → generate → lint → Vitest → **F3.5 mutable E2E** (`APPLYFLOW_F3_5_E2E=1`, min 17 passed) → **scopes-default harness** (disposable Docker Postgres `:5439`) → Playwright Chromium → local E2E → V2 E2E (`v2-cloud-*.spec.ts`) → `beta:check`.
+Ephemeral Postgres service → migrate → generate → lint → Vitest (includes `src/lib/ci/assert-vitest-json-passed.test.ts`) → **F3.5 mutable E2E** (`APPLYFLOW_F3_5_E2E=1`, min 17 passed, **strict** JSON gate) → **scopes-default harness** (disposable Docker Postgres `:5439`, min 3 passed, **strict**) → Playwright Chromium → local E2E → V2 E2E (`v2-cloud-*.spec.ts`) → `beta:check`.
+
+Strict Vitest JSON gate (`scripts/ci/assert-vitest-json-passed.cjs`):
+
+- Requires Vitest v4 JSON fields (`numPassedTests`, `numFailedTests`, `numPendingTests`, `numTodoTests`, `numTotalTests`).
+- Fails on missing/invalid JSON, zero tests, failures, `success=false`, inconsistent totals, and (by default) any pending/todo/skipped.
+- Opt-out only via `--allow-incomplete` (not used by F3.5 / scopes-default).
 
 Also: workspace secret scan job (`pnpm check:secrets`) elsewhere in CI.
 
-**Not claimed here:** GitHub branch protection settings (account/repo configuration outside this file). Marking the new F3.5 / scopes-default steps as required checks needs separate admin authorization.
+**Branch protection:** see [`CI_BRANCH_PROTECTION_PLAN.md`](./CI_BRANCH_PROTECTION_PLAN.md). Applying required checks is an admin action and is **not** claimed as done by the CI YAML alone.
 
 ---
 

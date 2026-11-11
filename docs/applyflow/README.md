@@ -21,6 +21,7 @@ Authoritative docs for the ApplyFlow product in this monorepo.
 | [`APPLICATION_LIFECYCLE.md`](./APPLICATION_LIFECYCLE.md) | Canonical lifecycle + Job sync |
 | [`PRIVACY_SECURITY.md`](./PRIVACY_SECURITY.md) | Engineering privacy / security model |
 | [`TESTING.md`](./TESTING.md) | Vitest, E2E, CI baseline |
+| [`CI_BRANCH_PROTECTION_PLAN.md`](./CI_BRANCH_PROTECTION_PLAN.md) | Main required-check proposal (not applied) |
 
 ## Operations / maintainer
 
