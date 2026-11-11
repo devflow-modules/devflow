@@ -71,7 +71,8 @@ jobs:
         run: pnpm --filter @devflow/app-financeiro test
 
   test-applyflow:
-    runs-on: ubuntu-latest
+    # Pin away from ubuntu-latest (26.04): Playwright Chromium does not yet support it.
+    runs-on: ubuntu-24.04
     # Extra headroom: Playwright apt deps + isolated Next.js build.
     timeout-minutes: 45
     # Matches apps/applyflow/docker-compose.yml local Persistence V2 contract.
