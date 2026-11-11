@@ -33,6 +33,7 @@ Authoritative docs for the ApplyFlow product in this monorepo.
 | [`DATA_LOCALITY.md`](./DATA_LOCALITY.md) | Local vs account inventory (corrected; versioned by checkout/PR) |
 | [`PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md`](./PERSISTENCE_V2_FIRST_PRODUCTION_PILOT_RUNBOOK.md) | Pilot operator depth |
 | [`PERSISTENCE_V2_MIGRATION_RUNBOOK.md`](./PERSISTENCE_V2_MIGRATION_RUNBOOK.md) | V1→V2 migration ops |
+| [`releases/V2_QA_PILOT.md`](./releases/V2_QA_PILOT.md) | Canonical QA pilot release consolidation (sanitized) |
 
 ## Internal / career
 

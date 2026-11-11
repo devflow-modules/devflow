@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/write-extension-manifest.mjs && vite build --config vite.config.content.ts && vite build",
+    "pack:distribution": "node scripts/pack-distribution.mjs",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:watch": "vitest"

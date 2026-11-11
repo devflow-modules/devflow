@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.distribution/
+.qa-pw/
+.qa-chrome-profile/
+*.log

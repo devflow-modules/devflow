@@ -161,6 +161,56 @@ jobs:
       - name: Test ApplyFlow
         run: pnpm --filter applyflow test
 
+      # Mutable F3.5 migration E2E — opt-in against the disposable service Postgres only.
+      # Production hosts remain denylisted inside the suite even when APPLYFLOW_F3_5_E2E=1.
+      - name: ApplyFlow F3.5 mutable migration E2E
+        working-directory: apps/applyflow
+        env:
+          APPLYFLOW_F3_5_E2E: "1"
+          APPLYFLOW_DB_TARGET: local
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run src/lib/persistence-v2/migration/f3-5-migration-e2e.test.tsx \
+            --reporter=default --reporter=json --outputFile=f3-5-ci-result.json
+          node ./scripts/ci/assert-vitest-json-passed.cjs ./f3-5-ci-result.json --min-passed=17
+
+      # Scopes-default harness needs a second disposable Postgres (port 5439) so it never
+      # mutates the main ApplyFlow CI database on 5434.
+      - name: Start scopes-default disposable Postgres
+        run: |
+          set -euo pipefail
+          docker rm -f applyflow-pg-scopes-check >/dev/null 2>&1 || true
+          docker run -d --name applyflow-pg-scopes-check \
+            -e POSTGRES_USER=applyflow \
+            -e POSTGRES_PASSWORD=applyflow_local_dev \
+            -e POSTGRES_DB=applyflow_scopes_check \
+            -p 5439:5432 \
+            postgres:16-alpine
+          for i in $(seq 1 30); do
+            if docker exec applyflow-pg-scopes-check pg_isready -U applyflow -d applyflow_scopes_check; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "scopes-default Postgres failed to become ready"
+          exit 1
+
+      - name: ApplyFlow scopes-default harness
+        working-directory: apps/applyflow
+        env:
+          APPLYFLOW_SCOPES_DEFAULT_CHECK: "1"
+          SCOPES_CHECK_DATABASE_URL: postgresql://applyflow:applyflow_local_dev@127.0.0.1:5439/applyflow_scopes_check
+          APPLYFLOW_DB_TARGET: local
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run --config vitest.scopes-default.config.ts \
+            --reporter=default --reporter=json --outputFile=scopes-default-ci-result.json
+          node ./scripts/ci/assert-vitest-json-passed.cjs ./scopes-default-ci-result.json --min-passed=3
+
+      - name: Stop scopes-default disposable Postgres
+        if: always()
+        run: docker rm -f applyflow-pg-scopes-check >/dev/null 2>&1 || true
+
       # Isolated production-style build: synthetic DB, Preview markers, no Production secrets.
       # Limitation: GitHub-hosted runners do not provide verified OS-level network isolation;
       # preflight fails closed on prohibited credentials and secret .env* files.

@@ -59,11 +59,11 @@ Both suites refuse non-local base URLs.
 
 ## CI (`.github/workflows/ci.yml` — `test-applyflow`)
 
-Ephemeral Postgres service → migrate → generate → lint → Vitest → Playwright Chromium → local E2E → V2 E2E → `beta:check`.
+Ephemeral Postgres service → migrate → generate → lint → Vitest → **F3.5 mutable E2E** (`APPLYFLOW_F3_5_E2E=1`, min 17 passed) → **scopes-default harness** (disposable Docker Postgres `:5439`) → Playwright Chromium → local E2E → V2 E2E (`v2-cloud-*.spec.ts`) → `beta:check`.
 
 Also: workspace secret scan job (`pnpm check:secrets`) elsewhere in CI.
 
-**Not claimed here:** GitHub branch protection settings (account/repo configuration outside this file).
+**Not claimed here:** GitHub branch protection settings (account/repo configuration outside this file). Marking the new F3.5 / scopes-default steps as required checks needs separate admin authorization.
 
 ---
 

@@ -33,8 +33,18 @@ async function login(
       ...(mode === "read_only" ? { seedReadOnly: true } : { seedV2: true }),
     },
   });
-  expect(response.status()).toBe(200);
-  return (await response.json()) as {
+  const payload = (await response.json().catch(() => ({}))) as {
+    accountId?: string;
+    canonicalPersistence?: string;
+    pilotEligible?: boolean;
+    error?: string;
+    detail?: string;
+  };
+  expect(
+    response.status(),
+    `e2e session login failed: status=${response.status()} error=${payload.error ?? "n/a"} detail=${payload.detail ?? "n/a"}`,
+  ).toBe(200);
+  return payload as {
     accountId: string;
     canonicalPersistence: string;
     pilotEligible: boolean;
