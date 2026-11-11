@@ -27,6 +27,8 @@ import {
   JOB_QUEUE_VIEW_ACTIVE,
   JOB_QUEUE_VIEW_ALL,
   JOB_QUEUE_VIEW_IGNORED,
+  MANUAL_APPLICATION_CTA_LISTING_LABEL,
+  MANUAL_APPLICATION_DISCLOSURE,
   jobMatchDecisionTone,
 } from "./job-inbox-content";
 import {
@@ -389,6 +391,37 @@ describe("JobInboxPanel opportunity queue", () => {
     expect(html).toContain('data-testid="remoteok-saved-attribution"');
     expect(html).toContain("https://remoteok.com/remote-jobs/1");
     expect(html).not.toContain("nofollow");
+  });
+
+  it("shows F1 manual application disclosure and listing CTA for reviewing jobs with URL", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[remoteOkJob]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onMarkJobApplied={() => undefined}
+      />,
+    );
+    expect(html).toContain(MANUAL_APPLICATION_DISCLOSURE);
+    expect(html).toContain(MANUAL_APPLICATION_CTA_LISTING_LABEL);
+    expect(html).toContain(`manual-app-open-${remoteOkJob.id}`);
+    expect(html).not.toContain(`manual-app-confirm-${remoteOkJob.id}`);
+  });
+
+  it("preserves ignore and restore actions alongside F1 CTA", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[remoteOkJob]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+        onRestoreJob={() => undefined}
+        onMarkJobApplied={() => undefined}
+      />,
+    );
+    expect(html).toContain(JOB_QUEUE_IGNORE_LABEL);
+    expect(html).toContain(`job-queue-ignore-${remoteOkJob.id}`);
+    expect(html).toContain(MANUAL_APPLICATION_CTA_LISTING_LABEL);
   });
 
   it("keeps stale badge when match is outdated", () => {

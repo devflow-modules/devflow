@@ -65,8 +65,8 @@ import {
   JOB_QUEUE_FILTER_SOURCE,
   JOB_QUEUE_HISTORICAL_NOTE,
   JOB_QUEUE_IGNORE_LABEL,
-  JOB_QUEUE_OPEN_SOURCE_LABEL,
   JOB_QUEUE_RESTORE_LABEL,
+  MANUAL_APPLICATION_FINAL_CONFIRM,
   JOB_QUEUE_SORT_LABEL,
   JOB_QUEUE_SORT_MATCH,
   JOB_QUEUE_SORT_RECENCY,
@@ -110,6 +110,7 @@ import {
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
 import { JOB_DECISION_V2_LABELS } from "@/components/dashboard/job-decision-v2-content";
 import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { loadDashboardContacts } from "@/lib/local-contact-storage";
@@ -310,7 +311,7 @@ function ApplicationPackView({
 }: {
   job: ApplyFlowJob;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
-  onMarkJobApplied?: (jobId: string) => void;
+  onMarkJobApplied?: (jobId: string) => void | Promise<void>;
 }) {
   const pack = job.applicationPack;
   if (!pack) return null;
@@ -408,7 +409,15 @@ function ApplicationPackView({
             </a>
           ) : null}
           {job.status !== "applied" && onMarkJobApplied ? (
-            <ApplyFlowButton variant="outlineBrand" size="sm" onClick={() => onMarkJobApplied(job.id)}>
+            <ApplyFlowButton
+              variant="outlineBrand"
+              size="sm"
+              data-testid={`application-pack-mark-applied-${job.id}`}
+              onClick={() => {
+                if (!window.confirm(MANUAL_APPLICATION_FINAL_CONFIRM)) return;
+                void onMarkJobApplied(job.id);
+              }}
+            >
               {APPLICATION_PACK_MARK_APPLIED_LABEL}
             </ApplyFlowButton>
           ) : null}
@@ -494,7 +503,7 @@ function JobInboxCard({
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
-  onMarkJobApplied?: (jobId: string) => void;
+  onMarkJobApplied?: (jobId: string) => void | Promise<void>;
   onReevaluateJob?: (jobId: string) => void;
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
@@ -594,16 +603,6 @@ function JobInboxCard({
         <Link href={jobAnalysisPath(job.id)} className={applyFlowButtonClass({ variant: "primary", size: "sm" })}>
           {JOB_DECISION_V2_LINK}
         </Link>
-        {sourceOpenable && job.url ? (
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
-          >
-            {JOB_QUEUE_OPEN_SOURCE_LABEL}
-          </a>
-        ) : null}
         {onReevaluateJob && isJobMatchStale(job, resumeLibrary) ? (
           <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
             {JOB_INBOX_REEVALUATE_LABEL}
@@ -630,6 +629,9 @@ function JobInboxCard({
           </ApplyFlowButton>
         ) : null}
       </p>
+      {job.status === "reviewing" ? (
+        <ManualApplicationAction job={job} onMarkJobApplied={onMarkJobApplied} />
+      ) : null}
       {job.curriculumRecommendation ? (
         <CurriculumRouterBlock job={job} recommendation={job.curriculumRecommendation} />
       ) : null}
@@ -684,7 +686,7 @@ export function JobInboxPanel({
   resumeLibrary?: ResumeLibrary | null;
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
-  onMarkJobApplied?: (jobId: string) => void;
+  onMarkJobApplied?: (jobId: string) => void | Promise<void>;
   onReevaluateJob?: (jobId: string) => void;
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
