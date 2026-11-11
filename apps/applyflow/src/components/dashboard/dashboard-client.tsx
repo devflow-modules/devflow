@@ -945,17 +945,87 @@ export function DashboardClient({
   }, [usesCloudPersistence]);
 
   const onMarkJobApplied = useCallback(
-    (jobId: string) => {
+    async (jobId: string) => {
       const job = jobsRef.current.find((item) => item.id === jobId);
-      if (!job) return;
+      if (!job) {
+        throw new Error("job_not_found");
+      }
       const linked = findApplicationForJob(applicationsRef.current, job);
       if (linked) {
-        commitApplicationSubmitted(linked);
+        if (usesCloudPersistence) {
+          const persistence = persistenceRef.current;
+          if (!persistence) {
+            throw new Error("persistence_unavailable");
+          }
+          const envelope = linked as ApplyFlowApplicationV2Envelope;
+          const sourceJobId = envelope.v2?.sourceJobId;
+          const linkedJob = sourceJobId ? jobsRef.current.find((item) => item.id === sourceJobId) : undefined;
+          const result = await transitionCloudApplicationLifecycle({
+            persistence,
+            application: envelope,
+            linkedJob: linkedJob ?? null,
+            toStatus: "applied",
+          });
+          if (!result.ok) {
+            setImportError(cloudLifecycleFailureMessage(result));
+            if (result.application) {
+              setApplications((prev) => [
+                ...prev.filter((item) => item.id !== result.application!.id),
+                result.application!,
+              ]);
+            }
+            throw new Error(result.code ?? result.reason);
+          }
+          setImportError(null);
+          setApplications((prev) => [
+            ...prev.filter((item) => item.id !== result.application.id),
+            result.application,
+          ]);
+          if (result.job) {
+            setJobs((prev) => replaceApplyFlowJob(prev, result.job!));
+          }
+          return;
+        }
+        const persisted = persistApplicationSubmitted(linked);
+        if (!persisted.ok) {
+          setImportError(persisted.error);
+          throw new Error("persist_failed");
+        }
+        setApplications((prev) => [
+          ...prev.filter((item) => item.id !== persisted.application.id),
+          persisted.application,
+        ]);
+        const nextJobs = loadDashboardJobs();
+        if (nextJobs.jobs.length) setJobs(nextJobs.jobs);
         return;
       }
-      replaceJob(markApplyFlowJobApplied(job));
+
+      const next = markApplyFlowJobApplied(job);
+      if (usesCloudPersistence) {
+        const persistence = persistenceRef.current;
+        if (!persistence) {
+          throw new Error("persistence_unavailable");
+        }
+        if (writeCapability === "read_only") {
+          setJobInboxError(V2_READ_ONLY_BLOCKED);
+          throw new Error("read_only");
+        }
+        const result = await persistence.updateJob(next);
+        if (!result.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(result.code));
+          throw new Error(result.code);
+        }
+        setJobs((prev) => replaceApplyFlowJob(prev, result.data));
+        setJobInboxError(null);
+        return;
+      }
+
+      const nextJobs = replaceApplyFlowJob(jobsRef.current, next);
+      persistDashboardJobs(nextJobs);
+      setJobs(nextJobs);
+      setJobInboxError(null);
     },
-    [commitApplicationSubmitted, replaceJob],
+    [usesCloudPersistence, writeCapability],
   );
 
   const processJsonText = useCallback((text: string) => {
