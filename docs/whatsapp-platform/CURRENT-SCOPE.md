@@ -54,8 +54,10 @@ Implemented in the canonical app (require correct env/Meta/Stripe config in each
 | Tags, internal notes, audit log | Plan-gated where applicable |
 | Close conversation | Thread status `CLOSED` + audit |
 | Realtime SSE | `/api/realtime/stream` |
-| AI auto-reply + safe mode | LLM or rule-based; handoff on `needs_human` / low confidence / sensitive topics |
+| AI auto-reply + safe mode | LLM or rule-based; handoff on `needs_human` / low confidence / sensitive / clinical dental; **assisted default** (`autoReply=false` on new configs); FAQ grounding when present |
 | Automation rules engine | Triggers/actions (assign, tag, send, AI) |
+| Automatic distribution v1 | Tenant flag `automaticDistributionEnabled` → round-robin via canonical `assignThread` |
+| Team provisioning | Manager+ `POST /api/agents` + `/activate` one-shot token (hashed) |
 | Embedded Signup / admin channel provision | Needs Meta app config |
 | Stripe checkout / portal / webhooks | Needs Stripe config; SAAS mode surfaces billing UI |
 | CRM lead capture (portal) | `POST /api/contato/diagnostico` → Lead |
@@ -68,7 +70,9 @@ Implemented in the canonical app (require correct env/Meta/Stripe config in each
 | Item | Reality |
 |------|---------|
 | SLA | UI tiers (5/15/30 min) exist; per-queue `slaTargetMinutes` runtime usage not fully confirmed |
-| FAQ → AI | FAQ CRUD exists; not fully wired into AI reply path (P1) |
+| FAQ → AI | FAQ CRUD + grounding lexical no auto-reply / suggest-reply; sem FAQ match em safe+auto → handoff |
+| Multi-agent onboarding | Manager provisiona em `/agents` (pending → activate); sem SQL no fluxo normal |
+| Routing v1 | Round-robin opcional (`automaticDistributionEnabled`); usa `assignThread` CAS; fallback unassigned |
 | Manager metrics | Manager dashboard real; some overview fields historically stubbed — verify before promising numbers |
 | Funnel portal → self-serve tenant | Lead + convert assisted; Stripe self-serve **not** wired to portal funnel |
 | Metered billing in production | Code/docs exist; **out of pilot** until explicitly enabled |

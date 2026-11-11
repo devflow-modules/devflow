@@ -21,7 +21,7 @@ function baseSnap(over: Partial<SystemHealthSnapshot> = {}): SystemHealthSnapsho
       totalReceived: 10,
       totalErrors: 0,
     },
-    operationalControls: { aiEnabled: true, automationEnabled: true },
+    operationalControls: { aiEnabled: true, automationEnabled: true, automaticDistributionEnabled: false },
     automationStatus: {
       aiActive: true,
       aiPausedByAdmin: false,

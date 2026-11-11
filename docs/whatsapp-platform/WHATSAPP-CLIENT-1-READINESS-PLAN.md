@@ -69,9 +69,9 @@ As decisões abaixo são requisitos de produto aprovados para este plano, não i
 | Tema | Decisão aprovada |
 |---|---|
 | Perfil do cliente | Suporte e vendas, priorizando atendimento conversacional no piloto |
-| Operação inicial | Um `operator` principal e um `manager` de contingência |
+| Operação inicial | Um `manager` + até dois `operator` no mesmo tenant (provisionamento em `/agents`) |
 | CRM e fechamento comercial | Fora do caminho principal e fora do piloto inicial |
-| IA | Sem resposta autônoma; no máximo sugestão supervisionada |
+| IA | Default assisted (`autoReply=false`); restricted auto só com FAQ + safe mode |
 | Tags | Disponíveis no painel contextual, não no fluxo principal |
 | Filas | Só aparecem quando necessárias e para perfis autorizados |
 | Filtros primários | `Precisa resposta`, `Minhas`, `Sem responsável` |

@@ -60,13 +60,20 @@ Código: `src/modules/inbox/needsHumanHandoffService.ts`.
 
 ## Safe mode piloto (P0-07)
 
-Política **assistiva e controlada** para piloto real — implementada em `aiPilotDecision.ts` + `aiGuard.ts` + `aiAutomationService.ts`.
+Política **assistiva e controlada** para piloto real — implementada em `aiPilotDecision.ts` + `aiGuard.ts` + `aiAutomationService.ts` + `faqGroundingService.ts`.
 
 | Config / env | Default piloto | Efeito |
 |--------------|----------------|--------|
-| `WHATSAPP_AI_SAFE_MODE` | `1` (activo) | Temas comerciais/críticos e intents sensíveis → handoff |
+| `WHATSAPP_AI_SAFE_MODE` | `1` (activo) | Temas comerciais/críticos, intents sensíveis e **tópicos clínicos dentários** → handoff |
 | `WHATSAPP_AI_MIN_CONFIDENCE` | `0.65` | Structured output abaixo do limiar → handoff |
 | `AiAgentConfig.fallbackToHuman` | `true` | Erro LLM / resposta vazia → handoff (não lança excepção) |
+| `AiAgentConfig.autoReply` | **`false`** em configs novas | **ASSISTED** (sugestão via `/suggest-reply`); `true` = RESTRICTED AUTO só com FAQ grounding |
+
+### FAQ grounding (Client 1)
+
+- CRUD: `/api/faq` (tenant-scoped).
+- Runtime: `groundMessageWithTenantFaq` injecta bloco aprovado no system prompt (auto + suggest).
+- Em safe mode + `autoReply=true` sem match FAQ → handoff `faq_unsupported` (não alucinar).
 
 ### Decisão explícita (`AiDecision`)
 

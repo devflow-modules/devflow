@@ -75,6 +75,7 @@ async function publishAndAuditAssign(params: {
   assignedToUserId: string;
   assignedToUser: { id: string; name: string; email: string };
   callerUserId: string;
+  auditExtra?: Record<string, unknown>;
 }): Promise<void> {
   const { tenantId, threadId, previousAssigneeId, assignedToUserId, assignedToUser, callerUserId } =
     params;
@@ -99,6 +100,7 @@ async function publishAndAuditAssign(params: {
   await logAction(tenantId, threadId, callerUserId, "assign", {
     previousAssigneeId,
     assignedToUserId,
+    ...(params.auditExtra ?? {}),
   });
 }
 
@@ -132,20 +134,24 @@ async function publishAndAuditUnassign(params: {
 
 /**
  * Claim (unassigned → target) ou transferência (owner → target).
- * `callerRole: "system"` para automações/handoff (não inventar round-robin).
+ * `callerRole: "system"` para automações/handoff/roteamento automático.
  */
 export async function assignThread(
   tenantId: string,
   threadId: string,
   targetUserId: string,
   callerUserId: string,
-  callerRole: AssignmentActorRole
+  callerRole: AssignmentActorRole,
+  auditExtra?: Record<string, unknown>
 ): Promise<AssignmentResult> {
   const target = await prisma.user.findFirst({
     where: { id: targetUserId, tenantId },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true, role: true, status: true },
   });
   if (!target || !isOperationalRole(target.role)) {
+    return { ok: false, reason: "target_not_found" };
+  }
+  if ((target.status ?? "active") !== "active") {
     return { ok: false, reason: "target_not_found" };
   }
 
@@ -194,6 +200,7 @@ export async function assignThread(
         assignedToUserId: targetUserId,
         assignedToUser: { id: target.id, name: target.name, email: target.email },
         callerUserId,
+        auditExtra,
       });
       return { ok: true, changed: true };
     }
