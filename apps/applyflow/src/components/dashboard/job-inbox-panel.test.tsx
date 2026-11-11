@@ -29,6 +29,7 @@ import {
   JOB_QUEUE_VIEW_IGNORED,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
   MANUAL_APPLICATION_DISCLOSURE,
+  MANUAL_APPLICATION_PACK_RECORD_HINT,
   jobMatchDecisionTone,
 } from "./job-inbox-content";
 import {
@@ -346,7 +347,10 @@ describe("JobInboxPanel", () => {
     expect(html).toContain("https://example.com/jobs/backend");
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
-    expect(html).toContain("Marcar como aplicada");
+    expect(html).toContain(MANUAL_APPLICATION_PACK_RECORD_HINT);
+    expect(html).not.toContain("Marcar como aplicada");
+    expect(html).not.toContain(`application-pack-mark-applied-${packedJob.id}`);
+    expect(html).toContain(`manual-app-open-${packedJob.id}`);
   });
 });
 

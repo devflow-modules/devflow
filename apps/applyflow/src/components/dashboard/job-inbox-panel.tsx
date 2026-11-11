@@ -20,7 +20,6 @@ import {
   APPLICATION_PACK_GAPS_LABEL,
   APPLICATION_PACK_HIGHLIGHTS_LABEL,
   APPLICATION_PACK_HINT,
-  APPLICATION_PACK_MARK_APPLIED_LABEL,
   APPLICATION_PACK_OPEN_JOB_LABEL,
   APPLICATION_PACK_OPEN_LABEL,
   APPLICATION_PACK_PREPARE_LABEL,
@@ -66,7 +65,7 @@ import {
   JOB_QUEUE_HISTORICAL_NOTE,
   JOB_QUEUE_IGNORE_LABEL,
   JOB_QUEUE_RESTORE_LABEL,
-  MANUAL_APPLICATION_FINAL_CONFIRM,
+  MANUAL_APPLICATION_PACK_RECORD_HINT,
   JOB_QUEUE_SORT_LABEL,
   JOB_QUEUE_SORT_MATCH,
   JOB_QUEUE_SORT_RECENCY,
@@ -307,11 +306,9 @@ function ApplicationPackFacts({ pack }: { pack: ApplicationPack }) {
 function ApplicationPackView({
   job,
   onTogglePackChecklist,
-  onMarkJobApplied,
 }: {
   job: ApplyFlowJob;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
-  onMarkJobApplied?: (jobId: string) => void | Promise<void>;
 }) {
   const pack = job.applicationPack;
   if (!pack) return null;
@@ -397,6 +394,14 @@ function ApplicationPackView({
           </ul>
         </div>
         <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_HINT}</p>
+        {job.status !== "applied" ? (
+          <p
+            className="mt-2 text-xs text-[color:var(--af-text-muted)]"
+            data-testid={`application-pack-record-hint-${job.id}`}
+          >
+            {MANUAL_APPLICATION_PACK_RECORD_HINT}
+          </p>
+        ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
           {openable && job.url ? (
             <a
@@ -407,19 +412,6 @@ function ApplicationPackView({
             >
               {APPLICATION_PACK_OPEN_JOB_LABEL}
             </a>
-          ) : null}
-          {job.status !== "applied" && onMarkJobApplied ? (
-            <ApplyFlowButton
-              variant="outlineBrand"
-              size="sm"
-              data-testid={`application-pack-mark-applied-${job.id}`}
-              onClick={() => {
-                if (!window.confirm(MANUAL_APPLICATION_FINAL_CONFIRM)) return;
-                void onMarkJobApplied(job.id);
-              }}
-            >
-              {APPLICATION_PACK_MARK_APPLIED_LABEL}
-            </ApplyFlowButton>
           ) : null}
         </div>
       </div>
@@ -643,11 +635,7 @@ function JobInboxCard({
         />
       ) : null}
       {job.applicationPack ? (
-        <ApplicationPackView
-          job={job}
-          onTogglePackChecklist={onTogglePackChecklist}
-          onMarkJobApplied={onMarkJobApplied}
-        />
+        <ApplicationPackView job={job} onTogglePackChecklist={onTogglePackChecklist} />
       ) : null}
     </ApplyFlowCard>
   );

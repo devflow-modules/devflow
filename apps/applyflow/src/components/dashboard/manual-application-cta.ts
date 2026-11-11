@@ -1,11 +1,12 @@
 import { isOpenableJobUrl, type ApplyFlowJobSource } from "@devflow/applyflow-core";
 
 import {
+  MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL,
+  MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
-  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
 } from "./job-inbox-content";
 
-const OFFICIAL_APPLY_HOST_SUFFIXES = [
+const ATS_HOST_SUFFIXES = [
   "ashbyhq.com",
   "greenhouse.io",
   "lever.co",
@@ -24,7 +25,7 @@ const LISTING_HOST_SUFFIXES = [
   "glassdoor.com",
 ] as const;
 
-export type ManualApplicationCtaKind = "official" | "listing" | "unavailable";
+export type ManualApplicationCtaKind = "apply_form" | "ats_job" | "listing" | "unavailable";
 
 export type ManualApplicationCta = {
   kind: ManualApplicationCtaKind;
@@ -43,8 +44,32 @@ export function isSafeExternalJobUrl(url: string | undefined): boolean {
 }
 
 /**
- * F1 CTA policy: only claim "site oficial" for known ATS hosts.
- * Aggregator/listing hosts (and unknown hosts) use listing wording.
+ * Evidence that the path/host is an apply *form*, not merely an ATS job page.
+ * Deterministic and conservative — never infer from words like jobs/career alone.
+ */
+export function isProvenAtsApplyFormUrl(parsed: URL): boolean {
+  if (!hostMatches(parsed.hostname, ATS_HOST_SUFFIXES)) return false;
+  const host = parsed.hostname.toLowerCase();
+  const segments = parsed.pathname
+    .toLowerCase()
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  // Dedicated apply hosts (e.g. apply.workable.com/...).
+  if (host.startsWith("apply.")) return true;
+
+  // Explicit apply/application path segment on a known ATS host.
+  if (segments.includes("apply") || segments.includes("application")) return true;
+
+  return false;
+}
+
+/**
+ * F1 CTA policy (conservative):
+ * - proven ATS apply form → "Abrir formulário de candidatura"
+ * - known ATS job/listing page → "Abrir vaga no portal de recrutamento"
+ * - aggregator / unknown → "Abrir anúncio"
  */
 export function resolveManualApplicationCta(input: {
   url?: string | null;
@@ -54,19 +79,22 @@ export function resolveManualApplicationCta(input: {
   if (!url || !isSafeExternalJobUrl(url)) {
     return { kind: "unavailable", label: MANUAL_APPLICATION_CTA_LISTING_LABEL, url: null };
   }
-  let hostname = "";
+  let parsed: URL;
   try {
-    hostname = new URL(url).hostname;
+    parsed = new URL(url);
   } catch {
     return { kind: "unavailable", label: MANUAL_APPLICATION_CTA_LISTING_LABEL, url: null };
   }
 
-  if (hostMatches(hostname, OFFICIAL_APPLY_HOST_SUFFIXES)) {
-    return { kind: "official", label: MANUAL_APPLICATION_CTA_OFFICIAL_LABEL, url };
+  if (hostMatches(parsed.hostname, ATS_HOST_SUFFIXES)) {
+    if (isProvenAtsApplyFormUrl(parsed)) {
+      return { kind: "apply_form", label: MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL, url };
+    }
+    return { kind: "ats_job", label: MANUAL_APPLICATION_CTA_ATS_JOB_LABEL, url };
   }
 
   if (
-    hostMatches(hostname, LISTING_HOST_SUFFIXES) ||
+    hostMatches(parsed.hostname, LISTING_HOST_SUFFIXES) ||
     input.source === "remoteok" ||
     input.source === "jobgether" ||
     input.source === "linkedin"
@@ -74,7 +102,7 @@ export function resolveManualApplicationCta(input: {
     return { kind: "listing", label: MANUAL_APPLICATION_CTA_LISTING_LABEL, url };
   }
 
-  // Unknown host: do not claim official ATS — treat as listing/opportunity link.
+  // Unknown host: do not claim ATS or official form.
   return { kind: "listing", label: MANUAL_APPLICATION_CTA_LISTING_LABEL, url };
 }
 

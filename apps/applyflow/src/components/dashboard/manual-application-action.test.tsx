@@ -9,8 +9,8 @@ import {
   MANUAL_APPLICATION_CONFIRM_BLOCKED,
   MANUAL_APPLICATION_CONFIRM_LATER,
   MANUAL_APPLICATION_CONFIRM_PROMPT,
+  MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
-  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
   MANUAL_APPLICATION_DISCLOSURE,
   MANUAL_APPLICATION_MARK_ERROR,
 } from "./job-inbox-content";
@@ -61,7 +61,7 @@ describe("ManualApplicationAction", () => {
     expect(screen.getByText(MANUAL_APPLICATION_CONFIRM_PROMPT)).toBeTruthy();
   });
 
-  it("shows official CTA for known ATS URL", () => {
+  it("shows ATS portal CTA for known ATS job page URL", () => {
     render(
       <ManualApplicationAction
         job={baseJob({ url: "https://jobs.ashbyhq.com/acme/abc", source: "paste" })}
@@ -69,8 +69,8 @@ describe("ManualApplicationAction", () => {
       />,
     );
     const openButton = screen.getByTestId("manual-app-open-job_manual_1");
-    expect(openButton.textContent).toBe(MANUAL_APPLICATION_CTA_OFFICIAL_LABEL);
-    expect(openButton.getAttribute("data-cta-kind")).toBe("official");
+    expect(openButton.textContent).toBe(MANUAL_APPLICATION_CTA_ATS_JOB_LABEL);
+    expect(openButton.getAttribute("data-cta-kind")).toBe("ats_job");
   });
 
   it("keeps reviewing for Não consegui enviar without mutation", () => {

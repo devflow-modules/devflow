@@ -1,24 +1,53 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL,
+  MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
-  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
 } from "./job-inbox-content";
 import {
+  isProvenAtsApplyFormUrl,
   isSafeExternalJobUrl,
   openManualApplicationUrl,
   resolveManualApplicationCta,
 } from "./manual-application-cta";
 
 describe("resolveManualApplicationCta", () => {
-  it("labels known ATS hosts as official apply", () => {
+  it("labels known ATS job pages as recruitment portal (not official site claim)", () => {
     const cta = resolveManualApplicationCta({
       url: "https://jobs.ashbyhq.com/wagmo/dbf4dc55",
       source: "paste",
     });
-    expect(cta.kind).toBe("official");
-    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_OFFICIAL_LABEL);
+    expect(cta.kind).toBe("ats_job");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_ATS_JOB_LABEL);
     expect(cta.url).toBe("https://jobs.ashbyhq.com/wagmo/dbf4dc55");
+  });
+
+  it("labels proven ATS apply-form paths as formulário de candidatura", () => {
+    const workable = resolveManualApplicationCta({
+      url: "https://apply.workable.com/acme/j/ABCD1234/",
+      source: "paste",
+    });
+    expect(workable.kind).toBe("apply_form");
+    expect(workable.label).toBe(MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL);
+
+    const leverApply = resolveManualApplicationCta({
+      url: "https://jobs.lever.co/acme/role-slug/apply",
+      source: "paste",
+    });
+    expect(leverApply.kind).toBe("apply_form");
+    expect(leverApply.label).toBe(MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL);
+  });
+
+  it("does not treat generic jobs/career path words as proven apply forms", () => {
+    expect(isProvenAtsApplyFormUrl(new URL("https://jobs.ashbyhq.com/acme/uuid"))).toBe(false);
+    expect(isProvenAtsApplyFormUrl(new URL("https://boards.greenhouse.io/acme/jobs/123"))).toBe(false);
+    expect(
+      resolveManualApplicationCta({
+        url: "https://example.com/careers/apply-now",
+        source: "paste",
+      }).kind,
+    ).toBe("listing");
   });
 
   it("labels aggregator/listing hosts as Abrir anúncio", () => {
