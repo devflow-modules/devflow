@@ -170,6 +170,28 @@ export const JOB_QUEUE_OPEN_SOURCE_LABEL = "Abrir anúncio";
 export const JOB_QUEUE_HISTORICAL_NOTE =
   "Vagas ignoradas antigas (antes da fila) permanecem em Ignoradas até as restaurares.";
 
+/** F1 — external manual application CTA + post-open confirmation */
+/** @deprecated Prefer evidence-based labels (apply form / ATS job / listing). */
+export const MANUAL_APPLICATION_CTA_OFFICIAL_LABEL = "Candidatar-se no site oficial";
+export const MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL = "Abrir formulário de candidatura";
+export const MANUAL_APPLICATION_CTA_ATS_JOB_LABEL = "Abrir vaga no portal de recrutamento";
+export const MANUAL_APPLICATION_CTA_LISTING_LABEL = "Abrir anúncio";
+export const MANUAL_APPLICATION_DISCLOSURE =
+  "O ApplyFlow prepara sua candidatura. O envio é realizado por você no site da empresa.";
+export const MANUAL_APPLICATION_CONFIRM_PROMPT = "Você conseguiu enviar sua candidatura?";
+export const MANUAL_APPLICATION_CONFIRM_YES = "Sim, enviei minha candidatura";
+export const MANUAL_APPLICATION_CONFIRM_BLOCKED = "Não consegui enviar";
+export const MANUAL_APPLICATION_CONFIRM_LATER = "Vou continuar depois";
+export const MANUAL_APPLICATION_FINAL_CONFIRM =
+  "Confirmar que você enviou a candidatura no site da empresa? O ApplyFlow só registra o envio após esta confirmação.";
+export const MANUAL_APPLICATION_URL_UNAVAILABLE =
+  "Link externo indisponível ou inválido para esta oportunidade.";
+export const MANUAL_APPLICATION_MARKING = "Registrando…";
+export const MANUAL_APPLICATION_MARK_ERROR =
+  "Não foi possível registrar a candidatura. Tente novamente.";
+export const MANUAL_APPLICATION_PACK_RECORD_HINT =
+  "Para registrar o envio, use a confirmação após abrir o anúncio acima. O pacote não marca applied sozinho.";
+
 export const JOB_QUEUE_SOURCE_LABELS: Record<string, string> = {
   jobgether: "Jobgether",
   theirstack: "TheirStack",
