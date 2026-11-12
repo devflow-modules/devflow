@@ -342,6 +342,13 @@ function seniorityFindings(profile: CandidateProfile, jobText: string): Eligibil
   return findings;
 }
 
+/**
+ * Remote + optional short role noun(s) + based/located in|within + place.
+ * Deliberately narrow: does not match bare "remote … LATAM" marketing across the posting.
+ */
+const REMOTE_BASED_IN_PREFIX =
+  String.raw`\bremote(?:ly)?(?:\s+(?:role|position|opportunity|job|opening|engineer(?:ing)?|developer)){0,2}\s+(?:based|located)\s+(?:in|within)\s+`;
+
 function geographicConstraint(text: string): GeoConstraint {
   const exclusive = exclusiveConstraint(text);
   if (exclusive) return exclusive;
@@ -353,14 +360,23 @@ function geographicConstraint(text: string): GeoConstraint {
   if (
     /\bremote(?:ly)?\s+(?:in\s+|within\s+|- )?(?:latam|latin america|america latina)\b/.test(text) ||
     /\b(?:latam|latin america|america latina) only\b/.test(text) ||
-    /\bmust (?:reside|live|be located|be based) (?:in|within) (?:latam|latin america|america latina)\b/.test(text)
+    /\bmust (?:reside|live|be located|be based) (?:in|within) (?:latam|latin america|america latina)\b/.test(text) ||
+    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:latam|latin america|america latina)\\b`).test(text)
   ) {
     return { kind: "region", region: "LATAM" };
+  }
+  if (
+    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:europe|the european union|the eu|european union)\\b`).test(text)
+  ) {
+    return { kind: "region", region: "Europe" };
   }
   for (const country of COUNTRY_NAMES) {
     for (const name of country.names) {
       const escaped = escapeRegExp(name);
-      if (new RegExp(`\\b(?:remoto|remote)(?:ly)?\\s+(?:in\\s+|within\\s+|- )?(?:the\\s+)?${escaped}\\b`).test(text)) {
+      if (
+        new RegExp(`\\b(?:remoto|remote)(?:ly)?\\s+(?:in\\s+|within\\s+|- )?(?:the\\s+)?${escaped}\\b`).test(text) ||
+        new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:the\\s+)?${escaped}\\b`).test(text)
+      ) {
         return { kind: "countries", countries: [country.id] };
       }
     }
