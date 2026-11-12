@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createApplicationPackV2 } from "../application-pack-v2.js";
+import { canCreateApplicationPackV2, createApplicationPackV2 } from "../application-pack-v2.js";
 import { deriveApplicationReadiness } from "../application-readiness.js";
 import { buildCandidateEvidence } from "../evidence-from-profile.js";
 import { evaluateJobDecisionV2 } from "../evaluate-job-decision-v2.js";
@@ -194,6 +194,99 @@ describe("job eligibility scenarios", () => {
     expect(assessJobEligibility(PT, "Remote. React.").findings.find((item) => item.dimension === "location")?.status).toBe(
       "unknown",
     );
+  });
+});
+
+describe("remote role based/located in LATAM geographic phrases", () => {
+  const EUROPE_CANDIDATE = candidate("Berlin, Germany");
+
+  it.each([
+    "Remote role based in Latin America. React TypeScript.",
+    "Remote position based in LATAM. React TypeScript.",
+    "Remote role located in Latin America. React TypeScript.",
+    "Remote opportunity based in Latin America. React TypeScript.",
+    "Remote role based within Latin America. React TypeScript.",
+    "Remote in LATAM. React TypeScript.",
+    "LATAM only. Remote. React TypeScript.",
+  ])("positive — %s → Brazil eligible", (jobText) => {
+    const result = assessJobEligibility(EN, jobText);
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("eligible");
+    expect(result.status).toBe("eligible");
+  });
+
+  it("negative — LATAM only in the job title stays unknown", () => {
+    const result = assessJobEligibility(EN, "Senior Software Engineer LATAM. Fully remote. React TypeScript.");
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("unknown");
+  });
+
+  it("negative — fully remote without a geographic restriction stays unknown", () => {
+    const result = assessJobEligibility(EN, "Senior Software Engineer. Fully remote, no geographic restriction stated. React TypeScript.");
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("unknown");
+  });
+
+  it("negative — LATAM clients / company operates phrases are not location constraints", () => {
+    expect(
+      assessJobEligibility(EN, "Experience working with LATAM clients, remote position. React TypeScript.").findings.find(
+        (item) => item.dimension === "location",
+      )?.status,
+    ).toBe("unknown");
+    expect(
+      assessJobEligibility(EN, "Company operates in Latin America, role is remote. React TypeScript.").findings.find(
+        (item) => item.dimension === "location",
+      )?.status,
+    ).toBe("unknown");
+  });
+
+  it("negative — Remote role based in Europe is incompatible for Brazil", () => {
+    const result = assessJobEligibility(EN, "Remote role based in Europe. React TypeScript.");
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("ineligible");
+    expect(result.status).toBe("ineligible");
+  });
+
+  it("negative — Remote role based in Latin America is incompatible for a Europe candidate", () => {
+    const result = assessJobEligibility(EUROPE_CANDIDATE, "Remote role based in Latin America. React TypeScript.");
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("ineligible");
+    expect(result.status).toBe("ineligible");
+  });
+
+  it("precedence — Europe-only beats a later LATAM collaboration mention", () => {
+    const result = assessJobEligibility(
+      EN,
+      "Remote Europe only. LATAM team collaboration required. React TypeScript.",
+    );
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("ineligible");
+    expect(result.status).toBe("ineligible");
+  });
+
+  it("precedence — must reside in Mexico beats Remote role based in Latin America", () => {
+    const result = assessJobEligibility(
+      EN,
+      "Remote role based in Latin America, but applicants must reside in Mexico. React TypeScript.",
+    );
+    expect(result.findings.find((item) => item.dimension === "location")?.status).toBe("ineligible");
+    expect(result.status).toBe("ineligible");
+  });
+
+  it("Wagmo-shaped posting — Remote role based in Latin America unlocks Brazil eligibility and pack path", () => {
+    const wagmoShaped = `Senior Software Engineer
+Remote role based in Latin America. Must work at least 6 hours of overlap with US Eastern Time.
+Requirements: React, TypeScript, Python. ${STACK}`;
+    expect(assessJobEligibility(EN, wagmoShaped).findings.find((item) => item.dimension === "location")?.status).toBe(
+      "eligible",
+    );
+
+    // Mirror ATS EN skill coverage used in the QA Wagmo audit (Python included).
+    const atsEnLike = validateCandidateProfile({
+      ...EN,
+      skills: { ...EN.skills, Python: 3 },
+      facts: { ...EN.facts, totalYearsExperience: 6 },
+    });
+    const decision = decide(atsEnLike, wagmoShaped);
+    expect(decision.eligibility?.status).toBe("eligible");
+    expect(decision.decision).toBe("apply_normal");
+    expect(canCreateApplicationPackV2(decision.decision)).toBe(true);
+    const seniorityMatch = decision.matches.find((item) => item.requirement.id === "req-seniority");
+    expect(seniorityMatch?.status).toBe("unknown");
   });
 });
 
