@@ -15,8 +15,8 @@ import {
   APPLICATION_PACK_ANSWERS_LABEL,
   APPLICATION_PACK_CHECKLIST_LABEL,
   APPLICATION_PACK_CHECKLIST_LABELS,
+  APPLICATION_PACK_CURRENT_ANALYSIS_LABEL,
   APPLICATION_PACK_FACTS_LABEL,
-  APPLICATION_PACK_FIT_LABEL,
   APPLICATION_PACK_GAPS_LABEL,
   APPLICATION_PACK_HIGHLIGHTS_LABEL,
   APPLICATION_PACK_HINT,
@@ -28,6 +28,9 @@ import {
   APPLICATION_PACK_SALARY_LABELS,
   APPLICATION_PACK_SELECT_LABEL,
   APPLICATION_PACK_TITLE,
+  APPLICATION_PACK_VARIANT_MISMATCH_HINT,
+  applicationPackSnapshotLabel,
+  formatApplicationPackMatchLine,
   CURRICULUM_ROUTER_COMPARE_LABEL,
   CURRICULUM_ROUTER_EQUIVALENT_HINT,
   CURRICULUM_ROUTER_NOT_AN_ACTION,
@@ -98,6 +101,7 @@ import {
   type ApplicationPack,
   type ApplicationPackChecklistId,
   type ApplyFlowApplicationV2Envelope,
+  type InboxJobAnalysisPresentation,
   type ApplyFlowJob,
   type ApplyFlowJobSource,
   type CurriculumRecommendation,
@@ -305,14 +309,27 @@ function ApplicationPackFacts({ pack }: { pack: ApplicationPack }) {
 
 function ApplicationPackView({
   job,
+  currentAnalysis,
+  currentVariant,
   onTogglePackChecklist,
 }: {
   job: ApplyFlowJob;
+  /** Inbox analysis already computed for this card — only V2 is shown as “current”. */
+  currentAnalysis?: InboxJobAnalysisPresentation | null;
+  currentVariant?: { id: string; name: string } | null;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
 }) {
   const pack = job.applicationPack;
   if (!pack) return null;
   const openable = isOpenableJobUrl(job.url);
+  const showCurrentAnalysis = currentAnalysis?.source === "v2";
+  const snapshotLabel = applicationPackSnapshotLabel(pack.match.scoringVersion);
+  const variantMismatch = Boolean(
+    showCurrentAnalysis &&
+      currentVariant?.id &&
+      pack.resume.variantId &&
+      currentVariant.id !== pack.resume.variantId,
+  );
 
   return (
     <details className="mt-3 border-t border-[color:var(--af-border)] pt-3">
@@ -341,12 +358,54 @@ function ApplicationPackView({
         {pack.resume.recommendedByRouter ? (
           <p className="text-xs text-[color:var(--af-text-muted)]">{APPLICATION_PACK_ROUTER_HINT}</p>
         ) : null}
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
-          {APPLICATION_PACK_FIT_LABEL}
-        </p>
-        <p className="mt-1 tabular-nums text-sm text-[color:var(--af-text)]">
-          {JOB_MATCH_DECISION_LABELS[pack.match.decision]} · {pack.match.score}/100
-        </p>
+        <div className="mt-3 grid gap-2">
+          {showCurrentAnalysis && currentAnalysis ? (
+            <div data-testid={`application-pack-current-analysis-${job.id}`}>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                {APPLICATION_PACK_CURRENT_ANALYSIS_LABEL}
+              </p>
+              <p className="mt-1 tabular-nums text-sm text-[color:var(--af-text)]">
+                {formatApplicationPackMatchLine({
+                  decisionLabel: JOB_MATCH_DECISION_LABELS[currentAnalysis.decision],
+                  score: currentAnalysis.score,
+                  variantName: currentVariant?.name,
+                })}
+              </p>
+            </div>
+          ) : null}
+          <div data-testid={`application-pack-snapshot-match-${job.id}`}>
+            <p
+              className={cn(
+                "text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]",
+                showCurrentAnalysis ? "font-medium" : undefined,
+              )}
+            >
+              {snapshotLabel}
+            </p>
+            <p
+              className={cn(
+                "mt-1 tabular-nums",
+                showCurrentAnalysis
+                  ? "text-xs text-[color:var(--af-text-muted)]"
+                  : "text-sm text-[color:var(--af-text)]",
+              )}
+            >
+              {formatApplicationPackMatchLine({
+                decisionLabel: JOB_MATCH_DECISION_LABELS[pack.match.decision],
+                score: pack.match.score,
+                variantName: pack.resume.variantName,
+              })}
+            </p>
+          </div>
+          {variantMismatch ? (
+            <p
+              className="text-xs text-[color:var(--af-text-muted)]"
+              data-testid={`application-pack-variant-mismatch-${job.id}`}
+            >
+              {APPLICATION_PACK_VARIANT_MISMATCH_HINT}
+            </p>
+          ) : null}
+        </div>
         {pack.highlights.length > 0 ? (
           <div className="mt-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
@@ -500,10 +559,8 @@ function JobInboxCard({
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
 }) {
-  const analysis = presentInboxJobAnalysis(
-    job,
-    resumeLibrary?.variants.length ? getDefaultResumeVariant(resumeLibrary).profile : null,
-  );
+  const defaultVariant = resumeLibrary?.variants.length ? getDefaultResumeVariant(resumeLibrary) : null;
+  const analysis = presentInboxJobAnalysis(job, defaultVariant?.profile ?? null);
   const linkedApplication = findApplicationForJob(
     applications ?? loadDashboardImport()?.applications ?? [],
     job,
@@ -635,7 +692,14 @@ function JobInboxCard({
         />
       ) : null}
       {job.applicationPack ? (
-        <ApplicationPackView job={job} onTogglePackChecklist={onTogglePackChecklist} />
+        <ApplicationPackView
+          job={job}
+          currentAnalysis={analysis}
+          currentVariant={
+            defaultVariant ? { id: defaultVariant.id, name: defaultVariant.name } : null
+          }
+          onTogglePackChecklist={onTogglePackChecklist}
+        />
       ) : null}
     </ApplyFlowCard>
   );
