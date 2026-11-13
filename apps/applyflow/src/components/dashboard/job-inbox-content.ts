@@ -114,6 +114,12 @@ export const APPLICATION_PACK_RESUME_LABEL = "Currículo";
 export const APPLICATION_PACK_SELECT_LABEL = "Currículo para esta candidatura";
 export const APPLICATION_PACK_ROUTER_HINT = "Recomendado pelo Router";
 export const APPLICATION_PACK_FIT_LABEL = "Fit";
+/** Live V2 analysis already computed by the inbox card — not job.jobMatch. */
+export const APPLICATION_PACK_CURRENT_ANALYSIS_LABEL = "Análise atual da vaga";
+export const APPLICATION_PACK_SNAPSHOT_LABEL = "Snapshot do Pack";
+export const APPLICATION_PACK_SNAPSHOT_V1_LABEL = "Snapshot do Pack · V1";
+export const APPLICATION_PACK_VARIANT_MISMATCH_HINT =
+  "A análise atual usa um currículo diferente do snapshot do Pack. Os scores não avaliam o mesmo currículo.";
 export const APPLICATION_PACK_HIGHLIGHTS_LABEL = "Pontos para destacar";
 export const APPLICATION_PACK_GAPS_LABEL = "Gaps para revisar";
 export const APPLICATION_PACK_FACTS_LABEL = "Dados rápidos";
@@ -123,6 +129,22 @@ export const APPLICATION_PACK_ANSWERS_HINT =
 export const APPLICATION_PACK_CHECKLIST_LABEL = "Checklist";
 export const APPLICATION_PACK_OPEN_JOB_LABEL = "Abrir vaga";
 export const APPLICATION_PACK_MARK_APPLIED_LABEL = "Marcar como aplicada";
+
+/** Label the persisted Pack match snapshot without inventing a scoring version. */
+export function applicationPackSnapshotLabel(scoringVersion: string | null | undefined): string {
+  if (scoringVersion === "v1") return APPLICATION_PACK_SNAPSHOT_V1_LABEL;
+  return APPLICATION_PACK_SNAPSHOT_LABEL;
+}
+
+export function formatApplicationPackMatchLine(input: {
+  decisionLabel: string;
+  score: number;
+  variantName?: string | null;
+}): string {
+  const base = `${input.decisionLabel} · ${input.score}/100`;
+  const variant = input.variantName?.trim();
+  return variant ? `${base} · ${variant}` : base;
+}
 export const APPLICATION_PACK_CHECKLIST_LABELS = {
   "review-resume": "Revisar currículo selecionado",
   "review-highlights": "Revisar pontos fortes",

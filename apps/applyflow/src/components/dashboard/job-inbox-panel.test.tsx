@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -5,11 +7,17 @@ import { JobInboxPanel } from "./job-inbox-panel";
 import {
   APPLICATION_PACK_ANSWERS_HINT,
   APPLICATION_PACK_ANSWERS_LABEL,
+  APPLICATION_PACK_CURRENT_ANALYSIS_LABEL,
   APPLICATION_PACK_HINT,
   APPLICATION_PACK_OPEN_LABEL,
   APPLICATION_PACK_PREPARE_LABEL,
   APPLICATION_PACK_ROUTER_HINT,
   APPLICATION_PACK_SELECT_LABEL,
+  APPLICATION_PACK_SNAPSHOT_LABEL,
+  APPLICATION_PACK_SNAPSHOT_V1_LABEL,
+  APPLICATION_PACK_VARIANT_MISMATCH_HINT,
+  applicationPackSnapshotLabel,
+  formatApplicationPackMatchLine,
   CURRICULUM_ROUTER_COMPARE_LABEL,
   CURRICULUM_ROUTER_SKIP_HINT,
   CURRICULUM_ROUTER_TITLE,
@@ -35,11 +43,22 @@ import {
 import {
   addResumeVariant,
   createResumeLibraryFromProfile,
+  getDefaultResumeVariant,
   gustavoProfile,
+  parseResumeLibrary,
+  presentInboxJobAnalysis,
   type ApplyFlowJob,
   type CurriculumRecommendation,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
+
+const WAGMO_FIXTURE_LIB = path.resolve(
+  "C:/Users/Xakep/devflow-applyflow-backups/f1-qa-matching-v2-correctness-20261112/profile-library-for-local.json",
+);
+const WAGMO_FIXTURE_JOBS = path.resolve(
+  "C:/Users/Xakep/devflow-applyflow-backups/f1-qa-matching-v2-correctness-20261112/jobs-for-local-match.json",
+);
+const hasWagmoLocalFixture = fs.existsSync(WAGMO_FIXTURE_LIB) && fs.existsSync(WAGMO_FIXTURE_JOBS);
 
 const stretchJob: ApplyFlowJob = {
   id: "job_stretch",
@@ -337,7 +356,17 @@ describe("JobInboxPanel", () => {
     expect(html).not.toContain(APPLICATION_PACK_PREPARE_LABEL);
     expect(html).toContain(APPLICATION_PACK_OPEN_LABEL);
     expect(html).toContain("Product Engineer");
-    expect(html).toContain("APPLY · 92/100");
+    // No descriptionSnapshot → V2 unavailable; only snapshot (not job.jobMatch 67).
+    expect(html).not.toContain(APPLICATION_PACK_CURRENT_ANALYSIS_LABEL);
+    expect(html).toContain(APPLICATION_PACK_SNAPSHOT_V1_LABEL);
+    expect(html).toContain(
+      formatApplicationPackMatchLine({
+        decisionLabel: JOB_MATCH_DECISION_LABELS.apply,
+        score: 92,
+        variantName: "Product Engineer",
+      }),
+    );
+    expect(html).not.toContain("67/100 · Product Engineer");
     expect(html).toContain("✓ Node.js");
     expect(html).toContain("△ AWS");
     expect(html).toContain(APPLICATION_PACK_HINT);
@@ -351,6 +380,209 @@ describe("JobInboxPanel", () => {
     expect(html).not.toContain("Marcar como aplicada");
     expect(html).not.toContain(`application-pack-mark-applied-${packedJob.id}`);
     expect(html).toContain(`manual-app-open-${packedJob.id}`);
+  });
+
+  it("rótulos do snapshot do Pack respeitam scoringVersion ausente vs v1", () => {
+    expect(applicationPackSnapshotLabel("v1")).toBe(APPLICATION_PACK_SNAPSHOT_V1_LABEL);
+    expect(applicationPackSnapshotLabel(undefined)).toBe(APPLICATION_PACK_SNAPSHOT_LABEL);
+    expect(applicationPackSnapshotLabel(null)).toBe(APPLICATION_PACK_SNAPSHOT_LABEL);
+    expect(applicationPackSnapshotLabel("")).toBe(APPLICATION_PACK_SNAPSHOT_LABEL);
+  });
+
+  it.skipIf(!hasWagmoLocalFixture)(
+    "Pack Wagmo (fixture local): 71 análise atual V2 vs 27 snapshot V1; sem 80 do ingest",
+    () => {
+      const parsed = parseResumeLibrary(JSON.parse(fs.readFileSync(WAGMO_FIXTURE_LIB, "utf8")));
+      expect(parsed.ok).toBe(true);
+      if (!parsed.ok) return;
+      const library = parsed.library;
+      const defaultVariant = getDefaultResumeVariant(library);
+      const wagmoRaw = (
+        JSON.parse(fs.readFileSync(WAGMO_FIXTURE_JOBS, "utf8")) as Array<{
+          id: string;
+          title?: string;
+          company?: string | null;
+          descriptionSnapshot?: string;
+          url?: string;
+        }>
+      ).find((job) => job.id === "job_ro_1137572");
+      expect(wagmoRaw?.descriptionSnapshot).toBeTruthy();
+
+      const wagmoJob: ApplyFlowJob = {
+        id: "job_ro_1137572",
+        title: wagmoRaw!.title ?? "Senior Software Engineer LATAM",
+        company: wagmoRaw!.company ?? "Wagmo",
+        source: "remoteok",
+        status: "reviewing",
+        url: wagmoRaw!.url,
+        descriptionSnapshot: wagmoRaw!.descriptionSnapshot,
+        jobContext: {
+          skills: [
+            "dev",
+            "design",
+            "react",
+            "sys admin",
+            "python",
+            "django",
+            "typescript",
+            "senior",
+            "medical",
+            "engineer",
+            "digital nomad",
+          ],
+        },
+        jobMatch: {
+          score: 80,
+          decision: "apply",
+          matchedSkills: ["react", "python", "typescript"],
+          missingSkills: [],
+          evaluatedAt: "2026-11-11T16:51:21.186Z",
+          scoringVersion: "v1",
+        },
+        applicationPack: {
+          version: 1,
+          packVersion: "application-pack-v1",
+          createdAt: "2026-11-13T14:21:00.907Z",
+          updatedAt: "2026-11-13T14:21:00.907Z",
+          jobId: "job_ro_1137572",
+          resume: {
+            variantId: "rv_cv_ats_en_2026",
+            variantName: "CV ATS EN 2026",
+            recommendedByRouter: false,
+          },
+          match: {
+            score: 27,
+            decision: "needs_info",
+            matchedSkills: ["react", "python", "typescript"],
+            missingSkills: [],
+            scoringVersion: "v1",
+          },
+          highlights: ["react", "python", "typescript"],
+          gaps: [],
+          candidateFacts: {},
+          checklist: [
+            { id: "review-resume", done: false },
+            { id: "review-highlights", done: false },
+            { id: "review-gaps", done: false },
+            { id: "review-answers", done: false },
+            { id: "open-job", done: false },
+            { id: "mark-applied", done: false },
+          ],
+        },
+        createdAt: "2026-11-11T16:51:22.213Z",
+        updatedAt: "2026-11-13T14:21:00.907Z",
+      };
+
+      const live = presentInboxJobAnalysis(wagmoJob, defaultVariant.profile);
+      expect(live).toMatchObject({ source: "v2", decision: "apply", score: 71 });
+
+      const html = renderToStaticMarkup(
+        <JobInboxPanel
+          jobs={[wagmoJob]}
+          error={null}
+          resumeLibrary={library}
+          onEvaluatePaste={() => undefined}
+          onTogglePackChecklist={() => undefined}
+        />,
+      );
+
+      expect(html).toContain(APPLICATION_PACK_CURRENT_ANALYSIS_LABEL);
+      expect(html).toContain(APPLICATION_PACK_SNAPSHOT_V1_LABEL);
+      expect(html).toContain(
+        formatApplicationPackMatchLine({
+          decisionLabel: JOB_MATCH_DECISION_LABELS.apply,
+          score: 71,
+          variantName: defaultVariant.name,
+        }),
+      );
+      expect(html).toContain(
+        formatApplicationPackMatchLine({
+          decisionLabel: JOB_MATCH_DECISION_LABELS.needs_info,
+          score: 27,
+          variantName: "CV ATS EN 2026",
+        }),
+      );
+      expect(html).not.toContain("APPLY · 80/100");
+      expect(html).not.toContain(APPLICATION_PACK_VARIANT_MISMATCH_HINT);
+      // Pack candidateFacts empty — no answer bank / PII in this render path.
+      expect(html).not.toContain(APPLICATION_PACK_ANSWERS_LABEL);
+    },
+  );
+
+  it("Pack antigo sem scoringVersion: só Snapshot do Pack; sem análise atual sem V2", () => {
+    const legacy = {
+      ...packedJob,
+      applicationPack: {
+        ...packedJob.applicationPack!,
+        match: {
+          score: 40,
+          decision: "needs_info" as const,
+          matchedSkills: ["react"],
+          missingSkills: [],
+          // intentional legacy payload
+          scoringVersion: undefined as unknown as "v1",
+        },
+      },
+    };
+    // Strip scoringVersion at runtime the way old JSON would arrive.
+    delete (legacy.applicationPack!.match as { scoringVersion?: string }).scoringVersion;
+
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[legacy]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onTogglePackChecklist={() => undefined}
+      />,
+    );
+    expect(html).toContain(APPLICATION_PACK_SNAPSHOT_LABEL);
+    expect(html).not.toContain(APPLICATION_PACK_SNAPSHOT_V1_LABEL);
+    expect(html).not.toContain(APPLICATION_PACK_CURRENT_ANALYSIS_LABEL);
+    expect(html).toContain(
+      formatApplicationPackMatchLine({
+        decisionLabel: JOB_MATCH_DECISION_LABELS.needs_info,
+        score: 40,
+        variantName: "Product Engineer",
+      }),
+    );
+  });
+
+  it("variantes diferentes: deixa a divergência explícita e não compara como o mesmo currículo", () => {
+    const library = twoVariantLibrary();
+    const job: ApplyFlowJob = {
+      ...packedJob,
+      descriptionSnapshot:
+        "Senior Software Engineer. Remote role based in Latin America. React TypeScript Python required.",
+      applicationPack: {
+        ...packedJob.applicationPack!,
+        resume: {
+          variantId: "rv_frontend",
+          variantName: "Frontend React/Next.js",
+          recommendedByRouter: false,
+        },
+        match: {
+          score: 27,
+          decision: "needs_info",
+          matchedSkills: ["react"],
+          missingSkills: [],
+          scoringVersion: "v1",
+        },
+      },
+    };
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[job]}
+        error={null}
+        resumeLibrary={library}
+        onEvaluatePaste={() => undefined}
+        onTogglePackChecklist={() => undefined}
+      />,
+    );
+    expect(html).toContain(APPLICATION_PACK_CURRENT_ANALYSIS_LABEL);
+    expect(html).toContain(APPLICATION_PACK_SNAPSHOT_V1_LABEL);
+    expect(html).toContain(APPLICATION_PACK_VARIANT_MISMATCH_HINT);
+    expect(html).toContain("Product Engineer");
+    expect(html).toContain("Frontend React/Next.js");
   });
 });
 
