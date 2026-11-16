@@ -496,6 +496,7 @@ export type {
 } from "./application-pack-v2.js";
 export {
   explainPackBlock,
+  humanizePackBlockDetail,
   humanizePackBlockLabel,
   postingHasWorkModelContradiction,
   postingStatesBrazilGeography,

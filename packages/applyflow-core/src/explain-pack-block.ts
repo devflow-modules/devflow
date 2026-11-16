@@ -46,20 +46,63 @@ function pushUnique(items: PackBlockItem[], item: PackBlockItem): void {
   items.push(item);
 }
 
+function isInsufficientEvidenceReason(reason: string | undefined): boolean {
+  if (!reason) return false;
+  return /not enough recorded evidence|evidência (atual )?ainda não|evidencia (atual )?ainda nao|insufficient evidence/i.test(
+    reason,
+  );
+}
+
+/**
+ * Map inconclusive matches to operator-facing source kinds.
+ * `unknown` / `partial` mean the evidence pass did not close — not "add a profile field".
+ * Reserve `profile` for explicit absence (e.g. skill never claimed with a hard gap) or resume missing.
+ */
 function classifyMatch(match: EvidenceMatch, profile?: CandidateProfile | null): PackBlockSourceKind {
   const type = match.requirement.requirementType;
   if (type === "location" || type === "work_model" || type === "salary" || type === "schedule") {
     return "announcement";
+  }
+  if (match.status === "partial" || match.status === "unknown" || isInsufficientEvidenceReason(match.reason)) {
+    // Seniority / years / skills with inconclusive evidence are checklist items, not "complete no perfil".
+    if (type === "years" || type === "experience" || type === "skill" || type === "language") {
+      return "evidence";
+    }
   }
   if (type === "years" || type === "experience") {
     return profileKnowsLabel(profile, match.requirement.label) ? "evidence" : "profile";
   }
   if (type === "skill" || type === "language") {
     if (!profileKnowsLabel(profile, match.requirement.label)) return "profile";
-    if (match.status === "partial" || match.status === "unknown") return "evidence";
     return "profile";
   }
   return "neutral";
+}
+
+/** Candidate-facing detail — keep engine English reasons out of the manual-prep panel. */
+export function humanizePackBlockDetail(raw: string | undefined): string | undefined {
+  if (!raw?.trim()) return undefined;
+  const trimmed = raw.trim();
+  if (/^Not enough recorded evidence to conclude proven, partial, or gap\.?$/i.test(trimmed)) {
+    return "A evidência registrada ainda não fecha se o requisito está comprovado, parcial ou em falta.";
+  }
+  const recordedDoesNotEstablish = trimmed.match(
+    /^(.+?)\s+is recorded\.\s+That does not establish\s+(.+?)\.?$/i,
+  );
+  if (recordedDoesNotEstablish) {
+    return `Há evidência de ${recordedDoesNotEstablish[1].trim()}, mas isso ainda não demonstra ${recordedDoesNotEstablish[2].trim()}.`;
+  }
+  const relatedButMissing = trimmed.match(/^Related evidence exists, but\s+(.+?)\s+is not established\.?$/i);
+  if (relatedButMissing) {
+    return `Há evidência relacionada, mas ainda falta demonstrar: ${relatedButMissing[1].trim()}.`;
+  }
+  if (/^Evidence exists but is not strong enough/i.test(trimmed)) {
+    return "Há evidência registrada, mas ela ainda não é forte o bastante para fechar o requisito.";
+  }
+  if (/^Evidence is related or incomplete relative to the posted bar\.?$/i.test(trimmed)) {
+    return "Há evidência relacionada, mas ainda incompleta em relação ao nível pedido no anúncio.";
+  }
+  return trimmed;
 }
 
 function classifyEligibilityReason(reason: string): PackBlockSourceKind {
@@ -209,10 +252,10 @@ function summarize(kind: PackBlockSourceKind, decision: ApplicationDecision | nu
       title: "Pack bloqueado — evidência insuficiente",
       summary:
         labels.length > 0
-          ? `Revise estes requisitos — a evidência atual ainda não fecha a análise: ${labels.join("; ")}.`
-          : "Há requisitos reconhecidos, mas a evidência atual não fecha a análise.",
+          ? `Revise estes requisitos — a análise ficou inconclusiva no conjunto: ${labels.join("; ")}.`
+          : "Há requisitos reconhecidos, mas a evidência atual não fecha a análise no conjunto.",
       nextAction:
-        "Revise as lacunas na preparação manual e só atualize o currículo se tiver evidência real a acrescentar.",
+        "Use a preparação manual para verificar as lacunas. Só atualize o currículo se tiver evidência real a acrescentar — nenhum item listado, isoladamente, é a causa confirmada do bloqueio.",
     };
   }
 
@@ -333,17 +376,26 @@ export function explainPackBlock(input: {
     }
 
     for (const match of evaluation.matches) {
-      if (match.status !== "unknown" && match.status !== "gap") continue;
+      if (match.status !== "unknown" && match.status !== "gap" && match.status !== "partial") continue;
       if (match.status === "gap" && !(match.requirement.mandatory || match.requirement.importance === "fundamental")) {
         continue;
       }
+      if (
+        (match.status === "unknown" || match.status === "partial") &&
+        (match.requirement.requirementType === "salary" || match.requirement.requirementType === "schedule")
+      ) {
+        continue;
+      }
+      // Partial = evidence found but incomplete — present as evidence, never as "complete no perfil".
+      if (match.status === "partial") {
+        pushUnique(items, {
+          label: humanizePackBlockLabel(match.requirement.label),
+          kind: "evidence",
+          detail: humanizePackBlockDetail(match.reason),
+        });
+        continue;
+      }
       if (match.status === "unknown") {
-        if (
-          match.requirement.requirementType === "salary" ||
-          match.requirement.requirementType === "schedule"
-        ) {
-          continue;
-        }
         const rawLabel = match.requirement.label;
         // Geography already in the posting: never present "Remote locations: Brazil" as a missing-ad item.
         if (
@@ -370,13 +422,13 @@ export function explainPackBlock(input: {
         pushUnique(items, {
           label: humanizePackBlockLabel(rawLabel),
           kind: classifyMatch(match, input.profile),
-          detail: match.reason,
+          detail: humanizePackBlockDetail(match.reason),
         });
       } else {
         pushUnique(items, {
           label: humanizePackBlockLabel(match.requirement.label),
           kind: "evidence",
-          detail: match.reason,
+          detail: humanizePackBlockDetail(match.reason),
         });
       }
     }
