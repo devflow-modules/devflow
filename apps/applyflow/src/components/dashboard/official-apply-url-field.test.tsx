@@ -3,9 +3,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  OFFICIAL_APPLY_URL_CONFLICT_ERROR,
   OFFICIAL_APPLY_URL_FIELD_LABEL,
   OFFICIAL_APPLY_URL_INVALID,
   OFFICIAL_APPLY_URL_REMOVE_LABEL,
+  OFFICIAL_APPLY_URL_SAVE_ERROR,
   OFFICIAL_APPLY_URL_SAVE_LABEL,
 } from "./job-inbox-content";
 import { OfficialApplyUrlField } from "./official-apply-url-field";
@@ -90,5 +92,49 @@ describe("OfficialApplyUrlField", () => {
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith("job-official-1", null);
     });
+  });
+
+  it("keeps typed draft and reports unsaved on OCC failure", async () => {
+    const onSave = vi.fn().mockRejectedValue(new Error("version_conflict"));
+    const { rerender } = render(
+      <OfficialApplyUrlField job={baseJob()} onSaveOfficialApplyUrl={onSave} />,
+    );
+    const input = screen.getByTestId("official-apply-url-input-job-official-1") as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { value: "https://jobs.ashbyhq.com/acme/draft/apply" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_SAVE_LABEL }));
+    expect((await screen.findByTestId("official-apply-url-error-job-official-1")).textContent).toBe(
+      OFFICIAL_APPLY_URL_CONFLICT_ERROR,
+    );
+    expect(input.value).toBe("https://jobs.ashbyhq.com/acme/draft/apply");
+
+    // Concurrent refresh updates persisted job; draft must stay dirty.
+    rerender(
+      <OfficialApplyUrlField
+        job={baseJob({
+          jobContext: {
+            skills: ["React"],
+            officialApplyUrl: "https://jobs.ashbyhq.com/acme/concurrent/apply",
+          },
+        })}
+        onSaveOfficialApplyUrl={onSave}
+      />,
+    );
+    expect(input.value).toBe("https://jobs.ashbyhq.com/acme/draft/apply");
+  });
+
+  it("keeps typed draft and reports unsaved on network failure", async () => {
+    const onSave = vi.fn().mockRejectedValue(new Error("network"));
+    render(<OfficialApplyUrlField job={baseJob()} onSaveOfficialApplyUrl={onSave} />);
+    const input = screen.getByTestId("official-apply-url-input-job-official-1") as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { value: "https://jobs.lever.co/acme/role/apply" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_SAVE_LABEL }));
+    expect((await screen.findByTestId("official-apply-url-error-job-official-1")).textContent).toBe(
+      OFFICIAL_APPLY_URL_SAVE_ERROR,
+    );
+    expect(input.value).toBe("https://jobs.lever.co/acme/role/apply");
   });
 });

@@ -220,7 +220,10 @@ export const OFFICIAL_APPLY_URL_REMOVE_LABEL = "Remover link";
 export const OFFICIAL_APPLY_URL_INVALID =
   "Informe uma URL absoluta HTTP(S) válida (ex.: https://jobs.example.com/.../apply).";
 export const OFFICIAL_APPLY_URL_SAVING = "Salvando…";
-export const OFFICIAL_APPLY_URL_SAVE_ERROR = "Não foi possível salvar o link. Tente novamente.";
+export const OFFICIAL_APPLY_URL_SAVE_ERROR =
+  "O link não foi salvo. O texto abaixo permanece; Abrir candidatura usa o valor já gravado.";
+export const OFFICIAL_APPLY_URL_CONFLICT_ERROR =
+  "O link não foi salvo: a vaga foi alterada noutro lugar. O texto abaixo permanece; Abrir candidatura usa o valor já gravado. Atualize e tente de novo.";
 
 export const JOB_QUEUE_SOURCE_LABELS: Record<string, string> = {
   jobgether: "Jobgether",

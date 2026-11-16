@@ -37,7 +37,9 @@ export function withOfficialApplyUrl(
   if (validated.value) {
     jobContext.officialApplyUrl = validated.value;
   } else {
-    delete jobContext.officialApplyUrl;
+    // Empty string is an explicit clear sentinel for V2 PATCH merge
+    // (omitting the key must preserve a previously saved URL).
+    jobContext.officialApplyUrl = "";
   }
   return {
     ok: true,

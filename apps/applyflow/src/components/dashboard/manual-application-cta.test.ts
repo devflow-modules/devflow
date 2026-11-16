@@ -53,7 +53,19 @@ describe("resolveManualApplicationCta", () => {
       source: "remoteok",
     });
     expect(cta.kind).toBe("listing");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_LISTING_LABEL);
     expect(cta.url).toBe("https://remoteok.com/remote-jobs/1");
+  });
+
+  it("keeps original listing CTA for legacy fixtures with invalid officialApplyUrl", () => {
+    const cta = resolveManualApplicationCta({
+      url: "https://jobgether.com/offer/legacy-role",
+      officialApplyUrl: "ftp://files.example.com/apply",
+      source: "jobgether",
+    });
+    expect(cta.kind).toBe("listing");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_LISTING_LABEL);
+    expect(cta.url).toBe("https://jobgether.com/offer/legacy-role");
   });
 
   it("labels known ATS job pages as recruitment portal (not official site claim)", () => {

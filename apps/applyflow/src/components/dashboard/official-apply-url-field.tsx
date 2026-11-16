@@ -2,6 +2,7 @@
 
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import {
+  OFFICIAL_APPLY_URL_CONFLICT_ERROR,
   OFFICIAL_APPLY_URL_FIELD_HINT,
   OFFICIAL_APPLY_URL_FIELD_LABEL,
   OFFICIAL_APPLY_URL_INVALID,
@@ -11,7 +12,7 @@ import {
   OFFICIAL_APPLY_URL_SAVING,
 } from "@/components/dashboard/job-inbox-content";
 import { validateOfficialApplyUrl, type ApplyFlowJob } from "@devflow/applyflow-core";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export function OfficialApplyUrlField({
   job,
@@ -30,8 +31,11 @@ export function OfficialApplyUrlField({
   const [clientError, setClientError] = useState<string | null>(null);
   const [persistError, setPersistError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
+    // Keep typed draft after network/OCC failure so the user can retry.
+    if (dirtyRef.current) return;
     setDraft(job.jobContext.officialApplyUrl ?? "");
     setClientError(null);
     setPersistError(null);
@@ -41,12 +45,13 @@ export function OfficialApplyUrlField({
 
   const trimmedDraft = draft.trim();
   const unchanged = trimmedDraft === saved.trim();
-  const canRemove = Boolean(saved) && !saving && !disabled;
+  const canRemove = Boolean(saved.trim()) && !saving && !disabled;
 
   async function persist(nextRaw: string | null) {
     const validated = validateOfficialApplyUrl(nextRaw);
     if (!validated.ok) {
       setClientError(OFFICIAL_APPLY_URL_INVALID);
+      dirtyRef.current = true;
       return;
     }
     setClientError(null);
@@ -54,9 +59,14 @@ export function OfficialApplyUrlField({
     setSaving(true);
     try {
       await onSaveOfficialApplyUrl!(job.id, validated.value ?? null);
+      dirtyRef.current = false;
       setDraft(validated.value ?? "");
-    } catch {
-      setPersistError(OFFICIAL_APPLY_URL_SAVE_ERROR);
+    } catch (error) {
+      dirtyRef.current = true;
+      const code = error instanceof Error ? error.message : "";
+      setPersistError(
+        code === "version_conflict" ? OFFICIAL_APPLY_URL_CONFLICT_ERROR : OFFICIAL_APPLY_URL_SAVE_ERROR,
+      );
     } finally {
       setSaving(false);
     }
@@ -86,6 +96,7 @@ export function OfficialApplyUrlField({
         data-testid={`official-apply-url-input-${job.id}`}
         className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] px-3 py-2 text-sm text-[color:var(--af-text)]"
         onChange={(event) => {
+          dirtyRef.current = true;
           setDraft(event.target.value);
           setClientError(null);
           setPersistError(null);

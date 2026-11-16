@@ -967,6 +967,15 @@ export function DashboardClient({
         }
         const result = await persistence.updateJob(next);
         if (!result.ok) {
+          if (result.code === "version_conflict") {
+            // Refresh authoritative state so CTA/job reflect concurrent edit; draft stays in the field.
+            try {
+              const refreshed = await persistence.listJobs();
+              setJobs(refreshed);
+            } catch {
+              /* keep prior local jobs if refresh fails */
+            }
+          }
           setJobInboxError(dashboardPersistenceFailureMessage(result.code));
           throw new Error(result.code);
         }
