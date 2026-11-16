@@ -58,9 +58,17 @@ export const JOB_DECISION_V2_MORE_LABEL = "Mais detalhes";
 export const JOB_DECISION_V2_PACK_BLOCKED = "Pack bloqueado — SKIP não gera candidatura recomendada.";
 export const JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION =
   "Pack aguardando confirmação — o idioma do currículo não corresponde ao do anúncio. Não está pronto para envio.";
-export const JOB_DECISION_V2_INCOMPLETE = "Complete seu perfil para concluir a análise";
+export const JOB_DECISION_V2_INCOMPLETE = "A análise ficou inconclusiva";
 export const JOB_DECISION_V2_PACK_INCOMPLETE =
-  "Pack bloqueado — complete o perfil antes de preparar a candidatura.";
+  "Pack bloqueado — a análise ainda está inconclusiva.";
+export const JOB_DECISION_V2_PACK_BLOCK_NEXT = "Próxima ação";
+export const JOB_DECISION_V2_PACK_BLOCK_ITEMS = "Pendências conhecidas";
+export const JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS = {
+  announcement: "No anúncio",
+  profile: "No perfil",
+  evidence: "Sem evidência suficiente",
+  neutral: "A confirmar",
+} as const;
 export const JOB_DECISION_V2_NO_SEND = "Nenhum envio automático. Copie e use os rascunhos manualmente.";
 export const JOB_DECISION_V2_OPEN_LAB = "Abrir Interview Lab";
 export const JOB_DECISION_V2_NEED_APPLICATION =

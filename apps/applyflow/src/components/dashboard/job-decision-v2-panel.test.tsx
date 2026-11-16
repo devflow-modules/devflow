@@ -26,6 +26,7 @@ import {
 } from "./job-decision-v2-content";
 import {
   MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
+  OFFICIAL_APPLY_URL_FIELD_LABEL,
   OFFICIAL_APPLY_URL_SAVE_LABEL,
 } from "./job-inbox-content";
 
@@ -162,6 +163,9 @@ describe("JobDecisionV2Panel", () => {
         MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
       );
     });
+    const reloadedInput = screen.getByLabelText(OFFICIAL_APPLY_URL_FIELD_LABEL) as HTMLInputElement;
+    expect(reloadedInput.value).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+    expect(screen.getByTestId(`official-apply-url-input-${jobNoDecision.id}`)).toBe(reloadedInput);
     fireEvent.click(screen.getByTestId(`manual-app-open-${jobNoDecision.id}`));
     expect(screen.getByTestId(`manual-app-confirm-yes-${jobNoDecision.id}`)).toBeTruthy();
     expect(loadDashboardJobs().jobs.find((item) => item.id === jobNoDecision.id)?.status).toBe("reviewing");

@@ -649,7 +649,9 @@ function JobInboxCard({
       ) : null}
       <JobMatchSkillLine job={job} />
       {analysis.decision === "needs_info" ? (
-        <p className="mt-2 text-xs text-[color:var(--af-text)]">{JOB_INBOX_INCOMPLETE_HINT}</p>
+        <p className="mt-2 text-xs text-[color:var(--af-text)]" data-testid={`job-inbox-needs-info-${job.id}`}>
+          {JOB_INBOX_INCOMPLETE_HINT}
+        </p>
       ) : null}
       <p className="mt-3 flex flex-wrap items-center gap-2">
         <Link href={jobAnalysisPath(job.id)} className={applyFlowButtonClass({ variant: "primary", size: "sm" })}>
