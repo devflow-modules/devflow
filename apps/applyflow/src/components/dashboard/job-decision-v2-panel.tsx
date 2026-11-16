@@ -40,6 +40,7 @@ import {
   collectApplicationAgeCopies,
   deriveApplicationNextAction,
   deriveApplicationReadiness,
+  explainPackBlock,
   findApplicationForJob,
   formatLifecycleEventDate,
   isOpenableJobUrl,
@@ -66,6 +67,7 @@ import {
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
 } from "@/components/dashboard/job-inbox-content";
 import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
+import { ManualPreparationPanel } from "@/components/dashboard/manual-preparation-panel";
 import { OfficialApplyUrlField } from "@/components/dashboard/official-apply-url-field";
 import { loadDashboardJobs, persistDashboardJobs } from "@/lib/local-job-storage";
 import {
@@ -92,6 +94,9 @@ import {
   JOB_DECISION_V2_LAB_HANDOFF,
   JOB_DECISION_V2_OUTCOME_NOTE,
   JOB_DECISION_V2_PACK_BLOCKED,
+  JOB_DECISION_V2_PACK_BLOCK_ITEMS,
+  JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS,
+  JOB_DECISION_V2_PACK_BLOCK_NEXT,
   JOB_DECISION_V2_PACK_INCOMPLETE,
   JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION,
   JOB_DECISION_V2_INCOMPLETE,
@@ -575,6 +580,20 @@ export function JobDecisionV2Panel({
     });
   }, [job, application, pack]);
 
+  const packBlockExplanation = useMemo(() => {
+    if (!job) return null;
+    const ctx = resolveV2CandidateContext();
+    return explainPackBlock({
+      decision,
+      pack,
+      profile: ctx.ok ? ctx.profile : null,
+      jobText: job.descriptionSnapshot,
+      hasJobText: Boolean(job.descriptionSnapshot?.trim()),
+      hasResume: Boolean(ctx.ok && ctx.library?.variants.length),
+      hasSourceUrl: isOpenableJobUrl(job.url),
+    });
+  }, [decision, job, pack]);
+
   const registeredAnalysis = useMemo(
     () => registeredAnalysisFromSnapshot(registeredSnapshot),
     [registeredSnapshot],
@@ -1005,6 +1024,20 @@ export function JobDecisionV2Panel({
             <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
           ) : null}
         </ApplyFlowCard>
+        {packBlockExplanation?.blocked ? (
+          <ManualPreparationPanel
+            job={job}
+            decision={decision}
+            pack={pack}
+            savedPack={job.applicationPack ?? null}
+            resumeName={readiness?.evaluatedWithVariantName ?? null}
+            recommendedResumeName={readiness?.recommendedResumeVariantName ?? null}
+            selectedResumeName={readiness?.selectedResumeVariantName ?? null}
+            hasResume={Boolean(readiness?.evaluatedWithVariantName || readiness?.recommendedResumeVariantName)}
+            explanation={packBlockExplanation}
+            defaultOpen={pack?.status === "blocked" || decision?.decision === "needs_info"}
+          />
+        ) : null}
       </div>
 
       {!decision && application ? (
@@ -1131,7 +1164,20 @@ export function JobDecisionV2Panel({
               </p>
               <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CURRENT_HINT}</p>
               {decision.decision === "needs_info" ? (
-                <p className="mt-3 text-sm text-[color:var(--af-text)]">{JOB_DECISION_V2_INCOMPLETE}</p>
+                <div className="mt-3 grid gap-1">
+                  <p className="text-sm text-[color:var(--af-text)]">
+                    {packBlockExplanation?.title ?? JOB_DECISION_V2_INCOMPLETE}
+                  </p>
+                  {packBlockExplanation?.summary ? (
+                    <p className="text-xs text-[color:var(--af-text-muted)]">{packBlockExplanation.summary}</p>
+                  ) : null}
+                  {packBlockExplanation?.nextAction ? (
+                    <p className="text-xs text-[color:var(--af-text-muted)]">
+                      <span className="font-medium text-[color:var(--af-text)]">{JOB_DECISION_V2_PACK_BLOCK_NEXT}: </span>
+                      {packBlockExplanation.nextAction}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <ApplyFlowBadge tone={applicationDecisionTone(decision.decision)}>
@@ -1251,11 +1297,37 @@ export function JobDecisionV2Panel({
 
           {tab === "application" && pack ? (
             pack.status === "blocked" ? (
-              <ApplyFlowCard variant="warning" padding="md">
+              <ApplyFlowCard variant="warning" padding="md" data-testid="job-decision-v2-pack-blocked">
                 <p className="text-sm text-[color:var(--af-text)]">
-                  {pack.decision === "needs_info" ? JOB_DECISION_V2_PACK_INCOMPLETE : JOB_DECISION_V2_PACK_BLOCKED}
+                  {packBlockExplanation?.title ??
+                    (pack.decision === "needs_info" ? JOB_DECISION_V2_PACK_INCOMPLETE : JOB_DECISION_V2_PACK_BLOCKED)}
                 </p>
-                <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">{pack.reason}</p>
+                <p className="mt-2 text-sm text-[color:var(--af-text)]">
+                  {packBlockExplanation?.summary ?? pack.reason}
+                </p>
+                {packBlockExplanation?.nextAction ? (
+                  <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">
+                    <span className="font-medium text-[color:var(--af-text)]">{JOB_DECISION_V2_PACK_BLOCK_NEXT}: </span>
+                    {packBlockExplanation.nextAction}
+                  </p>
+                ) : null}
+                {packBlockExplanation && packBlockExplanation.items.length > 0 ? (
+                  <ul className="mt-3 grid gap-2" aria-label={JOB_DECISION_V2_PACK_BLOCK_ITEMS}>
+                    {packBlockExplanation.items.map((item) => (
+                      <li key={`${item.kind}-${item.label}`} className="flex flex-wrap items-start gap-2 text-sm">
+                        <ApplyFlowBadge tone="neutral">{JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS[item.kind]}</ApplyFlowBadge>
+                        <span className="min-w-0 text-[color:var(--af-text)]">
+                          {item.label}
+                          {item.detail ? (
+                            <span className="mt-0.5 block text-xs text-[color:var(--af-text-muted)]">{item.detail}</span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : pack.reason && !packBlockExplanation?.summary ? (
+                  <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">{pack.reason}</p>
+                ) : null}
               </ApplyFlowCard>
             ) : (
               <div className="grid gap-4">
