@@ -169,7 +169,21 @@ export const APPLICATION_PACK_SALARY_LABELS = {
 
 export const JOB_INBOX_STALE_LABEL = "Avaliação desatualizada";
 export const JOB_INBOX_REEVALUATE_LABEL = "Reavaliar match";
-export const JOB_INBOX_INCOMPLETE_HINT = "Complete seu perfil para concluir a análise";
+export const JOB_INBOX_INCOMPLETE_HINT =
+  "A análise ficou inconclusiva — abra a vaga para ver o motivo, a próxima ação e a preparação manual (somente leitura).";
+export const MANUAL_PREP_TITLE = "Preparar manualmente";
+export const MANUAL_PREP_OPEN = "Abrir preparação manual";
+export const MANUAL_PREP_HIDE = "Ocultar preparação manual";
+export const MANUAL_PREP_HINT =
+  "Leitura apenas: reúne anúncio, currículo indicado e lacunas a verificar. Não gera Pack, não grava matching e não muda o status.";
+export const MANUAL_PREP_LISTING = "Anúncio";
+export const MANUAL_PREP_RESUME = "Currículo indicado";
+export const MANUAL_PREP_GAPS = "Lacunas a verificar";
+export const MANUAL_PREP_NO_GAPS = "Sem lacunas estruturadas — use o anúncio e o currículo como referência.";
+export const MANUAL_PREP_OPEN_LISTING = "Abrir anúncio";
+export const MANUAL_PREP_SAVED_PACK = "Pack já salvo nesta vaga";
+export const MANUAL_PREP_SAVED_PACK_HINT =
+  "O Pack existente continua acessível com os dados gravados. A preparação manual não o substitui.";
 export const JOB_INBOX_AT_APPLY_ANALYSIS = "Análise no envio";
 export const JOB_INBOX_CURRENT_ANALYSIS = "Análise atual";
 

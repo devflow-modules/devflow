@@ -91,6 +91,7 @@ export function OfficialApplyUrlField({
         placeholder="https://…"
         value={draft}
         disabled={disabled || saving}
+        aria-label={OFFICIAL_APPLY_URL_FIELD_LABEL}
         aria-describedby={`${hintId}${clientError || persistError ? ` ${errorId}` : ""}`}
         aria-invalid={Boolean(clientError || persistError)}
         data-testid={`official-apply-url-input-${job.id}`}
