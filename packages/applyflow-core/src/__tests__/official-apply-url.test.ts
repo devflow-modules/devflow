@@ -74,15 +74,16 @@ describe("withOfficialApplyUrl", () => {
     expect(result.job.updatedAt).toBe(now.toISOString());
   });
 
-  it("removes officialApplyUrl when cleared", () => {
+  it("sets empty-string clear sentinel when officialApplyUrl is removed", () => {
     const withUrl = withOfficialApplyUrl(baseJob(), "https://jobs.ashbyhq.com/acme/1/apply", now);
     expect(withUrl.ok).toBe(true);
     if (!withUrl.ok) return;
     const cleared = withOfficialApplyUrl(withUrl.job, null, now);
     expect(cleared.ok).toBe(true);
     if (!cleared.ok) return;
-    expect(cleared.job.jobContext.officialApplyUrl).toBeUndefined();
-    expect("officialApplyUrl" in cleared.job.jobContext).toBe(false);
+    // Explicit clear sentinel for V2 PATCH (omit must preserve; "" clears).
+    expect(cleared.job.jobContext.officialApplyUrl).toBe("");
+    expect("officialApplyUrl" in cleared.job.jobContext).toBe(true);
   });
 
   it("rejects invalid URL and leaves job untouched", () => {

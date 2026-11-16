@@ -682,6 +682,18 @@ export function JobDecisionV2Panel({
       if (!persistence) throw new Error("persistence_unavailable");
       const result = await persistence.updateJob(updated.job);
       if (!result.ok) {
+        if (result.code === "version_conflict") {
+          try {
+            const jobs = await persistence.listJobs();
+            const refreshed = jobs.find((item) => item.id === job.id) ?? null;
+            setRemoteRecords((prev) => ({
+              job: refreshed,
+              application: prev?.application ?? null,
+            }));
+          } catch {
+            /* keep prior remote job if refresh fails */
+          }
+        }
         setPersistError(dashboardPersistenceFailureMessage(result.code));
         throw new Error(result.code);
       }
@@ -982,6 +994,19 @@ export function JobDecisionV2Panel({
         </ApplyFlowCard>
       ) : null}
 
+      <div className="mt-5 grid gap-4">
+        <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
+          <OfficialApplyUrlField
+            job={job}
+            onSaveOfficialApplyUrl={saveOfficialApplyUrl}
+            disabled={writeCapability === "read_only" || job.status === "applied"}
+          />
+          {job.status === "reviewing" ? (
+            <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
+          ) : null}
+        </ApplyFlowCard>
+      </div>
+
       {!decision && application ? (
         <div className="mt-5 grid gap-4">
           <ApplicationOutcomeCard
@@ -1035,17 +1060,6 @@ export function JobDecisionV2Panel({
           </ApplyFlowCard>
 
           {readiness ? <ApplicationReadinessBlock readiness={readiness} job={job} /> : null}
-
-          <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
-            <OfficialApplyUrlField
-              job={job}
-              onSaveOfficialApplyUrl={saveOfficialApplyUrl}
-              disabled={writeCapability === "read_only" || job.status === "applied"}
-            />
-            {job.status === "reviewing" ? (
-              <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
-            ) : null}
-          </ApplyFlowCard>
 
           <ApplicationOutcomeCard
             application={application}

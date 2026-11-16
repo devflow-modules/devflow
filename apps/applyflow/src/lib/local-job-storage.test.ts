@@ -6,7 +6,7 @@ import {
   loadDashboardJobs,
   persistDashboardJobs,
 } from "./local-job-storage.js";
-import type { ApplyFlowJob } from "@devflow/applyflow-core";
+import { withOfficialApplyUrl, type ApplyFlowJob } from "@devflow/applyflow-core";
 
 const job: ApplyFlowJob = {
   id: "job_1",
@@ -140,15 +140,12 @@ describe("local-job-storage", () => {
     expect(afterEdit.title).toBe("Product Engineer");
     expect(afterEdit.status).toBe("reviewing");
 
-    const removed: ApplyFlowJob = {
-      ...afterEdit,
-      jobContext: {
-        skills: afterEdit.jobContext.skills,
-        workModel: afterEdit.jobContext.workModel,
-      },
-    };
-    persistDashboardJobs([removed]);
+    const cleared = withOfficialApplyUrl(afterEdit, null, new Date("2026-08-18T17:00:00.000Z"));
+    expect(cleared.ok).toBe(true);
+    if (!cleared.ok) return;
+    persistDashboardJobs([cleared.job]);
     const afterRemove = loadDashboardJobs().jobs[0]!;
+    // Empty clear sentinel is normalized away on reload.
     expect(afterRemove.jobContext.officialApplyUrl).toBeUndefined();
     expect(afterRemove.jobContext.skills).toEqual(["React", "TypeScript"]);
     expect(afterRemove.jobContext.workModel).toBe("remote");
