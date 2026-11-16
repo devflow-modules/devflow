@@ -140,6 +140,8 @@ export const applyFlowStoredJobSchema = z.object({
     employmentType: z.string().optional(),
     workModel: z.string().optional(),
     skills: z.array(z.string()),
+    /** User-saved official apply form URL (http/https). Empty omitted on normalize. */
+    officialApplyUrl: z.string().max(500).optional(),
     networking: z
       .object({
         strategy: z
@@ -237,6 +239,9 @@ function normalizeStoredJob(parsed: z.infer<typeof applyFlowStoredJobSchema>): A
       employmentType: optionalTrim(parsed.jobContext.employmentType),
       workModel: optionalTrim(parsed.jobContext.workModel),
       skills: parsed.jobContext.skills.map((s) => s.trim()).filter(Boolean),
+      ...(optionalTrim(parsed.jobContext.officialApplyUrl)
+        ? { officialApplyUrl: optionalTrim(parsed.jobContext.officialApplyUrl) }
+        : {}),
       ...(parsed.jobContext.networking
         ? {
             networking: {

@@ -292,6 +292,12 @@ export {
 } from "./application-pack.js";
 export type { ApplicationPackOpResult } from "./application-pack.js";
 export {
+  OFFICIAL_APPLY_URL_MAX_CHARS,
+  validateOfficialApplyUrl,
+  withOfficialApplyUrl,
+} from "./official-apply-url.js";
+export type { OfficialApplyUrlError, OfficialApplyUrlValidation } from "./official-apply-url.js";
+export {
   applyFlowStoredJobSchema,
   isApplyFlowJobsImportV2,
   parseApplyFlowJobsImport,

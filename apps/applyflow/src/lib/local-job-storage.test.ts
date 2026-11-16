@@ -91,6 +91,70 @@ describe("local-job-storage", () => {
     expect(storage[APPLYFLOW_DASHBOARD_JOBS_STORAGE_KEY]).toBeUndefined();
   });
 
+  it("persiste e recarrega officialApplyUrl no jobContext (V1)", () => {
+    stubStorage();
+    persistDashboardJobs([
+      {
+        ...job,
+        jobContext: {
+          skills: ["React"],
+          officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+        },
+      },
+    ]);
+    const loaded = loadDashboardJobs();
+    expect(loaded.status).toBe("ok");
+    expect(loaded.jobs[0]?.jobContext.officialApplyUrl).toBe(
+      "https://jobs.ashbyhq.com/acme/uuid/apply",
+    );
+  });
+
+  it("V1: edita e remove officialApplyUrl preservando demais campos após reload", () => {
+    stubStorage();
+    const withUrl: ApplyFlowJob = {
+      ...job,
+      title: "Product Engineer",
+      status: "reviewing",
+      jobContext: {
+        skills: ["React", "TypeScript"],
+        workModel: "remote",
+        officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+      },
+      jobMatch: job.jobMatch,
+    };
+    persistDashboardJobs([withUrl]);
+
+    const edited: ApplyFlowJob = {
+      ...withUrl,
+      jobContext: {
+        ...withUrl.jobContext,
+        officialApplyUrl: "https://jobs.lever.co/acme/role/apply",
+      },
+      updatedAt: "2026-08-18T16:00:00.000Z",
+    };
+    persistDashboardJobs([edited]);
+    const afterEdit = loadDashboardJobs().jobs[0]!;
+    expect(afterEdit.jobContext.officialApplyUrl).toBe("https://jobs.lever.co/acme/role/apply");
+    expect(afterEdit.jobContext.skills).toEqual(["React", "TypeScript"]);
+    expect(afterEdit.jobContext.workModel).toBe("remote");
+    expect(afterEdit.title).toBe("Product Engineer");
+    expect(afterEdit.status).toBe("reviewing");
+
+    const removed: ApplyFlowJob = {
+      ...afterEdit,
+      jobContext: {
+        skills: afterEdit.jobContext.skills,
+        workModel: afterEdit.jobContext.workModel,
+      },
+    };
+    persistDashboardJobs([removed]);
+    const afterRemove = loadDashboardJobs().jobs[0]!;
+    expect(afterRemove.jobContext.officialApplyUrl).toBeUndefined();
+    expect(afterRemove.jobContext.skills).toEqual(["React", "TypeScript"]);
+    expect(afterRemove.jobContext.workModel).toBe("remote");
+    expect(afterRemove.status).toBe("reviewing");
+  });
+
   it("primeira visita sem chave devolve inbox vazio sem persistir", () => {
     const storage = stubStorage();
     const loaded = loadDashboardJobs();

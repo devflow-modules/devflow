@@ -11,6 +11,7 @@ import {
   MANUAL_APPLICATION_CONFIRM_PROMPT,
   MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
+  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
   MANUAL_APPLICATION_DISCLOSURE,
   MANUAL_APPLICATION_MARK_ERROR,
 } from "./job-inbox-content";
@@ -71,6 +72,39 @@ describe("ManualApplicationAction", () => {
     const openButton = screen.getByTestId("manual-app-open-job_manual_1");
     expect(openButton.textContent).toBe(MANUAL_APPLICATION_CTA_ATS_JOB_LABEL);
     expect(openButton.getAttribute("data-cta-kind")).toBe("ats_job");
+  });
+
+  it("opens officialApplyUrl with Abrir candidatura ahead of listing url", () => {
+    const openUrl = vi.fn(() => true);
+    const onMarkJobApplied = vi.fn();
+    const job = baseJob({
+      url: "https://remoteok.com/remote-jobs/1",
+      status: "reviewing",
+      jobContext: {
+        skills: ["React"],
+        officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+      },
+      applicationPack: undefined,
+      jobMatch: {
+        score: 40,
+        decision: "needs_info",
+        matchedSkills: [],
+        missingSkills: ["React"],
+        evaluatedAt: "2026-08-13T12:00:00.000Z",
+        scoringVersion: "v1",
+      },
+    });
+    render(
+      <ManualApplicationAction job={job} onMarkJobApplied={onMarkJobApplied} openUrl={openUrl} />,
+    );
+    const openButton = screen.getByTestId("manual-app-open-job_manual_1");
+    expect(openButton.textContent).toBe(MANUAL_APPLICATION_CTA_OFFICIAL_LABEL);
+    expect(openButton.getAttribute("data-cta-kind")).toBe("official_apply");
+    fireEvent.click(openButton);
+    expect(openUrl).toHaveBeenCalledWith("https://jobs.ashbyhq.com/acme/uuid/apply");
+    expect(onMarkJobApplied).not.toHaveBeenCalled();
+    expect(job.status).toBe("reviewing");
+    expect(screen.getByTestId("manual-app-confirm-yes-job_manual_1").textContent).toMatch(/Sim, enviei/);
   });
 
   it("keeps reviewing for Não consegui enviar without mutation", () => {
