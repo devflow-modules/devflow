@@ -13,6 +13,7 @@ import { buildFollowUpPlan, type FollowUpPlan, type FollowUpStrategy } from "./f
 import { buildInterviewBrief, type InterviewBrief } from "./interview-brief.js";
 import { buildNetworkingPlan, type NetworkingPlan } from "./networking-plan.js";
 import { evaluateJobDecisionV2 } from "./evaluate-job-decision-v2.js";
+import { explainPackBlock } from "./explain-pack-block.js";
 import type { ResumeLanguage } from "./job-language.js";
 import { normalizeJobTextForIntel } from "./job-intelligence.js";
 import type { CandidateProfile } from "./profile-schema.js";
@@ -108,6 +109,16 @@ export function createApplicationPackV2(input: {
 
   const hardEligibility = evaluation.eligibility?.findings.find((item) => item.status === "ineligible");
   if (evaluation.eligibility?.status === "ineligible" || decision === "skip" || decision === "needs_info") {
+    const blockedExplanation =
+      decision === "needs_info"
+        ? explainPackBlock({
+            decision: { ...evaluation, decision, gates },
+            profile: evaluated.profile,
+            jobText: input.jobText,
+            hasJobText: Boolean(input.jobText?.trim()),
+            hasResume: true,
+          })
+        : null;
     return {
       version: 2,
       jobId: input.jobId,
@@ -115,7 +126,8 @@ export function createApplicationPackV2(input: {
       reason: hardEligibility
         ? hardEligibility.reason
         : decision === "needs_info"
-          ? "Complete seu perfil para concluir a análise. Pack não é uma recomendação de candidatura."
+          ? blockedExplanation?.summary ??
+            "A análise ficou inconclusiva. Pack não é uma recomendação de candidatura."
           : "Decision is SKIP — pack is not a recommended application.",
       blockingRequirements: blocking,
       decision,

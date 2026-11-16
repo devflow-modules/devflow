@@ -494,6 +494,12 @@ export type {
   ApplicationPackConfirmation,
   ApplicationPackClaimHandling,
 } from "./application-pack-v2.js";
+export { explainPackBlock, postingHasWorkModelContradiction } from "./explain-pack-block.js";
+export type {
+  PackBlockExplanation,
+  PackBlockItem,
+  PackBlockSourceKind,
+} from "./explain-pack-block.js";
 export { attachApplicationV2Meta, applicationMetaFromDecision, stripApplicationV2Meta } from "./application-record-v2.js";
 export type { ApplyFlowApplicationV2Envelope, ApplyFlowApplicationV2Meta } from "./application-record-v2.js";
 export {
