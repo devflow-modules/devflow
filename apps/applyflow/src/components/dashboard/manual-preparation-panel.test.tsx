@@ -170,7 +170,39 @@ describe("ManualPreparationPanel", () => {
       />,
     );
     expect(screen.getByTestId(`manual-prep-block-summary-${job.id}`).textContent).toContain(explanation.summary);
-    expect(screen.getByTestId(`manual-prep-details-${job.id}`).textContent).toMatch(/contradição/i);
+    expect(screen.getByTestId(`manual-prep-details-${job.id}`).textContent).toMatch(/modelo de trabalho|contradição/i);
+    expect(screen.getByTestId(`manual-prep-block-summary-${job.id}`).textContent).not.toMatch(/\blocation\b|\bseniority\b/);
+    expect(job.status).toBe("reviewing");
+  });
+
+  it("Stefanini remoto BR UI does not claim Brazil location is missing from the posting", () => {
+    const profile = thinProfile();
+    const decision = evaluateJobDecisionV2({
+      jobText: STEFANINI_REMOTE_BR,
+      evidence: evidenceFromProfile(profile),
+      profile,
+      jobId: "job_stefanini_remote_br_ui",
+    });
+    const job = baseJob({ id: "job_stefanini_remote_br_ui", descriptionSnapshot: STEFANINI_REMOTE_BR });
+    const explanation = explainPackBlock({
+      decision,
+      profile,
+      jobText: STEFANINI_REMOTE_BR,
+      hasJobText: true,
+      hasResume: true,
+      hasSourceUrl: true,
+    });
+    render(
+      <ManualPreparationPanel job={job} decision={decision} explanation={explanation} hasResume defaultOpen />,
+    );
+    const summary = screen.getByTestId(`manual-prep-block-summary-${job.id}`).textContent ?? "";
+    const details = screen.getByTestId(`manual-prep-details-${job.id}`).textContent ?? "";
+    expect(summary).not.toMatch(/Remote locations:\s*Brazil/i);
+    expect(summary).not.toMatch(/\blocation\b|\bseniority\b/);
+    expect(details).not.toMatch(/Remote locations:\s*Brazil/i);
+    expect(details).toMatch(/Localização no perfil|Elegibilidade de localização|Senioridade|Inglês/);
+    expect(details).toMatch(/já indica Brasil|já informa a geografia/i);
+    expect(summary).not.toMatch(/Confirme no anúncio oficial:.*Localiza/i);
     expect(job.status).toBe("reviewing");
   });
 

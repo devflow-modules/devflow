@@ -109,6 +109,67 @@ export function postingHasWorkModelContradiction(jobText: string): boolean {
   return hybrid && remote;
 }
 
+/** Posting already states Brazil / BR remote geography (do not claim the ad lacks location). */
+export function postingStatesBrazilGeography(jobText: string): boolean {
+  const text = jobText.toLowerCase();
+  return (
+    /\bbrasil\b/.test(text) ||
+    /\bbrazil\b/.test(text) ||
+    /\bremoto\s+no\s+brasil\b/.test(text) ||
+    /\bremote\s+(?:[-–—]\s*)?(?:in\s+)?brazil\b/.test(text) ||
+    /\blatam\b/.test(text)
+  );
+}
+
+/** Candidate-facing labels — never surface raw engine keys like `location` / `seniority`. */
+export function humanizePackBlockLabel(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  const lower = trimmed.toLowerCase();
+  const exact: Record<string, string> = {
+    location: "Localização",
+    seniority: "Senioridade",
+    english: "Inglês",
+    curriculum: "Currículo",
+    currículo: "Currículo",
+    "work model": "Modelo de trabalho",
+    "modelo de trabalho": "Modelo de trabalho",
+    "modelo de trabalho (contradição no anúncio)": "Modelo de trabalho (contradição no anúncio)",
+    "texto do anúncio": "Texto do anúncio",
+  };
+  if (exact[lower]) return exact[lower];
+
+  let out = trimmed;
+  out = out.replace(/Remote locations:\s*/gi, "Locais remotos: ");
+  out = out.replace(/Locations:\s*/gi, "Locais: ");
+  out = out.replace(/Work model:\s*/gi, "Modelo de trabalho: ");
+  out = out.replace(/Seniority:\s*/gi, "Senioridade: ");
+  out = out.replace(/Professional experience/gi, "Experiência profissional");
+  out = out.replace(/\bhybrid\b/gi, "híbrido");
+  out = out.replace(/\bremote\b/gi, "remoto");
+  out = out.replace(/\bonsite\b/gi, "presencial");
+  out = out.replace(/\bsenior\b/gi, "sênior");
+  out = out.replace(/\bBrazil\b/g, "Brasil");
+  out = out.replace(/\bEnglish\b/g, "Inglês");
+  return out;
+}
+
+function isStatedGeographyLocationLabel(label: string): boolean {
+  return /remote locations|locations:\s*|locais remotos|locais:/i.test(label);
+}
+
+function candidateLocationMissingReason(reason: string | undefined): boolean {
+  if (!reason) return false;
+  const text = reason.toLowerCase();
+  return (
+    text.includes("candidate location is not recorded") ||
+    text.includes("local do perfil não foi resolvido") ||
+    text.includes("local do perfil nao foi resolvido") ||
+    text.includes("preferência") ||
+    text.includes("preference is not recorded")
+  );
+}
+
 function primaryKind(items: readonly PackBlockItem[]): PackBlockSourceKind {
   if (items.some((item) => item.kind === "announcement")) return "announcement";
   if (items.some((item) => item.kind === "evidence")) return "evidence";
@@ -135,10 +196,10 @@ function summarize(kind: PackBlockSourceKind, decision: ApplicationDecision | nu
       title: "Pack bloqueado — falta contexto no anúncio",
       summary:
         labels.length > 0
-          ? `A análise ficou inconclusiva porque o anúncio não fecha: ${labels.join(", ")}.`
-          : "A análise ficou inconclusiva por informação incompleta ou ambígua no anúncio.",
+          ? `Confirme no anúncio oficial: ${labels.join("; ")}.`
+          : "A análise ficou inconclusiva por informação incompleta ou ambígua no anúncio oficial.",
       nextAction:
-        "Volte ao anúncio original e confirme os requisitos em aberto. Não é necessário editar o perfil só para liberar o Pack.",
+        "Abra o anúncio oficial e verifique os pontos listados. Não é necessário editar o perfil só para liberar o Pack.",
     };
   }
 
@@ -148,7 +209,7 @@ function summarize(kind: PackBlockSourceKind, decision: ApplicationDecision | nu
       title: "Pack bloqueado — evidência insuficiente",
       summary:
         labels.length > 0
-          ? `Há requisitos reconhecidos, mas ainda sem evidência suficiente: ${labels.join(", ")}.`
+          ? `Revise estes requisitos — a evidência atual ainda não fecha a análise: ${labels.join("; ")}.`
           : "Há requisitos reconhecidos, mas a evidência atual não fecha a análise.",
       nextAction:
         "Revise as lacunas na preparação manual e só atualize o currículo se tiver evidência real a acrescentar.",
@@ -161,9 +222,9 @@ function summarize(kind: PackBlockSourceKind, decision: ApplicationDecision | nu
       title: "Pack bloqueado — dado ausente no perfil",
       summary:
         labels.length > 0
-          ? `Faltam dados no perfil ou no currículo para fechar: ${labels.join(", ")}.`
+          ? `Complete no perfil ou no currículo: ${labels.join("; ")}.`
           : "Faltam dados no perfil ou no currículo para concluir a análise.",
-      nextAction: "Complete só os pontos listados no perfil/currículo, ou prepare a candidatura manualmente com o anúncio.",
+      nextAction: "Complete só os campos listados no perfil/currículo, ou prepare a candidatura manualmente com o anúncio.",
     };
   }
 
@@ -228,12 +289,14 @@ export function explainPackBlock(input: {
     });
   }
 
+  const brazilStated = Boolean(jobText && postingStatesBrazilGeography(jobText));
+
   if (jobText && postingHasWorkModelContradiction(jobText)) {
     pushUnique(items, {
       label: "Modelo de trabalho (contradição no anúncio)",
       kind: "announcement",
       detail:
-        "O texto mistura sinais de remoto e híbrido. Confirme no portal oficial antes de candidatar — a preparação manual não resolve a contradição.",
+        "O anúncio mistura sinais de remoto e híbrido. Verifique o modelo de trabalho no portal oficial antes de candidatar.",
     });
   }
 
@@ -243,7 +306,7 @@ export function explainPackBlock(input: {
       if (!(gate.required && gate.result === "fail")) continue;
       if (gate.type === "salary" || gate.type === "hours") continue;
       pushUnique(items, {
-        label: gate.label,
+        label: humanizePackBlockLabel(gate.label),
         kind: "evidence",
         detail: gate.reason,
       });
@@ -251,8 +314,19 @@ export function explainPackBlock(input: {
 
     for (const finding of evaluation.eligibility?.findings ?? []) {
       if (finding.status !== "unknown" && finding.status !== "ineligible") continue;
+      const dim = finding.dimension.toLowerCase();
+      // Engine may say the posting lacks geography even when Brazil/remoto is explicit — do not blame the ad.
+      if (dim === "location" && brazilStated) {
+        pushUnique(items, {
+          label: "Elegibilidade de localização",
+          kind: "neutral",
+          detail:
+            "O anúncio já indica Brasil/remoto; a análise ainda não concluiu a elegibilidade. Confirme no portal e no perfil se necessário — sem tratar a localização do anúncio como ausente.",
+        });
+        continue;
+      }
       pushUnique(items, {
-        label: finding.dimension,
+        label: humanizePackBlockLabel(finding.dimension),
         kind: classifyEligibilityReason(finding.reason),
         detail: finding.reason,
       });
@@ -270,15 +344,37 @@ export function explainPackBlock(input: {
         ) {
           continue;
         }
-        // Associated uncertainties → items to verify (not assumed profile edits).
+        const rawLabel = match.requirement.label;
+        // Geography already in the posting: never present "Remote locations: Brazil" as a missing-ad item.
+        if (
+          match.requirement.requirementType === "location" &&
+          (brazilStated || isStatedGeographyLocationLabel(rawLabel))
+        ) {
+          if (candidateLocationMissingReason(match.reason)) {
+            pushUnique(items, {
+              label: "Localização no perfil",
+              kind: "profile",
+              detail:
+                "O anúncio já informa a geografia (ex.: Brasil). Complete a localização no perfil se quiser fechar a elegibilidade.",
+            });
+          } else {
+            pushUnique(items, {
+              label: "Elegibilidade de localização",
+              kind: "neutral",
+              detail:
+                "O anúncio já informa a geografia; a análise permanece inconclusiva — confirme no portal, sem tratar o Brasil do anúncio como informação faltante.",
+            });
+          }
+          continue;
+        }
         pushUnique(items, {
-          label: match.requirement.label,
+          label: humanizePackBlockLabel(rawLabel),
           kind: classifyMatch(match, input.profile),
           detail: match.reason,
         });
       } else {
         pushUnique(items, {
-          label: match.requirement.label,
+          label: humanizePackBlockLabel(match.requirement.label),
           kind: "evidence",
           detail: match.reason,
         });
@@ -288,8 +384,12 @@ export function explainPackBlock(input: {
     for (const gate of evaluation.gates) {
       if (gate.result !== "unknown") continue;
       if (gate.type === "salary" || gate.type === "hours") continue;
+      if (gate.type === "location" && brazilStated) {
+        // Geography already in the posting — keep uncertainty without duplicating a false "missing location" gap.
+        continue;
+      }
       pushUnique(items, {
-        label: gate.label,
+        label: humanizePackBlockLabel(gate.label),
         kind: "neutral",
         detail: gate.reason,
       });
@@ -300,13 +400,13 @@ export function explainPackBlock(input: {
         matches: evaluation.matches,
         gates: evaluation.gates,
       })) {
-        pushUnique(items, { label: fact, kind: "neutral" });
+        pushUnique(items, { label: humanizePackBlockLabel(fact), kind: "neutral" });
       }
     }
   }
 
   for (const label of input.pack?.blockingRequirements ?? []) {
-    pushUnique(items, { label, kind: "evidence" });
+    pushUnique(items, { label: humanizePackBlockLabel(label), kind: "evidence" });
   }
 
   const kind = primaryKind(items);

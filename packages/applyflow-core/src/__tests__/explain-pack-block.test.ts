@@ -125,9 +125,12 @@ describe("explainPackBlock", () => {
     expect(pack.reason).not.toMatch(/^Complete seu perfil para concluir a análise\. Pack não é/);
     expect(explanation.summary.length).toBeGreaterThan(10);
     expect(explanation.title).toMatch(/anúncio|evidência|perfil|indisponível/i);
+    // Candidate-facing copy must not leak engine keys.
+    expect(explanation.summary).not.toMatch(/\blocation\b|\bseniority\b/i);
+    expect(explanation.items.every((item) => !/\blocation\b|\bseniority\b/i.test(item.label))).toBe(true);
   });
 
-  it("Stefanini remoto no Brasil: hybrid NÃO vem do texto; needs_info diferencia anúncio vs perfil", () => {
+  it("Stefanini remoto no Brasil: não trata Brasil como localização faltando no anúncio", () => {
     const profile = thinProfile();
     const evidence = evidenceFromProfile(profile);
     const intel = extractJobIntelligence(STEFANINI_REMOTE_BR_JOB);
@@ -153,17 +156,18 @@ describe("explainPackBlock", () => {
     expect(explanation.blocked).toBe(true);
     expect(explanation.canPrepareManually).toBe(true);
     expect(explanation.items.some((item) => /contradição/i.test(item.label))).toBe(false);
-    const kinds = new Set(explanation.items.map((item) => item.kind));
-    expect([...kinds].every((kind) => ["announcement", "profile", "evidence", "neutral"].includes(kind))).toBe(
-      true,
-    );
-    // Profile edit only when primary kind is profile.
-    if (explanation.items.some((item) => item.kind === "announcement")) {
-      expect(explanation.nextAction.toLowerCase()).not.toMatch(/edite o perfil|complete só os pontos/);
+    expect(explanation.summary).not.toMatch(/Remote locations:\s*Brazil/i);
+    expect(explanation.items.every((item) => !/Remote locations:\s*Brazil/i.test(item.label))).toBe(true);
+    // Brazil is already in the posting — do not claim the ad lacks geography.
+    const locationItems = explanation.items.filter((item) => /localiza/i.test(item.label));
+    for (const item of locationItems) {
+      expect(item.kind).not.toBe("announcement");
+      expect(item.detail?.toLowerCase() ?? "").not.toMatch(/falta.*localiza.*anúncio|ausente.*anúncio/);
     }
+    expect(explanation.summary).not.toMatch(/\blocation\b|\bseniority\b/i);
   });
 
-  it("Stefanini contraditório: híbrido+remoto vira pendência de verificação no anúncio (sem corrigir extração)", () => {
+  it("Stefanini contraditório: oriente a verificar o modelo de trabalho (sem corrigir extração)", () => {
     const profile = thinProfile();
     const evidence = evidenceFromProfile(profile);
     expect(postingHasWorkModelContradiction(STEFANINI_CONTRADICTORY_JOB)).toBe(true);
@@ -187,11 +191,12 @@ describe("explainPackBlock", () => {
       hasSourceUrl: true,
     });
     expect(explanation.blocked).toBe(true);
-    const contradiction = explanation.items.find((item) => /contradição/i.test(item.label));
+    const contradiction = explanation.items.find((item) => /contradição|modelo de trabalho/i.test(item.label));
     expect(contradiction?.kind).toBe("announcement");
-    expect(explanation.summary.toLowerCase()).toMatch(/anúncio|inconclusive|contradi/);
+    expect(explanation.summary.toLowerCase()).toMatch(/modelo de trabalho|anúncio|contradi/);
     expect(explanation.nextAction.toLowerCase()).toMatch(/anúncio/);
     expect(explanation.nextAction.toLowerCase()).not.toMatch(/edite o perfil para liberar/);
+    expect(explanation.summary).not.toMatch(/\blocation\b|\bseniority\b|Work model:/i);
   });
 
   it("needs_info sem motivo estruturado usa orientação neutra", () => {
@@ -229,9 +234,10 @@ describe("explainPackBlock", () => {
     expect(explanation.blocked).toBe(true);
     expect(explanation.summary).toMatch(/motivo estruturado não veio completo|inconclusive/i);
     expect(explanation.nextAction.length).toBeGreaterThan(10);
+    expect(explanation.title).toMatch(/indisponível/i);
   });
 
-  it("vaga sem perfil/currículo classifica pendência de perfil", () => {
+  it("vaga sem perfil/currículo classifica pendência de perfil com campo concreto", () => {
     const explanation = explainPackBlock({
       hasJobText: true,
       hasResume: false,
@@ -241,6 +247,7 @@ describe("explainPackBlock", () => {
     });
     expect(explanation.blocked).toBe(true);
     expect(explanation.items.some((item) => item.kind === "profile" && /currículo/i.test(item.label))).toBe(true);
+    expect(explanation.summary.toLowerCase()).toMatch(/currículo|perfil/);
     expect(explanation.nextAction.toLowerCase()).toMatch(/perfil|currículo|manual/);
   });
 

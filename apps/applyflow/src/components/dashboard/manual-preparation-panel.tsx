@@ -25,6 +25,7 @@ import {
 } from "@/components/dashboard/job-inbox-content";
 import {
   explainPackBlock,
+  humanizePackBlockLabel,
   isOpenableJobUrl,
   type ApplicationPack,
   type ApplicationPackV2,
@@ -43,13 +44,17 @@ function buildGapLabels(input: {
   const fromMatch = [
     ...(input.job.jobMatch?.missingSkills ?? []),
     ...(input.job.jobMatch?.unknownSkills ?? []),
-  ];
-  const fromInputs = (input.decision?.candidateInputRequests ?? []).map((item) => item.question);
+  ].map((label) => humanizePackBlockLabel(label));
+  const fromInputs = (input.decision?.candidateInputRequests ?? []).map((item) =>
+    humanizePackBlockLabel(item.question),
+  );
   const seen = new Set<string>();
   const out: string[] = [];
   for (const label of [...fromExplanation, ...fromMatch, ...fromInputs]) {
     const key = label.trim().toLowerCase();
     if (!key || seen.has(key)) continue;
+    // Skip engine geography labels that the explanation already reframed.
+    if (/^remote locations:/i.test(label) || /^locations:\s*brazil$/i.test(label)) continue;
     seen.add(key);
     out.push(label.trim());
   }

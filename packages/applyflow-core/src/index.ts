@@ -494,7 +494,12 @@ export type {
   ApplicationPackConfirmation,
   ApplicationPackClaimHandling,
 } from "./application-pack-v2.js";
-export { explainPackBlock, postingHasWorkModelContradiction } from "./explain-pack-block.js";
+export {
+  explainPackBlock,
+  humanizePackBlockLabel,
+  postingHasWorkModelContradiction,
+  postingStatesBrazilGeography,
+} from "./explain-pack-block.js";
 export type {
   PackBlockExplanation,
   PackBlockItem,
