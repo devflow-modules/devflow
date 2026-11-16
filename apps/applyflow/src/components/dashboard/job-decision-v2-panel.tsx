@@ -43,8 +43,11 @@ import {
   findApplicationForJob,
   formatLifecycleEventDate,
   isOpenableJobUrl,
+  markApplyFlowJobApplied,
+  replaceApplyFlowJob,
   resolveApplicationRegistration,
   resolvePipelineStatus,
+  withOfficialApplyUrl,
   type ApplicationReadiness,
   type ApplicationReadinessItem,
   type ApplyFlowApplicationV2Envelope,
@@ -62,6 +65,9 @@ import {
   JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
 } from "@/components/dashboard/job-inbox-content";
+import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
+import { OfficialApplyUrlField } from "@/components/dashboard/official-apply-url-field";
+import { loadDashboardJobs, persistDashboardJobs } from "@/lib/local-job-storage";
 import {
   JOB_DECISION_V2_BACK,
   JOB_DECISION_V2_BACK_HREF,
@@ -663,6 +669,111 @@ export function JobDecisionV2Panel({
     setStorageEpoch((epoch) => epoch + 1);
   }
 
+  async function saveOfficialApplyUrl(_jobId: string, url: string | null) {
+    if (!job) throw new Error("job_not_found");
+    if (writeCapability === "read_only") {
+      setPersistError(dashboardPersistenceFailureMessage("read_only"));
+      throw new Error("read_only");
+    }
+    const updated = withOfficialApplyUrl(job, url);
+    if (!updated.ok) throw new Error(updated.error);
+    if (usesCloudPersistence) {
+      const persistence = persistenceRef.current;
+      if (!persistence) throw new Error("persistence_unavailable");
+      const result = await persistence.updateJob(updated.job);
+      if (!result.ok) {
+        if (result.code === "version_conflict") {
+          try {
+            const jobs = await persistence.listJobs();
+            const refreshed = jobs.find((item) => item.id === job.id) ?? null;
+            setRemoteRecords((prev) => ({
+              job: refreshed,
+              application: prev?.application ?? null,
+            }));
+          } catch {
+            /* keep prior remote job if refresh fails */
+          }
+        }
+        setPersistError(dashboardPersistenceFailureMessage(result.code));
+        throw new Error(result.code);
+      }
+      setPersistError(null);
+      setRemoteRecords((prev) => ({
+        job: result.data,
+        application: prev?.application ?? null,
+      }));
+      return;
+    }
+    const nextJobs = replaceApplyFlowJob(loadDashboardJobs().jobs, updated.job);
+    persistDashboardJobs(nextJobs);
+    setPersistError(null);
+    refreshAfterPersist();
+  }
+
+  async function markJobAppliedFromManual(jobId: string) {
+    if (!job || job.id !== jobId) throw new Error("job_not_found");
+    if (writeCapability === "read_only") {
+      setPersistError(dashboardPersistenceFailureMessage("read_only"));
+      throw new Error("read_only");
+    }
+    if (application) {
+      if (usesCloudPersistence) {
+        const persistence = persistenceRef.current;
+        if (!persistence) throw new Error("persistence_unavailable");
+        const result = await transitionCloudApplicationLifecycle({
+          persistence,
+          application,
+          linkedJob: job,
+          toStatus: "applied",
+        });
+        if (!result.ok) {
+          setPersistError(cloudLifecycleFailureMessage(result));
+          if (result.application) {
+            setRemoteRecords({
+              job: result.job ?? job,
+              application: result.application,
+            });
+          }
+          throw new Error(result.code ?? result.reason);
+        }
+        setPersistError(null);
+        setRemoteRecords({
+          job: result.job ?? job,
+          application: result.application,
+        });
+        return;
+      }
+      const persisted = persistApplicationSubmitted(application);
+      if (!persisted.ok) {
+        setPersistError(persisted.error);
+        throw new Error("persist_failed");
+      }
+      setPersistError(null);
+      refreshAfterPersist();
+      return;
+    }
+    const next = markApplyFlowJobApplied(job);
+    if (usesCloudPersistence) {
+      const persistence = persistenceRef.current;
+      if (!persistence) throw new Error("persistence_unavailable");
+      const result = await persistence.updateJob(next);
+      if (!result.ok) {
+        setPersistError(dashboardPersistenceFailureMessage(result.code));
+        throw new Error(result.code);
+      }
+      setPersistError(null);
+      setRemoteRecords((prev) => ({
+        job: result.data,
+        application: prev?.application ?? null,
+      }));
+      return;
+    }
+    const nextJobs = replaceApplyFlowJob(loadDashboardJobs().jobs, next);
+    persistDashboardJobs(nextJobs);
+    setPersistError(null);
+    refreshAfterPersist();
+  }
+
   function markApplicationSent() {
     if (!application) return;
     if (writeCapability === "read_only") {
@@ -882,6 +993,19 @@ export function JobDecisionV2Panel({
           ) : null}
         </ApplyFlowCard>
       ) : null}
+
+      <div className="mt-5 grid gap-4">
+        <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
+          <OfficialApplyUrlField
+            job={job}
+            onSaveOfficialApplyUrl={saveOfficialApplyUrl}
+            disabled={writeCapability === "read_only" || job.status === "applied"}
+          />
+          {job.status === "reviewing" ? (
+            <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
+          ) : null}
+        </ApplyFlowCard>
+      </div>
 
       {!decision && application ? (
         <div className="mt-5 grid gap-4">

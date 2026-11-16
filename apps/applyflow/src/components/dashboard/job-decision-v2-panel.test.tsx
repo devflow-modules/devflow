@@ -13,8 +13,8 @@ import {
 } from "@devflow/applyflow-core";
 
 import { APPLYFLOW_DASHBOARD_ANALYTICS_STORAGE_KEY } from "@/lib/local-analytics-storage";
-import { persistDashboardJobs } from "@/lib/local-job-storage";
-import { persistResumeLibrary } from "@/lib/local-resume-library-storage";
+import { loadDashboardJobs, persistDashboardJobs } from "@/lib/local-job-storage";
+import { clearPersistedResumeLibrary, persistResumeLibrary } from "@/lib/local-resume-library-storage";
 import { persistApplicationWithOutcome } from "@/lib/persist-application-decision";
 
 import { JobDecisionV2Panel } from "./job-decision-v2-panel";
@@ -24,6 +24,10 @@ import {
   JOB_DECISION_V2_PACK_NEEDS_CONFIRMATION,
   JOB_DECISION_V2_TITLE,
 } from "./job-decision-v2-content";
+import {
+  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
+  OFFICIAL_APPLY_URL_SAVE_LABEL,
+} from "./job-inbox-content";
 
 const jobA: ApplyFlowJob = {
   id: "job_a",
@@ -110,6 +114,57 @@ describe("JobDecisionV2Panel", () => {
     render(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(JOB_DECISION_V2_MISSING)).toBeTruthy();
     expect(screen.queryByText("A carregar…")).toBeNull();
+  });
+
+  it("mostra editor oficial sem decision/Pack e só aplica via Sim, enviei", async () => {
+    clearPersistedResumeLibrary();
+    const jobNoDecision: ApplyFlowJob = {
+      ...jobA,
+      id: "job_no_decision",
+      status: "reviewing",
+      url: "https://remoteok.com/remote-jobs/legacy",
+      applicationPack: undefined,
+      jobContext: { skills: ["React"] },
+    };
+    persistDashboardJobs([jobNoDecision]);
+    render(<JobDecisionV2Panel jobId={jobNoDecision.id} persistenceBootstrap={testBootstrapV1} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`official-apply-url-field-${jobNoDecision.id}`)).toBeTruthy();
+    });
+    expect(screen.queryByTestId("job-workspace-status-strip")).toBeNull();
+
+    fireEvent.change(screen.getByTestId(`official-apply-url-input-${jobNoDecision.id}`), {
+      target: { value: "https://jobs.ashbyhq.com/acme/uuid/apply" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_SAVE_LABEL }));
+
+    await waitFor(() => {
+      const loaded = loadDashboardJobs().jobs.find((item) => item.id === jobNoDecision.id);
+      expect(loaded?.jobContext.officialApplyUrl).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+      expect(loaded?.status).toBe("reviewing");
+      expect(loaded?.url).toBe("https://remoteok.com/remote-jobs/legacy");
+    });
+
+    cleanup();
+    persistDashboardJobs([
+      {
+        ...jobNoDecision,
+        jobContext: {
+          skills: ["React"],
+          officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+        },
+      },
+    ]);
+    render(<JobDecisionV2Panel jobId={jobNoDecision.id} persistenceBootstrap={testBootstrapV1} />);
+    await waitFor(() => {
+      expect(screen.getByTestId(`manual-app-open-${jobNoDecision.id}`).textContent).toBe(
+        MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
+      );
+    });
+    fireEvent.click(screen.getByTestId(`manual-app-open-${jobNoDecision.id}`));
+    expect(screen.getByTestId(`manual-app-confirm-yes-${jobNoDecision.id}`)).toBeTruthy();
+    expect(loadDashboardJobs().jobs.find((item) => item.id === jobNoDecision.id)?.status).toBe("reviewing");
   });
 
   it("atualiza a vaga quando o jobId muda", () => {

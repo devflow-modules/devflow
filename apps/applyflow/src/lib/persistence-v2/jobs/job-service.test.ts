@@ -257,4 +257,126 @@ describe("Jobs service", () => {
       service.patch(ACCOUNT_A, "job_missing", 1, parsePatchJobBody({ title: "Nope", expectedVersion: 1 })),
     ).rejects.toMatchObject({ code: "not_found" });
   });
+
+  it("rejects invalid officialApplyUrl on create/patch without overwriting the saved link", async () => {
+    const { repository } = memoryRepository();
+    const service = createApplyFlowJobService(repository);
+    await expect(
+      service.create(
+        ACCOUNT_A,
+        parseCreateJobBody(
+          validBody({
+            id: "job_bad_url",
+            jobContext: { skills: ["React"], officialApplyUrl: "javascript:alert(1)" },
+          }),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "invalid_payload" });
+
+    const created = await service.create(
+      ACCOUNT_A,
+      parseCreateJobBody(
+        validBody({
+          id: "job_official",
+          jobContext: {
+            skills: ["React"],
+            workModel: "remote",
+            officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+          },
+        }),
+      ),
+    );
+    expect(created.jobContext.officialApplyUrl).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+
+    await expect(
+      service.patch(
+        ACCOUNT_A,
+        "job_official",
+        1,
+        parsePatchJobBody({
+          expectedVersion: 1,
+          jobContext: { skills: ["React"], officialApplyUrl: "not-a-url" },
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "invalid_payload" });
+    const unchanged = await service.get(ACCOUNT_A, "job_official");
+    expect(unchanged.version).toBe(1);
+    expect(unchanged.jobContext.officialApplyUrl).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+    expect(unchanged.jobContext.workModel).toBe("remote");
+  });
+
+  it("omitting jobContext or officialApplyUrl preserves saved URL; empty string clears", async () => {
+    const { repository } = memoryRepository();
+    const service = createApplyFlowJobService(repository);
+    await service.create(
+      ACCOUNT_A,
+      parseCreateJobBody(
+        validBody({
+          id: "job_omit",
+          jobContext: {
+            skills: ["React"],
+            workModel: "remote",
+            officialApplyUrl: "https://jobs.lever.co/acme/role/apply",
+          },
+        }),
+      ),
+    );
+
+    const titleOnly = await service.patch(
+      ACCOUNT_A,
+      "job_omit",
+      1,
+      parsePatchJobBody({ title: "Renamed", expectedVersion: 1 }),
+    );
+    expect(titleOnly.title).toBe("Renamed");
+    expect(titleOnly.jobContext.officialApplyUrl).toBe("https://jobs.lever.co/acme/role/apply");
+
+    const omitKey = await service.patch(
+      ACCOUNT_A,
+      "job_omit",
+      2,
+      parsePatchJobBody({
+        expectedVersion: 2,
+        jobContext: { skills: ["React", "TypeScript"], workModel: "remote" },
+      }),
+    );
+    expect(omitKey.jobContext.skills).toEqual(["React", "TypeScript"]);
+    expect(omitKey.jobContext.officialApplyUrl).toBe("https://jobs.lever.co/acme/role/apply");
+
+    const cleared = await service.patch(
+      ACCOUNT_A,
+      "job_omit",
+      3,
+      parsePatchJobBody({
+        expectedVersion: 3,
+        jobContext: { skills: ["React", "TypeScript"], workModel: "remote", officialApplyUrl: "" },
+      }),
+    );
+    expect(cleared.jobContext.officialApplyUrl).toBeUndefined();
+    expect(cleared.jobContext.workModel).toBe("remote");
+  });
+
+  it("preserves a legacy invalid officialApplyUrl when the key is omitted on patch", async () => {
+    const { rows, repository } = memoryRepository();
+    const service = createApplyFlowJobService(repository);
+    await service.create(ACCOUNT_A, parseCreateJobBody(validBody({ id: "job_legacy" })));
+    const row = rows.find((item) => item.id === "job_legacy");
+    if (!row) throw new Error("fixture missing");
+    row.jobContext = {
+      skills: ["React"],
+      officialApplyUrl: "javascript:alert(1)",
+    };
+
+    const patched = await service.patch(
+      ACCOUNT_A,
+      "job_legacy",
+      1,
+      parsePatchJobBody({
+        expectedVersion: 1,
+        jobContext: { skills: ["React", "Node"] },
+      }),
+    );
+    expect(patched.jobContext.skills).toEqual(["React", "Node"]);
+    expect(patched.jobContext.officialApplyUrl).toBe("javascript:alert(1)");
+  });
 });
