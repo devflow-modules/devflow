@@ -4,6 +4,7 @@ import {
   MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL,
   MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
+  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
 } from "./job-inbox-content";
 
 const ATS_HOST_SUFFIXES = [
@@ -25,7 +26,12 @@ const LISTING_HOST_SUFFIXES = [
   "glassdoor.com",
 ] as const;
 
-export type ManualApplicationCtaKind = "apply_form" | "ats_job" | "listing" | "unavailable";
+export type ManualApplicationCtaKind =
+  | "official_apply"
+  | "apply_form"
+  | "ats_job"
+  | "listing"
+  | "unavailable";
 
 export type ManualApplicationCta = {
   kind: ManualApplicationCtaKind;
@@ -67,14 +73,26 @@ export function isProvenAtsApplyFormUrl(parsed: URL): boolean {
 
 /**
  * F1 CTA policy (conservative):
+ * - user-saved official apply URL → "Abrir candidatura" (wins over listing/source url)
  * - proven ATS apply form → "Abrir formulário de candidatura"
  * - known ATS job/listing page → "Abrir vaga no portal de recrutamento"
  * - aggregator / unknown → "Abrir anúncio"
  */
 export function resolveManualApplicationCta(input: {
   url?: string | null;
+  officialApplyUrl?: string | null;
   source?: ApplyFlowJobSource | string | null;
 }): ManualApplicationCta {
+  const official =
+    typeof input.officialApplyUrl === "string" ? input.officialApplyUrl.trim() : "";
+  if (official && isSafeExternalJobUrl(official)) {
+    return {
+      kind: "official_apply",
+      label: MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
+      url: official,
+    };
+  }
+
   const url = typeof input.url === "string" ? input.url.trim() : "";
   if (!url || !isSafeExternalJobUrl(url)) {
     return { kind: "unavailable", label: MANUAL_APPLICATION_CTA_LISTING_LABEL, url: null };

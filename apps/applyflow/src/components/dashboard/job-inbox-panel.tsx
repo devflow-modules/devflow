@@ -114,6 +114,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
+import { OfficialApplyUrlField } from "@/components/dashboard/official-apply-url-field";
 import { JOB_DECISION_V2_LABELS } from "@/components/dashboard/job-decision-v2-content";
 import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { loadDashboardContacts } from "@/lib/local-contact-storage";
@@ -545,6 +546,7 @@ function JobInboxCard({
   onCreateApplicationPack,
   onTogglePackChecklist,
   onMarkJobApplied,
+  onSaveOfficialApplyUrl,
   onReevaluateJob,
   onIgnoreJob,
   onRestoreJob,
@@ -555,6 +557,7 @@ function JobInboxCard({
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void | Promise<void>;
+  onSaveOfficialApplyUrl?: (jobId: string, url: string | null) => void | Promise<void>;
   onReevaluateJob?: (jobId: string) => void;
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
@@ -678,6 +681,13 @@ function JobInboxCard({
           </ApplyFlowButton>
         ) : null}
       </p>
+      {job.status === "reviewing" || job.status === "applied" ? (
+        <OfficialApplyUrlField
+          job={job}
+          onSaveOfficialApplyUrl={onSaveOfficialApplyUrl}
+          disabled={job.status === "applied"}
+        />
+      ) : null}
       {job.status === "reviewing" ? (
         <ManualApplicationAction job={job} onMarkJobApplied={onMarkJobApplied} />
       ) : null}
@@ -716,6 +726,7 @@ export function JobInboxPanel({
   onCreateApplicationPack,
   onTogglePackChecklist,
   onMarkJobApplied,
+  onSaveOfficialApplyUrl,
   onReevaluateJob,
   onIgnoreJob,
   onRestoreJob,
@@ -739,6 +750,7 @@ export function JobInboxPanel({
   onCreateApplicationPack?: (jobId: string, variantId?: string) => void;
   onTogglePackChecklist?: (jobId: string, itemId: ApplicationPackChecklistId, done: boolean) => void;
   onMarkJobApplied?: (jobId: string) => void | Promise<void>;
+  onSaveOfficialApplyUrl?: (jobId: string, url: string | null) => void | Promise<void>;
   onReevaluateJob?: (jobId: string) => void;
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
@@ -1030,6 +1042,7 @@ export function JobInboxPanel({
                     onCreateApplicationPack={onCreateApplicationPack}
                     onTogglePackChecklist={onTogglePackChecklist}
                     onMarkJobApplied={onMarkJobApplied}
+                    onSaveOfficialApplyUrl={onSaveOfficialApplyUrl}
                     onReevaluateJob={onReevaluateJob}
                     onIgnoreJob={onIgnoreJob}
                     onRestoreJob={onRestoreJob}

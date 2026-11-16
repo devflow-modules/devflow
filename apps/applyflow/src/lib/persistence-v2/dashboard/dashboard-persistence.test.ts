@@ -519,4 +519,92 @@ describe("V2 dashboard persistence", () => {
     const duplicate = await persistence.createApplication(application);
     expect(duplicate).toEqual({ ok: false, code: "application_already_exists_for_job" });
   });
+
+  it("V2: salva/edita/remove officialApplyUrl com OCC e preserva campos no conflito", async () => {
+    let jobVersion = 1;
+    let rejectNextPatch = false;
+    const serverJob: Record<string, unknown> = jobResponse(1, {
+      jobContext: {
+        skills: ["React"],
+        workModel: "remote",
+        officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+      },
+      title: "Product Engineer",
+      status: "reviewing",
+    });
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url.endsWith("/jobs") && method === "GET") {
+        return jsonResponse(200, { jobs: [{ ...serverJob, version: jobVersion }] });
+      }
+      if (url.includes("/jobs/") && method === "PATCH") {
+        const body = JSON.parse(String(init?.body)) as {
+          expectedVersion: number;
+          jobContext?: ApplyFlowJob["jobContext"];
+          title?: string;
+          status?: string;
+        };
+        expect(body.expectedVersion).toBe(jobVersion);
+        if (rejectNextPatch) {
+          rejectNextPatch = false;
+          return jsonResponse(409, { error: "version_conflict" });
+        }
+        jobVersion += 1;
+        serverJob.version = jobVersion;
+        if (body.title !== undefined) serverJob.title = body.title;
+        if (body.status !== undefined) serverJob.status = body.status;
+        if (body.jobContext !== undefined) serverJob.jobContext = body.jobContext;
+        return jsonResponse(200, { ...serverJob }, `"${jobVersion}"`);
+      }
+      return jsonResponse(500, { error: "internal_error" });
+    });
+
+    const persistence = createV2DashboardPersistence(fetchImpl);
+    const listed = await persistence.listJobs();
+    expect(listed[0]?.jobContext.officialApplyUrl).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+
+    const edited = await persistence.updateJob({
+      ...job,
+      jobContext: {
+        skills: ["React"],
+        workModel: "remote",
+        officialApplyUrl: "https://jobs.lever.co/acme/role/apply",
+      },
+    });
+    expect(edited.ok).toBe(true);
+    if (!edited.ok) return;
+    expect(edited.data.jobContext.officialApplyUrl).toBe("https://jobs.lever.co/acme/role/apply");
+    expect(edited.data.jobContext.workModel).toBe("remote");
+    expect(edited.data.title).toBe("Product Engineer");
+    expect(edited.data.status).toBe("reviewing");
+
+    const removed = await persistence.updateJob({
+      ...edited.data,
+      jobContext: { skills: ["React"], workModel: "remote" },
+    });
+    expect(removed.ok).toBe(true);
+    if (!removed.ok) return;
+    expect(removed.data.jobContext.officialApplyUrl).toBeUndefined();
+    expect(removed.data.jobContext.workModel).toBe("remote");
+
+    // Concurrent writer: OCC 409 — local/server snapshot must keep prior fields.
+    rejectNextPatch = true;
+    const beforeConflict = {
+      title: serverJob.title,
+      jobContext: { ...(serverJob.jobContext as ApplyFlowJob["jobContext"]) },
+    };
+    const conflict = await persistence.updateJob({
+      ...removed.data,
+      title: "Should Not Stick",
+      jobContext: {
+        skills: ["React"],
+        workModel: "remote",
+        officialApplyUrl: "https://jobs.ashbyhq.com/acme/stale/apply",
+      },
+    });
+    expect(conflict).toEqual({ ok: false, code: "version_conflict" });
+    expect(serverJob.title).toBe(beforeConflict.title);
+    expect(serverJob.jobContext).toEqual(beforeConflict.jobContext);
+  });
 });

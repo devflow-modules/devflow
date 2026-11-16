@@ -68,6 +68,7 @@ import {
   findApplicationForJob,
   markApplyFlowJobApplied,
   replaceApplyFlowJob,
+  withOfficialApplyUrl,
   ignoreApplyFlowJob,
   restoreApplyFlowJobToQueue,
   setApplicationPackChecklistItem,
@@ -944,6 +945,43 @@ export function DashboardClient({
     if (nextJobs.jobs.length) setJobs(nextJobs.jobs);
   }, [usesCloudPersistence]);
 
+  const onSaveOfficialApplyUrl = useCallback(
+    async (jobId: string, url: string | null) => {
+      const job = jobsRef.current.find((item) => item.id === jobId);
+      if (!job) {
+        throw new Error("job_not_found");
+      }
+      const updated = withOfficialApplyUrl(job, url);
+      if (!updated.ok) {
+        throw new Error(updated.error);
+      }
+      const next = updated.job;
+      if (usesCloudPersistence) {
+        const persistence = persistenceRef.current;
+        if (!persistence) {
+          throw new Error("persistence_unavailable");
+        }
+        if (writeCapability === "read_only") {
+          setJobInboxError(V2_READ_ONLY_BLOCKED);
+          throw new Error("read_only");
+        }
+        const result = await persistence.updateJob(next);
+        if (!result.ok) {
+          setJobInboxError(dashboardPersistenceFailureMessage(result.code));
+          throw new Error(result.code);
+        }
+        setJobs((prev) => replaceApplyFlowJob(prev, result.data));
+        setJobInboxError(null);
+        return;
+      }
+      const nextJobs = replaceApplyFlowJob(jobsRef.current, next);
+      persistDashboardJobs(nextJobs);
+      setJobs(nextJobs);
+      setJobInboxError(null);
+    },
+    [usesCloudPersistence, writeCapability],
+  );
+
   const onMarkJobApplied = useCallback(
     async (jobId: string) => {
       const job = jobsRef.current.find((item) => item.id === jobId);
@@ -1426,6 +1464,7 @@ export function DashboardClient({
         onCreateApplicationPack={onCreateApplicationPack}
         onTogglePackChecklist={onTogglePackChecklist}
         onMarkJobApplied={onMarkJobApplied}
+        onSaveOfficialApplyUrl={onSaveOfficialApplyUrl}
         onReevaluateJob={onReevaluateJob}
         onIgnoreJob={onIgnoreJob}
         onRestoreJob={onRestoreJob}

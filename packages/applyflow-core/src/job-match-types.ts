@@ -69,6 +69,11 @@ export type ApplyFlowJobContext = {
   skills: string[];
   /** Opportunity networking metadata (persists via jobContext JSON in cloud). */
   networking?: JobNetworkingMeta;
+  /**
+   * User-saved official application form URL (ATS apply page).
+   * Optional; persists via jobContext JSON (V1 local + V2 cloud). Distinct from `job.url` (listing/source).
+   */
+  officialApplyUrl?: string;
 };
 
 export type ApplyFlowJob = {

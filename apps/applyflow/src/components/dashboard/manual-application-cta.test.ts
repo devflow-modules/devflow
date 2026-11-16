@@ -4,6 +4,7 @@ import {
   MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL,
   MANUAL_APPLICATION_CTA_ATS_JOB_LABEL,
   MANUAL_APPLICATION_CTA_LISTING_LABEL,
+  MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
 } from "./job-inbox-content";
 import {
   isProvenAtsApplyFormUrl,
@@ -13,6 +14,48 @@ import {
 } from "./manual-application-cta";
 
 describe("resolveManualApplicationCta", () => {
+  it("prefers user-saved officialApplyUrl over listing/source url", () => {
+    const cta = resolveManualApplicationCta({
+      url: "https://remoteok.com/remote-jobs/1",
+      officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+      source: "remoteok",
+    });
+    expect(cta.kind).toBe("official_apply");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_OFFICIAL_LABEL);
+    expect(cta.url).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+  });
+
+  it("keeps original listing CTA when job has no officialApplyUrl", () => {
+    const cta = resolveManualApplicationCta({
+      url: "https://remoteok.com/remote-jobs/legacy",
+      source: "remoteok",
+    });
+    expect(cta.kind).toBe("listing");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_LISTING_LABEL);
+    expect(cta.url).toBe("https://remoteok.com/remote-jobs/legacy");
+  });
+
+  it("shows Abrir candidatura for needs_info / no-pack jobs with valid official URL", () => {
+    const cta = resolveManualApplicationCta({
+      url: "https://remoteok.com/remote-jobs/incomplete",
+      officialApplyUrl: "https://jobs.ashbyhq.com/acme/uuid/apply",
+      source: "paste",
+    });
+    expect(cta.kind).toBe("official_apply");
+    expect(cta.label).toBe(MANUAL_APPLICATION_CTA_OFFICIAL_LABEL);
+    expect(cta.url).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
+  });
+
+  it("ignores invalid officialApplyUrl and falls back to source url", () => {
+    const cta = resolveManualApplicationCta({
+      url: "https://remoteok.com/remote-jobs/1",
+      officialApplyUrl: "javascript:alert(1)",
+      source: "remoteok",
+    });
+    expect(cta.kind).toBe("listing");
+    expect(cta.url).toBe("https://remoteok.com/remote-jobs/1");
+  });
+
   it("labels known ATS job pages as recruitment portal (not official site claim)", () => {
     const cta = resolveManualApplicationCta({
       url: "https://jobs.ashbyhq.com/wagmo/dbf4dc55",

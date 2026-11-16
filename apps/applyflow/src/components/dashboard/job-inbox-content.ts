@@ -193,8 +193,7 @@ export const JOB_QUEUE_HISTORICAL_NOTE =
   "Vagas ignoradas antigas (antes da fila) permanecem em Ignoradas até as restaurares.";
 
 /** F1 — external manual application CTA + post-open confirmation */
-/** @deprecated Prefer evidence-based labels (apply form / ATS job / listing). */
-export const MANUAL_APPLICATION_CTA_OFFICIAL_LABEL = "Candidatar-se no site oficial";
+export const MANUAL_APPLICATION_CTA_OFFICIAL_LABEL = "Abrir candidatura";
 export const MANUAL_APPLICATION_CTA_APPLY_FORM_LABEL = "Abrir formulário de candidatura";
 export const MANUAL_APPLICATION_CTA_ATS_JOB_LABEL = "Abrir vaga no portal de recrutamento";
 export const MANUAL_APPLICATION_CTA_LISTING_LABEL = "Abrir anúncio";
@@ -213,6 +212,15 @@ export const MANUAL_APPLICATION_MARK_ERROR =
   "Não foi possível registrar a candidatura. Tente novamente.";
 export const MANUAL_APPLICATION_PACK_RECORD_HINT =
   "Para registrar o envio, use a confirmação após abrir o anúncio acima. O pacote não marca applied sozinho.";
+export const OFFICIAL_APPLY_URL_FIELD_LABEL = "Link oficial de candidatura";
+export const OFFICIAL_APPLY_URL_FIELD_HINT =
+  "URL do formulário oficial (Ashby, Lever, Gupy…). O anúncio original permanece em Abrir anúncio quando aplicável.";
+export const OFFICIAL_APPLY_URL_SAVE_LABEL = "Salvar link";
+export const OFFICIAL_APPLY_URL_REMOVE_LABEL = "Remover link";
+export const OFFICIAL_APPLY_URL_INVALID =
+  "Informe uma URL absoluta HTTP(S) válida (ex.: https://jobs.example.com/.../apply).";
+export const OFFICIAL_APPLY_URL_SAVING = "Salvando…";
+export const OFFICIAL_APPLY_URL_SAVE_ERROR = "Não foi possível salvar o link. Tente novamente.";
 
 export const JOB_QUEUE_SOURCE_LABELS: Record<string, string> = {
   jobgether: "Jobgether",

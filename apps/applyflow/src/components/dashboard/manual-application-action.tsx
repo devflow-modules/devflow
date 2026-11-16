@@ -37,6 +37,7 @@ export function ManualApplicationAction({
   const submittingRef = useRef(false);
   const cta = resolveManualApplicationCta({
     url: job.url,
+    officialApplyUrl: job.jobContext.officialApplyUrl,
     source: job.source as ApplyFlowJobSource,
   });
 
