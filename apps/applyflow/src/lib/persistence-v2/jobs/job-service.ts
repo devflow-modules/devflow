@@ -2,6 +2,7 @@ import {
   canonicalizeJobUrl,
   createApplyFlowJobId,
   hashJobDescription,
+  validateOfficialApplyUrl,
   type ApplyFlowJob,
 } from "@devflow/applyflow-core";
 import type { Prisma } from "@prisma/client";
@@ -32,7 +33,41 @@ function optionalText(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function normalizeContext(context: ApplyFlowJob["jobContext"]): Prisma.InputJsonValue {
+function hasOwnOfficialApplyUrl(context: ApplyFlowJob["jobContext"]): boolean {
+  return Object.prototype.hasOwnProperty.call(context, "officialApplyUrl");
+}
+
+/**
+ * Resolve officialApplyUrl for writes.
+ * - Key omitted + preserveIfOmitted → keep existing (incl. legacy invalid readable values).
+ * - Key present with empty/null → explicit clear.
+ * - Key present with non-empty → validate via core; reject invalid_payload on failure.
+ */
+function resolveOfficialApplyUrlForWrite(
+  context: ApplyFlowJob["jobContext"],
+  options: { preserveIfOmitted: boolean; existing?: string },
+): string | undefined {
+  if (!hasOwnOfficialApplyUrl(context)) {
+    if (options.preserveIfOmitted && options.existing) return options.existing;
+    return undefined;
+  }
+  const validated = validateOfficialApplyUrl(context.officialApplyUrl);
+  if (!validated.ok) {
+    throw new ApplyFlowJobServiceError("invalid_payload");
+  }
+  return validated.value;
+}
+
+function normalizeContext(
+  context: ApplyFlowJob["jobContext"],
+  options: { preserveIfOmitted: boolean; existingOfficialApplyUrl?: string } = {
+    preserveIfOmitted: false,
+  },
+): Prisma.InputJsonValue {
+  const officialApplyUrl = resolveOfficialApplyUrlForWrite(context, {
+    preserveIfOmitted: options.preserveIfOmitted,
+    existing: options.existingOfficialApplyUrl,
+  });
   return {
     skills: context.skills.map((skill) => skill.trim()).filter(Boolean),
     ...(optionalText(context.seniority) ? { seniority: optionalText(context.seniority) } : {}),
@@ -40,6 +75,7 @@ function normalizeContext(context: ApplyFlowJob["jobContext"]): Prisma.InputJson
       ? { employmentType: optionalText(context.employmentType) }
       : {}),
     ...(optionalText(context.workModel) ? { workModel: optionalText(context.workModel) } : {}),
+    ...(officialApplyUrl ? { officialApplyUrl } : {}),
     // Preserve opportunity-pipeline networking metadata (strategy, manualMatchOverride, …).
     ...(context.networking ? { networking: context.networking } : {}),
   };
@@ -120,7 +156,10 @@ function toCreateInput(accountId: string, body: CreateJobBody): ApplyFlowJobCrea
   };
 }
 
-function toPatchInput(body: PatchJobBody): ApplyFlowJobUpdateInput {
+function toPatchInput(
+  body: PatchJobBody,
+  existingJobContext?: ApplyFlowJob["jobContext"] | null,
+): ApplyFlowJobUpdateInput {
   const patch: ApplyFlowJobUpdateInput = {};
   if (body.title !== undefined) patch.title = body.title.trim();
   if (body.company !== undefined) patch.company = optionalText(body.company);
@@ -132,7 +171,16 @@ function toPatchInput(body: PatchJobBody): ApplyFlowJobUpdateInput {
   }
   if (body.source !== undefined) patch.source = body.source;
   if (body.status !== undefined) patch.status = body.status;
-  if (body.jobContext !== undefined) patch.jobContext = normalizeContext(body.jobContext);
+  if (body.jobContext !== undefined) {
+    const existingOfficial =
+      typeof existingJobContext?.officialApplyUrl === "string"
+        ? existingJobContext.officialApplyUrl
+        : undefined;
+    patch.jobContext = normalizeContext(body.jobContext, {
+      preserveIfOmitted: true,
+      existingOfficialApplyUrl: existingOfficial,
+    });
+  }
   if (body.descriptionSnapshot !== undefined) {
     const description = derivedFromSnapshot(body.descriptionSnapshot);
     patch.descriptionSnapshot = description.descriptionSnapshot;
@@ -196,7 +244,16 @@ export function createApplyFlowJobService(repository: ApplyFlowJobRepository = a
     },
 
     async patch(accountId: string, id: string, expectedVersion: number, body: PatchJobBody): Promise<JobResponse> {
-      const result = await repository.updateWithVersion(accountId, id, expectedVersion, toPatchInput(body));
+      const existing = body.jobContext !== undefined ? await repository.findById(accountId, id) : null;
+      if (body.jobContext !== undefined && !existing) {
+        throw new ApplyFlowJobServiceError("not_found");
+      }
+      const result = await repository.updateWithVersion(
+        accountId,
+        id,
+        expectedVersion,
+        toPatchInput(body, (existing?.jobContext as ApplyFlowJob["jobContext"] | null) ?? null),
+      );
       if (!result.ok) {
         throw new ApplyFlowJobServiceError(result.reason === "conflict" ? "version_conflict" : "not_found");
       }

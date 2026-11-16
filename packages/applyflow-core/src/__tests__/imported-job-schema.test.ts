@@ -108,6 +108,27 @@ describe("parseStoredApplyFlowJob", () => {
     expect(parsed?.jobMatch.score).toBe(stored.jobMatch.score);
   });
 
+  it("preserva officialApplyUrl no jobContext sem migration", () => {
+    const stored = ingestApplyFlowJob({
+      description: "Remote senior role. React, TypeScript, Node.js and PostgreSQL.",
+      source: "paste",
+      title: "Senior Full Stack Engineer",
+      company: "Example",
+      url: "https://remoteok.com/remote-jobs/example-1",
+      profile,
+      now: NOW,
+      id: "job_official_url",
+    });
+    stored.jobContext = {
+      ...stored.jobContext,
+      officialApplyUrl: "https://jobs.ashbyhq.com/example/uuid/apply",
+    };
+    const parsed = parseStoredApplyFlowJob(stored);
+    expect(parsed?.jobContext.officialApplyUrl).toBe("https://jobs.ashbyhq.com/example/uuid/apply");
+    expect(parsed?.url).toBe("https://remoteok.com/remote-jobs/example-1");
+    expect(parsed?.status).toBe("reviewing");
+  });
+
   it("aceita source theirstack no roundtrip sem recalcular o match", () => {
     const stored = ingestApplyFlowJob({
       description: "Remote senior role. React, TypeScript, Node.js and PostgreSQL.",

@@ -80,6 +80,10 @@ function normalizeContext(context: ApplyFlowJob["jobContext"]): Prisma.InputJson
       ? { employmentType: optionalText(context.employmentType) }
       : {}),
     ...(optionalText(context.workModel) ? { workModel: optionalText(context.workModel) } : {}),
+    ...(optionalText(context.officialApplyUrl)
+      ? { officialApplyUrl: optionalText(context.officialApplyUrl) }
+      : {}),
+    ...(context.networking ? { networking: context.networking } : {}),
   };
 }
 
