@@ -20,7 +20,7 @@ function baseJob(overrides: Partial<ApplyFlowJob> = {}): ApplyFlowJob {
     url: "https://remoteok.com/remote-jobs/1",
     source: "remoteok",
     status: "reviewing",
-    description: "React",
+    descriptionSnapshot: "React",
     jobContext: { skills: ["React"] },
     createdAt: "2026-08-18T15:00:00.000Z",
     updatedAt: "2026-08-18T15:00:00.000Z",
