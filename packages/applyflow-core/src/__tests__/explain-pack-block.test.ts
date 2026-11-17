@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createApplicationPackV2 } from "../application-pack-v2.js";
 import { evaluateJobDecisionV2 } from "../evaluate-job-decision-v2.js";
-import { explainPackBlock, postingHasWorkModelContradiction } from "../explain-pack-block.js";
+import {
+  explainPackBlock,
+  humanizePackBlockDetail,
+  postingHasWorkModelContradiction,
+} from "../explain-pack-block.js";
 import { evidenceFromProfile } from "../evidence-from-profile.js";
 import { extractJobIntelligence } from "../job-intelligence.js";
 import { createResumeLibraryFromProfile } from "../resume-library.js";
@@ -249,6 +253,163 @@ describe("explainPackBlock", () => {
     expect(explanation.items.some((item) => item.kind === "profile" && /currículo/i.test(item.label))).toBe(true);
     expect(explanation.summary.toLowerCase()).toMatch(/currículo|perfil/);
     expect(explanation.nextAction.toLowerCase()).toMatch(/perfil|currículo|manual/);
+  });
+
+  it("Stefanini-like: GCP/NestJS/Senioridade unknown são evidência, não 'complete no perfil'", () => {
+    // Sanitized fixture mirroring prod QA observation (job_mwfici36): inconclusive
+    // evidence reasons mislabeled as profile before the kind-copy fix.
+    const profile = thinProfile();
+    const evidenceReason = "Not enough recorded evidence to conclude proven, partial, or gap.";
+    const explanation = explainPackBlock({
+      decision: {
+        scoringVersion: "v2",
+        decision: "needs_info",
+        overall: 48,
+        dimensions: {
+          overall: 48,
+          coreEngineering: 55,
+          stack: 45,
+          specialization: 40,
+          seniority: 40,
+          product: 40,
+        },
+        confidence: "low",
+        hiringProbability: "low",
+        careerUpside: "medium",
+        applicationCost: "medium",
+        opportunityCost: "medium",
+        eliminationRisk: "medium",
+        priority: 35,
+        matches: [
+          {
+            requirement: {
+              id: "req-gcp",
+              label: "GCP",
+              category: "cloud",
+              importance: "important",
+              requirementType: "skill",
+              skillHint: "GCP",
+            },
+            status: "unknown",
+            matchedEvidence: [],
+            reason: evidenceReason,
+          },
+          {
+            requirement: {
+              id: "req-nestjs",
+              label: "NestJS",
+              category: "backend",
+              importance: "important",
+              requirementType: "skill",
+              skillHint: "NestJS",
+            },
+            status: "unknown",
+            matchedEvidence: [],
+            reason: evidenceReason,
+          },
+          {
+            requirement: {
+              id: "req-seniority",
+              label: "Seniority: senior",
+              category: "seniority",
+              importance: "fundamental",
+              requirementType: "experience",
+              extractedText: "senior",
+              qualifiers: ["senior"],
+            },
+            status: "unknown",
+            matchedEvidence: [],
+            reason: evidenceReason,
+          },
+        ],
+        claims: [],
+        recommendedClaims: [],
+        gates: [],
+        candidateInputRequests: [],
+        reasons: ["inconclusive matches"],
+      },
+      profile,
+      jobText: STEFANINI_REMOTE_BR_JOB,
+      hasJobText: true,
+      hasResume: true,
+      hasSourceUrl: true,
+    });
+
+    expect(explanation.blocked).toBe(true);
+    const gcp = explanation.items.find((item) => item.label === "GCP");
+    const nest = explanation.items.find((item) => item.label === "NestJS");
+    const seniority = explanation.items.find((item) => /Senioridade:\s*sênior/i.test(item.label));
+    expect(gcp?.kind).toBe("evidence");
+    expect(nest?.kind).toBe("evidence");
+    expect(seniority?.kind).toBe("evidence");
+    expect(explanation.title).toMatch(/evidência/i);
+    expect(explanation.summary).toMatch(/Revise estes requisitos — a análise ficou inconclusiva no conjunto:/i);
+    expect(explanation.summary).toMatch(/GCP/);
+    expect(explanation.summary).toMatch(/NestJS/);
+    expect(explanation.summary).toMatch(/Senioridade:\s*sênior/i);
+    expect(explanation.summary).not.toMatch(/Complete no perfil ou no currículo:\s*GCP/i);
+    expect(explanation.summary).not.toMatch(/adicione|complete no currículo/i);
+    expect(explanation.nextAction).toMatch(/nenhum item listado, isoladamente/i);
+    expect(gcp?.detail).not.toMatch(/Not enough recorded evidence/i);
+    expect(humanizePackBlockDetail(evidenceReason)).toMatch(/evidência registrada/i);
+    // V1-only unknowns are not V2 pack-block items here.
+    expect(explanation.items.every((item) => !/^Express$|^JavaScript$/i.test(item.label))).toBe(true);
+  });
+
+  it("evidência parcial reconhece o que já existe e o que falta demonstrar", () => {
+    const explanation = explainPackBlock({
+      decision: {
+        scoringVersion: "v2",
+        decision: "needs_info",
+        overall: 52,
+        dimensions: {
+          overall: 52,
+          coreEngineering: 60,
+          stack: 50,
+          specialization: 45,
+          seniority: 50,
+          product: 40,
+        },
+        confidence: "low",
+        hiringProbability: "low",
+        careerUpside: "medium",
+        applicationCost: "medium",
+        opportunityCost: "medium",
+        eliminationRisk: "medium",
+        priority: 40,
+        matches: [
+          {
+            requirement: {
+              id: "req-nestjs-partial",
+              label: "NestJS",
+              category: "backend",
+              importance: "important",
+              requirementType: "skill",
+              skillHint: "NestJS",
+            },
+            status: "partial",
+            matchedEvidence: [],
+            reason: "Node.js is recorded. That does not establish NestJS.",
+          },
+        ],
+        claims: [],
+        recommendedClaims: [],
+        gates: [],
+        candidateInputRequests: [],
+        reasons: ["partial evidence"],
+      },
+      profile: thinProfile(),
+      jobText: STEFANINI_REMOTE_BR_JOB,
+      hasJobText: true,
+      hasResume: true,
+      hasSourceUrl: true,
+    });
+    const nest = explanation.items.find((item) => item.label === "NestJS");
+    expect(nest?.kind).toBe("evidence");
+    expect(nest?.detail).toMatch(/Há evidência de Node\.js/i);
+    expect(nest?.detail).toMatch(/ainda não demonstra NestJS/i);
+    expect(explanation.summary).toMatch(/inconclusive no conjunto|requisitos/i);
+    expect(explanation.summary).not.toMatch(/Complete no perfil/i);
   });
 
   it("não bloqueia quando decisão recomenda apply e pack não está blocked", () => {

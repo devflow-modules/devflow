@@ -45,9 +45,10 @@ function buildGapLabels(input: {
     ...(input.job.jobMatch?.missingSkills ?? []),
     ...(input.job.jobMatch?.unknownSkills ?? []),
   ].map((label) => humanizePackBlockLabel(label));
-  const fromInputs = (input.decision?.candidateInputRequests ?? []).map((item) =>
-    humanizePackBlockLabel(item.question),
-  );
+  const fromInputs = (input.decision?.candidateInputRequests ?? [])
+    .map((item) => humanizePackBlockLabel(item.question))
+    // Engine may ask "trabalhou com Senioridade: sênior?" — skip malformed seniority prompts.
+    .filter((label) => !/trabalhou profissionalmente com\s+senioridade\s*:/i.test(label));
   const seen = new Set<string>();
   const out: string[] = [];
   for (const label of [...fromExplanation, ...fromMatch, ...fromInputs]) {
