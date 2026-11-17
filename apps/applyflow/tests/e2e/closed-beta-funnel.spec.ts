@@ -83,7 +83,8 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId("job-inbox-card-job_ro_e2e-ro-1")).toBeVisible();
-    await page.getByRole("link", { name: "Analisar vaga" }).first().click();
+    // Primary CTA label depends on Pack availability (Analisar vaga vs Abrir preparação).
+    await page.getByTestId("job-inbox-primary-cta-job_ro_e2e-ro-1").click();
 
     await expect(page.getByTestId("application-readiness")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("register-application")).toBeVisible();

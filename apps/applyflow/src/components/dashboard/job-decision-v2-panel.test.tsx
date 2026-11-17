@@ -163,6 +163,10 @@ describe("JobDecisionV2Panel", () => {
         MANUAL_APPLICATION_CTA_OFFICIAL_LABEL,
       );
     });
+    expect(screen.getByTestId(`official-apply-url-saved-${jobNoDecision.id}`).textContent).toBe(
+      "https://jobs.ashbyhq.com/acme/uuid/apply",
+    );
+    fireEvent.click(screen.getByTestId(`official-apply-url-edit-${jobNoDecision.id}`));
     const reloadedInput = screen.getByLabelText(OFFICIAL_APPLY_URL_FIELD_LABEL) as HTMLInputElement;
     expect(reloadedInput.value).toBe("https://jobs.ashbyhq.com/acme/uuid/apply");
     expect(screen.getByTestId(`official-apply-url-input-${jobNoDecision.id}`)).toBe(reloadedInput);

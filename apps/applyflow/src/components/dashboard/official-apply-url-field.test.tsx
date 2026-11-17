@@ -4,11 +4,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   OFFICIAL_APPLY_URL_CONFLICT_ERROR,
+  OFFICIAL_APPLY_URL_EDIT_LABEL,
   OFFICIAL_APPLY_URL_FIELD_LABEL,
   OFFICIAL_APPLY_URL_INVALID,
   OFFICIAL_APPLY_URL_REMOVE_LABEL,
   OFFICIAL_APPLY_URL_SAVE_ERROR,
   OFFICIAL_APPLY_URL_SAVE_LABEL,
+  OFFICIAL_APPLY_URL_SAVED_SUMMARY,
 } from "./job-inbox-content";
 import { OfficialApplyUrlField } from "./official-apply-url-field";
 import type { ApplyFlowJob } from "@devflow/applyflow-core";
@@ -40,6 +42,29 @@ describe("OfficialApplyUrlField", () => {
     expect(container.childElementCount).toBe(0);
   });
 
+  it("collapses the editor when an official URL is already saved", () => {
+    render(
+      <OfficialApplyUrlField
+        job={baseJob({
+          jobContext: {
+            skills: ["React"],
+            officialApplyUrl: "https://jobs.ashbyhq.com/acme/saved/apply",
+          },
+        })}
+        onSaveOfficialApplyUrl={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(OFFICIAL_APPLY_URL_SAVED_SUMMARY)).toBeTruthy();
+    expect(screen.getByTestId("official-apply-url-saved-job-official-1").textContent).toBe(
+      "https://jobs.ashbyhq.com/acme/saved/apply",
+    );
+    expect(screen.queryByTestId("official-apply-url-input-job-official-1")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_EDIT_LABEL }));
+    expect(
+      (screen.getByTestId("official-apply-url-input-job-official-1") as HTMLInputElement).value,
+    ).toBe("https://jobs.ashbyhq.com/acme/saved/apply");
+  });
+
   it("blocks invalid URL client-side without calling save", async () => {
     const onSave = vi.fn();
     render(
@@ -53,6 +78,7 @@ describe("OfficialApplyUrlField", () => {
         onSaveOfficialApplyUrl={onSave}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_EDIT_LABEL }));
     const input = screen.getByTestId("official-apply-url-input-job-official-1") as HTMLInputElement;
     expect(input.value).toBe("https://jobs.ashbyhq.com/acme/saved/apply");
     fireEvent.change(input, { target: { value: "not-a-url" } });
@@ -86,6 +112,7 @@ describe("OfficialApplyUrlField", () => {
         onSaveOfficialApplyUrl={onSave}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_EDIT_LABEL }));
     const input = screen.getByLabelText(OFFICIAL_APPLY_URL_FIELD_LABEL) as HTMLInputElement;
     expect(input.value).toBe("https://jobs.lever.co/acme/role/apply");
     fireEvent.click(screen.getByRole("button", { name: OFFICIAL_APPLY_URL_REMOVE_LABEL }));

@@ -171,6 +171,15 @@ export const JOB_INBOX_STALE_LABEL = "Avaliação desatualizada";
 export const JOB_INBOX_REEVALUATE_LABEL = "Reavaliar match";
 export const JOB_INBOX_INCOMPLETE_HINT =
   "A análise ficou inconclusiva — abra a vaga para ver o motivo, a próxima ação e a preparação manual (somente leitura).";
+/** Fila: Pack bloqueado — alinhar com a ação do detalhe (preparação manual), sem confundir com Pack disponível. */
+export const JOB_INBOX_MANUAL_PREP_BADGE = "Preparação manual";
+export const JOB_INBOX_MANUAL_PREP_ATTENTION_HINT =
+  "Pack indisponível — abra a vaga para a preparação manual (somente leitura) e a próxima ação.";
+/** CTA da fila quando Pack está bloqueado; abre o detalhe (não retoma um rascunho local). */
+export const JOB_INBOX_OPEN_MANUAL_PREP_LABEL = "Abrir preparação";
+/** @deprecated Prefer JOB_INBOX_OPEN_MANUAL_PREP_LABEL — “Continuar” implicava retomada já iniciada. */
+export const JOB_INBOX_CONTINUE_PREP_LABEL = JOB_INBOX_OPEN_MANUAL_PREP_LABEL;
+export const NETWORKING_OPEN_JOB_LABEL = "Abrir oportunidade";
 export const MANUAL_PREP_TITLE = "Preparar manualmente";
 export const MANUAL_PREP_OPEN = "Abrir preparação manual";
 export const MANUAL_PREP_HIDE = "Ocultar preparação manual";
@@ -229,6 +238,8 @@ export const MANUAL_APPLICATION_PACK_RECORD_HINT =
 export const OFFICIAL_APPLY_URL_FIELD_LABEL = "Link oficial de candidatura";
 export const OFFICIAL_APPLY_URL_FIELD_HINT =
   "URL do formulário oficial (Ashby, Lever, Gupy…). O anúncio original permanece em Abrir anúncio quando aplicável.";
+export const OFFICIAL_APPLY_URL_SAVED_SUMMARY = "Link oficial salvo";
+export const OFFICIAL_APPLY_URL_EDIT_LABEL = "Editar link oficial";
 export const OFFICIAL_APPLY_URL_SAVE_LABEL = "Salvar link";
 export const OFFICIAL_APPLY_URL_REMOVE_LABEL = "Remover link";
 export const OFFICIAL_APPLY_URL_INVALID =
@@ -256,6 +267,30 @@ export const JOB_MATCH_DECISION_LABELS: Record<JobMatchDecision, string> = {
 };
 
 export { matchDecisionTone as jobMatchDecisionTone } from "@/components/ui/status-tones";
+
+/**
+ * True when the opportunity card should steer toward manual prep in the detail view.
+ * Aligns with Pack availability (`analysis.allowPack`), not with unknownSkills alone —
+ * gaps can coexist with a creatable Pack.
+ */
+export function jobNeedsManualPrepAttention(
+  job: {
+    status: string;
+    applicationPack?: unknown;
+  },
+  analysis: {
+    decision: JobMatchDecision;
+    allowPack: boolean;
+    /** V2 ApplicationDecision or inbox JobMatchDecision — `needs_info` implies blocked Pack. */
+    v2Decision?: string | null;
+  },
+): boolean {
+  if (job.status !== "reviewing") return false;
+  if (job.applicationPack) return false;
+  // When Pack is creatable, keep the normal “Analisar vaga” / Pack path even if gaps exist.
+  if (analysis.allowPack) return false;
+  return true;
+}
 
 export function curriculumRouterHeading(recommendation: CurriculumRecommendation): string {
   return recommendation.confidence === "equivalent" ? CURRICULUM_ROUTER_EQUIVALENT_TITLE : CURRICULUM_ROUTER_TITLE;

@@ -1014,16 +1014,6 @@ export function JobDecisionV2Panel({
       ) : null}
 
       <div className="mt-5 grid gap-4">
-        <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
-          <OfficialApplyUrlField
-            job={job}
-            onSaveOfficialApplyUrl={saveOfficialApplyUrl}
-            disabled={writeCapability === "read_only" || job.status === "applied"}
-          />
-          {job.status === "reviewing" ? (
-            <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
-          ) : null}
-        </ApplyFlowCard>
         {packBlockExplanation?.blocked ? (
           <ManualPreparationPanel
             job={job}
@@ -1038,6 +1028,16 @@ export function JobDecisionV2Panel({
             defaultOpen={pack?.status === "blocked" || decision?.decision === "needs_info"}
           />
         ) : null}
+        <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
+          {job.status === "reviewing" ? (
+            <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
+          ) : null}
+          <OfficialApplyUrlField
+            job={job}
+            onSaveOfficialApplyUrl={saveOfficialApplyUrl}
+            disabled={writeCapability === "read_only" || job.status === "applied"}
+          />
+        </ApplyFlowCard>
       </div>
 
       {!decision && application ? (
