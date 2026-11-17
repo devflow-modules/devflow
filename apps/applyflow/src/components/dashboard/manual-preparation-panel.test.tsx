@@ -480,6 +480,10 @@ describe("ManualPreparationPanel", () => {
       </div>,
     );
 
+    expect(screen.getByTestId(`official-apply-url-saved-${job.id}`).textContent).toBe(
+      "https://stefanini.gupy.io/candidates/jobs/12825537/apply",
+    );
+    fireEvent.click(screen.getByTestId(`official-apply-url-edit-${job.id}`));
     const input = screen.getByLabelText(OFFICIAL_APPLY_URL_FIELD_LABEL) as HTMLInputElement;
     expect(input.value).toBe("https://stefanini.gupy.io/candidates/jobs/12825537/apply");
     expect(screen.getByTestId(`official-apply-url-input-${job.id}`)).toBe(input);

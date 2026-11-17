@@ -138,7 +138,8 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
 
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId(`job-inbox-card-${jobIdA}`)).toBeVisible({ timeout: 20_000 });
-    await page.getByRole("link", { name: "Analisar vaga" }).first().click();
+    // Primary CTA label depends on Pack availability (Analisar vaga vs Abrir preparação).
+    await page.getByTestId(`job-inbox-primary-cta-${jobIdA}`).click();
 
     await expect(page.getByTestId("application-readiness")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("register-application")).toBeVisible();
