@@ -23,11 +23,16 @@ import {
   CURRICULUM_ROUTER_TITLE,
   JOB_DECISION_V2_LINK,
   JOB_DISCOVERY_SOURCE_REMOTEOK,
+  JOB_INBOX_OPEN_MANUAL_PREP_LABEL,
+  JOB_INBOX_INCOMPLETE_HINT,
+  JOB_INBOX_MANUAL_PREP_ATTENTION_HINT,
+  JOB_INBOX_MANUAL_PREP_BADGE,
   JOB_INBOX_NEEDS_RESUME,
   JOB_INBOX_STALE_LABEL,
   JOB_INBOX_SUBMIT_LABEL,
   JOB_INBOX_TITLE,
   JOB_MATCH_DECISION_LABELS,
+  jobNeedsManualPrepAttention,
   JOB_QUEUE_EMPTY_ACTIVE,
   JOB_QUEUE_IGNORE_LABEL,
   JOB_QUEUE_RESTORE_LABEL,
@@ -271,6 +276,135 @@ describe("JobInboxPanel", () => {
     expect(html).toContain("Product Engineer");
     expect(html).not.toContain(CURRICULUM_ROUTER_TITLE);
     expect(html).not.toContain(CURRICULUM_ROUTER_COMPARE_LABEL);
+    expect(html).not.toContain(JOB_INBOX_OPEN_MANUAL_PREP_LABEL);
+  });
+
+  it("destaca preparação manual só quando Pack está bloqueado (Stefanini-like)", () => {
+    const stefaniniBlocked: ApplyFlowJob = {
+      ...stretchJob,
+      id: "job_stefanini_like",
+      title: "Staff Backend Engineer",
+      company: "Stefanini",
+      descriptionSnapshot: "NestJS GCP Senioridade",
+      jobMatch: {
+        ...stretchJob.jobMatch,
+        decision: "needs_info",
+        unknownSkills: ["GCP", "NestJS"],
+      },
+      jobContext: {
+        skills: ["React", "Kubernetes"],
+        officialApplyUrl: "https://example.test/stefanini/apply",
+      },
+    };
+    expect(
+      jobNeedsManualPrepAttention(stefaniniBlocked, {
+        decision: "needs_info",
+        allowPack: false,
+      }),
+    ).toBe(true);
+
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={[stefaniniBlocked]} error={null} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(JOB_INBOX_MANUAL_PREP_BADGE);
+    // needs_info already surfaces the incomplete hint (manual prep is named in that copy).
+    expect(html).toContain(JOB_INBOX_INCOMPLETE_HINT);
+    expect(html).toContain(JOB_INBOX_OPEN_MANUAL_PREP_LABEL);
+    expect(html).toContain(`job-inbox-primary-cta-${stefaniniBlocked.id}`);
+    expect(html).not.toContain(`>${JOB_DECISION_V2_LINK}<`);
+  });
+
+  it("mostra hint de preparação manual quando Pack está bloqueado sem needs_info na inbox", () => {
+    const blockedStretch: ApplyFlowJob = {
+      ...stretchJob,
+      id: "job_pack_blocked_stretch",
+      descriptionSnapshot: "Role text",
+      jobMatch: {
+        ...stretchJob.jobMatch,
+        decision: "skip",
+        score: 20,
+      },
+    };
+    expect(
+      jobNeedsManualPrepAttention(blockedStretch, {
+        decision: "skip",
+        allowPack: false,
+      }),
+    ).toBe(true);
+
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={[blockedStretch]} error={null} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(JOB_INBOX_MANUAL_PREP_BADGE);
+    expect(html).toContain(JOB_INBOX_MANUAL_PREP_ATTENTION_HINT);
+    expect(html).toContain(JOB_INBOX_OPEN_MANUAL_PREP_LABEL);
+  });
+
+  it("não encaminha para preparação manual quando Pack ainda é elegível apesar de unknownSkills", () => {
+    const packEligibleGaps: ApplyFlowJob = {
+      ...stretchJob,
+      id: "job_pack_eligible_gaps",
+      jobMatch: {
+        ...stretchJob.jobMatch,
+        unknownSkills: ["GCP"],
+      },
+    };
+    expect(
+      jobNeedsManualPrepAttention(packEligibleGaps, {
+        decision: "stretch",
+        allowPack: true,
+      }),
+    ).toBe(false);
+
+    const html = renderToStaticMarkup(
+      <JobInboxPanel jobs={[packEligibleGaps]} error={null} onEvaluatePaste={() => undefined} />,
+    );
+    expect(html).toContain(JOB_DECISION_V2_LINK);
+    expect(html).not.toContain(JOB_INBOX_MANUAL_PREP_BADGE);
+    expect(html).not.toContain(JOB_INBOX_OPEN_MANUAL_PREP_LABEL);
+  });
+
+  it("não destaca preparação manual com Pack salvo (Wagmo-like) nem em applied", () => {
+    const wagmoPacked: ApplyFlowJob = {
+      ...stretchJob,
+      id: "job_wagmo_packed",
+      status: "reviewing",
+      jobMatch: {
+        ...stretchJob.jobMatch,
+        unknownSkills: ["obscure-skill"],
+      },
+      applicationPack: {
+        version: 1,
+        packVersion: "application-pack-v1",
+        createdAt: "2026-11-13T14:21:00.907Z",
+        updatedAt: "2026-11-13T14:21:00.907Z",
+        jobId: "job_wagmo_packed",
+        resume: { variantId: "rv_1", variantName: "CV ATS", recommendedByRouter: false },
+        match: {
+          score: 70,
+          decision: "apply",
+          matchedSkills: ["React"],
+          missingSkills: [],
+          scoringVersion: "v1",
+        },
+        highlights: ["React"],
+        gaps: [],
+        candidateFacts: {},
+        checklist: [],
+      },
+    };
+    expect(
+      jobNeedsManualPrepAttention(wagmoPacked, {
+        decision: "apply",
+        allowPack: false,
+      }),
+    ).toBe(false);
+    expect(
+      jobNeedsManualPrepAttention(
+        { ...wagmoPacked, status: "applied", applicationPack: undefined },
+        { decision: "apply", allowPack: false },
+      ),
+    ).toBe(false);
   });
 
   it("mostra o Router separado do Job Match quando há 2+ variantes", () => {

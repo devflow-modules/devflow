@@ -3,12 +3,14 @@
 import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
 import {
   OFFICIAL_APPLY_URL_CONFLICT_ERROR,
+  OFFICIAL_APPLY_URL_EDIT_LABEL,
   OFFICIAL_APPLY_URL_FIELD_HINT,
   OFFICIAL_APPLY_URL_FIELD_LABEL,
   OFFICIAL_APPLY_URL_INVALID,
   OFFICIAL_APPLY_URL_REMOVE_LABEL,
   OFFICIAL_APPLY_URL_SAVE_ERROR,
   OFFICIAL_APPLY_URL_SAVE_LABEL,
+  OFFICIAL_APPLY_URL_SAVED_SUMMARY,
   OFFICIAL_APPLY_URL_SAVING,
 } from "@/components/dashboard/job-inbox-content";
 import { validateOfficialApplyUrl, type ApplyFlowJob } from "@devflow/applyflow-core";
@@ -31,6 +33,7 @@ export function OfficialApplyUrlField({
   const [clientError, setClientError] = useState<string | null>(null);
   const [persistError, setPersistError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(() => !saved.trim());
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -39,6 +42,9 @@ export function OfficialApplyUrlField({
     setDraft(job.jobContext.officialApplyUrl ?? "");
     setClientError(null);
     setPersistError(null);
+    if (!(job.jobContext.officialApplyUrl ?? "").trim()) {
+      setEditorOpen(true);
+    }
   }, [job.id, job.jobContext.officialApplyUrl]);
 
   if (!onSaveOfficialApplyUrl) return null;
@@ -46,12 +52,17 @@ export function OfficialApplyUrlField({
   const trimmedDraft = draft.trim();
   const unchanged = trimmedDraft === saved.trim();
   const canRemove = Boolean(saved.trim()) && !saving && !disabled;
+  const hasSaved = Boolean(saved.trim());
+  const forceEditor =
+    editorOpen || !hasSaved || dirtyRef.current || Boolean(clientError || persistError);
+  const showCollapsed = hasSaved && !forceEditor && unchanged && !disabled;
 
   async function persist(nextRaw: string | null) {
     const validated = validateOfficialApplyUrl(nextRaw);
     if (!validated.ok) {
       setClientError(OFFICIAL_APPLY_URL_INVALID);
       dirtyRef.current = true;
+      setEditorOpen(true);
       return;
     }
     setClientError(null);
@@ -61,8 +72,10 @@ export function OfficialApplyUrlField({
       await onSaveOfficialApplyUrl!(job.id, validated.value ?? null);
       dirtyRef.current = false;
       setDraft(validated.value ?? "");
+      setEditorOpen(!(validated.value ?? "").trim());
     } catch (error) {
       dirtyRef.current = true;
+      setEditorOpen(true);
       const code = error instanceof Error ? error.message : "";
       setPersistError(
         code === "version_conflict" ? OFFICIAL_APPLY_URL_CONFLICT_ERROR : OFFICIAL_APPLY_URL_SAVE_ERROR,
@@ -77,68 +90,94 @@ export function OfficialApplyUrlField({
       className="mt-3 grid gap-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] p-3"
       data-testid={`official-apply-url-field-${job.id}`}
     >
-      <label htmlFor={inputId} className="text-sm font-medium text-[color:var(--af-text)]">
-        {OFFICIAL_APPLY_URL_FIELD_LABEL}
-      </label>
-      <p id={hintId} className="text-xs text-[color:var(--af-text-muted)]">
-        {OFFICIAL_APPLY_URL_FIELD_HINT}
-      </p>
-      <input
-        id={inputId}
-        type="url"
-        inputMode="url"
-        autoComplete="url"
-        placeholder="https://…"
-        value={draft}
-        disabled={disabled || saving}
-        aria-label={OFFICIAL_APPLY_URL_FIELD_LABEL}
-        aria-describedby={`${hintId}${clientError || persistError ? ` ${errorId}` : ""}`}
-        aria-invalid={Boolean(clientError || persistError)}
-        data-testid={`official-apply-url-input-${job.id}`}
-        className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] px-3 py-2 text-sm text-[color:var(--af-text)]"
-        onChange={(event) => {
-          dirtyRef.current = true;
-          setDraft(event.target.value);
-          setClientError(null);
-          setPersistError(null);
-        }}
-      />
-      <div className="flex flex-wrap gap-2">
-        <ApplyFlowButton
-          type="button"
-          variant="secondary"
-          size="sm"
-          data-testid={`official-apply-url-save-${job.id}`}
-          disabled={disabled || saving || unchanged}
-          onClick={() => {
-            void persist(draft);
-          }}
-        >
-          {saving ? OFFICIAL_APPLY_URL_SAVING : OFFICIAL_APPLY_URL_SAVE_LABEL}
-        </ApplyFlowButton>
-        <ApplyFlowButton
-          type="button"
-          variant="ghost"
-          size="sm"
-          data-testid={`official-apply-url-remove-${job.id}`}
-          disabled={!canRemove}
-          onClick={() => {
-            void persist(null);
-          }}
-        >
-          {OFFICIAL_APPLY_URL_REMOVE_LABEL}
-        </ApplyFlowButton>
-      </div>
-      {clientError || persistError ? (
-        <p
-          id={errorId}
-          role="alert"
-          className="text-xs text-[color:var(--af-danger,var(--af-text))]"
-          data-testid={`official-apply-url-error-${job.id}`}
-        >
-          {clientError ?? persistError}
-        </p>
-      ) : null}
+      {showCollapsed ? (
+        <>
+          <p className="text-sm font-medium text-[color:var(--af-text)]">{OFFICIAL_APPLY_URL_SAVED_SUMMARY}</p>
+          <p
+            className="break-all text-xs text-[color:var(--af-text-muted)]"
+            data-testid={`official-apply-url-saved-${job.id}`}
+          >
+            {saved}
+          </p>
+          <div>
+            <ApplyFlowButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              data-testid={`official-apply-url-edit-${job.id}`}
+              disabled={disabled}
+              onClick={() => setEditorOpen(true)}
+            >
+              {OFFICIAL_APPLY_URL_EDIT_LABEL}
+            </ApplyFlowButton>
+          </div>
+        </>
+      ) : (
+        <>
+          <label htmlFor={inputId} className="text-sm font-medium text-[color:var(--af-text)]">
+            {OFFICIAL_APPLY_URL_FIELD_LABEL}
+          </label>
+          <p id={hintId} className="text-xs text-[color:var(--af-text-muted)]">
+            {OFFICIAL_APPLY_URL_FIELD_HINT}
+          </p>
+          <input
+            id={inputId}
+            type="url"
+            inputMode="url"
+            autoComplete="url"
+            placeholder="https://…"
+            value={draft}
+            disabled={disabled || saving}
+            aria-label={OFFICIAL_APPLY_URL_FIELD_LABEL}
+            aria-describedby={`${hintId}${clientError || persistError ? ` ${errorId}` : ""}`}
+            aria-invalid={Boolean(clientError || persistError)}
+            data-testid={`official-apply-url-input-${job.id}`}
+            className="w-full rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] px-3 py-2 text-sm text-[color:var(--af-text)]"
+            onChange={(event) => {
+              dirtyRef.current = true;
+              setDraft(event.target.value);
+              setClientError(null);
+              setPersistError(null);
+            }}
+          />
+          <div className="flex flex-wrap gap-2">
+            <ApplyFlowButton
+              type="button"
+              variant="secondary"
+              size="sm"
+              data-testid={`official-apply-url-save-${job.id}`}
+              disabled={disabled || saving || unchanged}
+              onClick={() => {
+                void persist(draft);
+              }}
+            >
+              {saving ? OFFICIAL_APPLY_URL_SAVING : OFFICIAL_APPLY_URL_SAVE_LABEL}
+            </ApplyFlowButton>
+            <ApplyFlowButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              data-testid={`official-apply-url-remove-${job.id}`}
+              disabled={!canRemove}
+              onClick={() => {
+                void persist(null);
+              }}
+            >
+              {OFFICIAL_APPLY_URL_REMOVE_LABEL}
+            </ApplyFlowButton>
+          </div>
+          {clientError || persistError ? (
+            <p
+              id={errorId}
+              role="alert"
+              className="text-xs text-[color:var(--af-danger,var(--af-text))]"
+              data-testid={`official-apply-url-error-${job.id}`}
+            >
+              {clientError ?? persistError}
+            </p>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

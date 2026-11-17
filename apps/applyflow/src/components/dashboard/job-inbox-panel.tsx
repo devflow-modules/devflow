@@ -56,8 +56,12 @@ import {
   JOB_INBOX_STALE_LABEL,
   JOB_INBOX_REEVALUATE_LABEL,
   JOB_INBOX_INCOMPLETE_HINT,
+  JOB_INBOX_MANUAL_PREP_BADGE,
+  JOB_INBOX_MANUAL_PREP_ATTENTION_HINT,
+  JOB_INBOX_OPEN_MANUAL_PREP_LABEL,
   JOB_INBOX_AT_APPLY_ANALYSIS,
   JOB_INBOX_CURRENT_ANALYSIS,
+  jobNeedsManualPrepAttention,
   JOB_MATCH_DECISION_LABELS,
   JOB_QUEUE_EMPTY_ACTIVE,
   JOB_QUEUE_EMPTY_FILTERED,
@@ -587,6 +591,7 @@ function JobInboxCard({
         canCreateApplicationPack(job, resumeLibrary) &&
         !job.applicationPack,
     );
+  const needsManualAttention = jobNeedsManualPrepAttention(job, analysis);
   const sourceOpenable = isOpenableJobUrl(job.url);
   const networkingItem = selectNetworkingQueue([job], loadDashboardContacts().contacts)[0];
   const networkingLabel = networkingItem ? networkingIndicatorLabel(networkingItem) : "No contact";
@@ -597,6 +602,11 @@ function JobInboxCard({
         <ApplyFlowBadge tone={matchDecisionTone(analysis.decision)}>
           {JOB_MATCH_DECISION_LABELS[analysis.decision]}
         </ApplyFlowBadge>
+        {needsManualAttention ? (
+          <ApplyFlowBadge tone="warning" data-testid={`job-inbox-manual-prep-badge-${job.id}`}>
+            {JOB_INBOX_MANUAL_PREP_BADGE}
+          </ApplyFlowBadge>
+        ) : null}
         {isJobMatchStale(job, resumeLibrary) ? (
           <ApplyFlowBadge tone="warning">{JOB_INBOX_STALE_LABEL}</ApplyFlowBadge>
         ) : null}
@@ -652,10 +662,21 @@ function JobInboxCard({
         <p className="mt-2 text-xs text-[color:var(--af-text)]" data-testid={`job-inbox-needs-info-${job.id}`}>
           {JOB_INBOX_INCOMPLETE_HINT}
         </p>
+      ) : needsManualAttention ? (
+        <p
+          className="mt-2 text-xs text-[color:var(--af-text)]"
+          data-testid={`job-inbox-manual-prep-hint-${job.id}`}
+        >
+          {JOB_INBOX_MANUAL_PREP_ATTENTION_HINT}
+        </p>
       ) : null}
       <p className="mt-3 flex flex-wrap items-center gap-2">
-        <Link href={jobAnalysisPath(job.id)} className={applyFlowButtonClass({ variant: "primary", size: "sm" })}>
-          {JOB_DECISION_V2_LINK}
+        <Link
+          href={jobAnalysisPath(job.id)}
+          className={applyFlowButtonClass({ variant: "primary", size: "sm" })}
+          data-testid={`job-inbox-primary-cta-${job.id}`}
+        >
+          {needsManualAttention ? JOB_INBOX_OPEN_MANUAL_PREP_LABEL : JOB_DECISION_V2_LINK}
         </Link>
         {onReevaluateJob && isJobMatchStale(job, resumeLibrary) ? (
           <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
@@ -683,15 +704,15 @@ function JobInboxCard({
           </ApplyFlowButton>
         ) : null}
       </p>
+      {job.status === "reviewing" ? (
+        <ManualApplicationAction job={job} onMarkJobApplied={onMarkJobApplied} />
+      ) : null}
       {job.status === "reviewing" || job.status === "applied" ? (
         <OfficialApplyUrlField
           job={job}
           onSaveOfficialApplyUrl={onSaveOfficialApplyUrl}
           disabled={job.status === "applied"}
         />
-      ) : null}
-      {job.status === "reviewing" ? (
-        <ManualApplicationAction job={job} onMarkJobApplied={onMarkJobApplied} />
       ) : null}
       {job.curriculumRecommendation ? (
         <CurriculumRouterBlock job={job} recommendation={job.curriculumRecommendation} />

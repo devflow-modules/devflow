@@ -126,7 +126,10 @@ import {
   dashboardPersistenceFailureMessage,
 } from "@/components/dashboard/dashboard-persistence-notice";
 import { DashboardMigrationPanel } from "@/components/dashboard/dashboard-migration-panel";
-import type { ApplyFlowClientPersistenceBootstrapResult } from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
+import {
+  clientBootstrapUsesCloudCanonical,
+  type ApplyFlowClientPersistenceBootstrapResult,
+} from "@/lib/persistence-v2/dashboard/client-persistence-bootstrap";
 import type { ApplyFlowDashboardPersistence } from "@/lib/persistence-v2/dashboard/dashboard-persistence";
 import { fetchAuthoritativePersistenceBootstrap } from "@/lib/persistence-v2/dashboard/fetch-authoritative-bootstrap";
 import { openDashboardPersistence } from "@/lib/persistence-v2/dashboard/open-dashboard-persistence";
@@ -1219,11 +1222,14 @@ export function DashboardClient({
   });
 
   if (!hydrated && persistenceBootstrap.ok) {
+    // Prefer server bootstrap over client state: usesCloudPersistence starts false
+    // and would mislabel cloud accounts as “armazenamento local” during the wait.
+    const loadingFromCloud = clientBootstrapUsesCloudCanonical(persistenceBootstrap.bootstrap);
     return (
-      <ApplyFlowCard variant="muted" padding="lg">
+      <ApplyFlowCard variant="muted" padding="lg" data-testid="dashboard-persistence-loading">
         <ApplyFlowLoadingState
           label={
-            usesCloudPersistence
+            loadingFromCloud
               ? "A carregar os dados da conta…"
               : "A preparar o painel e ler o armazenamento local…"
           }

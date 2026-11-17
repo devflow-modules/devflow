@@ -21,6 +21,7 @@ import {
   type ApplyFlowJob,
   type NetworkingQueueFilter,
 } from "@devflow/applyflow-core";
+import { NETWORKING_OPEN_JOB_LABEL } from "@/components/dashboard/job-inbox-content";
 
 const FILTER_LABELS: Record<NetworkingQueueFilter, string> = {
   all: "All",
@@ -163,9 +164,12 @@ export function NetworkingQueuePanel({
                   </div>
                 </div>
                 <div className="mt-3">
-                  <Link href={`/dashboard/jobs/${item.jobId}`}>
+                  <Link
+                    href={`/dashboard/jobs/${item.jobId}`}
+                    aria-label={`${NETWORKING_OPEN_JOB_LABEL}: ${item.company ?? "—"} · ${item.title}`}
+                  >
                     <ApplyFlowButton type="button" variant="ghost" size="sm">
-                      Open job
+                      {NETWORKING_OPEN_JOB_LABEL}
                     </ApplyFlowButton>
                   </Link>
                 </div>
