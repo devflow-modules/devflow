@@ -285,6 +285,154 @@ describe("ManualPreparationPanel", () => {
     expect(screen.getByTestId(`manual-prep-saved-pack-${job.id}`).textContent).toContain("LATAM clients");
   });
 
+  it("shows inconclusive GCP/NestJS/Senioridade as evidence — not 'Complete no perfil'", () => {
+    const evidenceReason = "Not enough recorded evidence to conclude proven, partial, or gap.";
+    const job = baseJob({
+      id: "job_stefanini_evidence_copy",
+      jobMatch: {
+        score: 69,
+        decision: "stretch",
+        matchedSkills: ["React", "Node.js"],
+        missingSkills: [],
+        unknownSkills: ["GCP", "NestJS", "Express", "JavaScript"],
+        evaluatedAt: "2026-11-16T20:00:00.000Z",
+        scoringVersion: "v1",
+      },
+    });
+    const decision = {
+      scoringVersion: "v2" as const,
+      decision: "needs_info" as const,
+      overall: 48,
+      dimensions: {
+        overall: 48,
+        coreEngineering: 55,
+        stack: 45,
+        specialization: 40,
+        seniority: 40,
+        product: 40,
+      },
+      confidence: "low" as const,
+      hiringProbability: "low" as const,
+      careerUpside: "medium" as const,
+      applicationCost: "medium" as const,
+      opportunityCost: "medium" as const,
+      eliminationRisk: "medium" as const,
+      priority: 35,
+      matches: [
+        {
+          requirement: {
+            id: "req-gcp",
+            label: "GCP",
+            category: "cloud" as const,
+            importance: "important" as const,
+            requirementType: "skill" as const,
+            skillHint: "GCP",
+          },
+          status: "unknown" as const,
+          matchedEvidence: [],
+          reason: evidenceReason,
+        },
+        {
+          requirement: {
+            id: "req-nestjs",
+            label: "NestJS",
+            category: "backend" as const,
+            importance: "important" as const,
+            requirementType: "skill" as const,
+            skillHint: "NestJS",
+          },
+          status: "unknown" as const,
+          matchedEvidence: [],
+          reason: evidenceReason,
+        },
+        {
+          requirement: {
+            id: "req-seniority",
+            label: "Seniority: senior",
+            category: "seniority" as const,
+            importance: "fundamental" as const,
+            requirementType: "experience" as const,
+            extractedText: "senior",
+            qualifiers: ["senior"],
+          },
+          status: "unknown" as const,
+          matchedEvidence: [],
+          reason: evidenceReason,
+        },
+      ],
+      claims: [],
+      recommendedClaims: [],
+      gates: [],
+      candidateInputRequests: [
+        {
+          id: "input-req-gcp",
+          question: "Você já trabalhou profissionalmente com GCP?",
+          reason: evidenceReason,
+          expectedType: "boolean" as const,
+          status: "pending" as const,
+          canBecomeEvidence: true,
+        },
+        {
+          id: "input-req-seniority",
+          question: "Você já trabalhou profissionalmente com Senioridade: sênior?",
+          reason: evidenceReason,
+          expectedType: "boolean" as const,
+          status: "pending" as const,
+          canBecomeEvidence: true,
+        },
+      ],
+      reasons: ["inconclusive"],
+    };
+    const explanation = explainPackBlock({
+      decision,
+      profile: thinProfile(),
+      jobText: STEFANINI_REMOTE_BR,
+      hasJobText: true,
+      hasResume: true,
+      hasSourceUrl: true,
+    });
+    expect(explanation.items.filter((item) => item.label === "GCP" || item.label === "NestJS").every((item) => item.kind === "evidence")).toBe(
+      true,
+    );
+
+    render(
+      <ManualPreparationPanel
+        job={job}
+        decision={decision}
+        explanation={explanation}
+        hasResume
+        defaultOpen
+      />,
+    );
+    const summary = screen.getByTestId(`manual-prep-block-summary-${job.id}`).textContent ?? "";
+    const details = screen.getByTestId(`manual-prep-details-${job.id}`).textContent ?? "";
+    const gaps = screen.getByTestId(`manual-prep-gaps-${job.id}`).textContent ?? "";
+    const hint = screen.getByTestId(`manual-prep-panel-${job.id}`).textContent ?? "";
+    expect(summary).toMatch(/Revise estes requisitos — a análise ficou inconclusiva no conjunto:/i);
+    expect(summary).toMatch(/GCP.*NestJS.*Senioridade:\s*sênior/s);
+    expect(summary).not.toMatch(/Complete no perfil ou no currículo:\s*GCP/i);
+    expect(summary).not.toMatch(/adicione|complete no currículo/i);
+    expect(summary).toMatch(/nenhum item listado, isoladamente|Próxima ação/i);
+    expect(details).toMatch(/Sem evidência suficiente/);
+    expect(details).toMatch(/Senioridade:\s*sênior/);
+    expect(details).not.toMatch(/Not enough recorded evidence/i);
+    // Pendências conhecidas = V2 evidence items; Express/JS only as checklist verification (V1 unknownSkills).
+    const blockList = details.split(/Lacunas a verificar/i)[0] ?? details;
+    expect(blockList).toMatch(/GCP/);
+    expect(blockList).toMatch(/NestJS/);
+    expect(blockList).toMatch(/Senioridade:\s*sênior/);
+    expect(blockList).not.toMatch(/\bExpress\b/);
+    expect(blockList).not.toMatch(/\bJavaScript\b/);
+    expect(gaps).toContain("GCP");
+    expect(gaps).toContain("Express");
+    expect(gaps).toContain("JavaScript");
+    expect(gaps).toMatch(/Senioridade:\s*sênior/);
+    expect(gaps).toMatch(/Você já trabalhou profissionalmente com GCP\?/);
+    expect(gaps).not.toMatch(/trabalhou profissionalmente com Senioridade:/i);
+    expect(hint).toMatch(/somente leitura|Leitura apenas/i);
+    expect(job.status).toBe("reviewing");
+  });
+
   it("no-pack job with official URL still exposes Abrir candidatura and shows saved URL via reliable selector", () => {
     const job = baseJob({
       jobContext: {
