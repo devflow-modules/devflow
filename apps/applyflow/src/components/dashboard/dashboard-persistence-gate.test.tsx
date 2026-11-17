@@ -10,7 +10,12 @@ import { APPLYFLOW_V1_TO_V2_MIGRATION_STORAGE_KEY } from "@/lib/persistence-v2/m
 import { prepareMigrationBundle } from "@/lib/persistence-v2/migration/migration-prepare";
 
 import { DashboardClient } from "./dashboard-client";
-import { testBootstrapOffering, testBootstrapV1, TEST_PERSISTENCE_ACCOUNT_ID } from "./test-persistence-bootstrap";
+import {
+  testBootstrapActive,
+  testBootstrapOffering,
+  testBootstrapV1,
+  TEST_PERSISTENCE_ACCOUNT_ID,
+} from "./test-persistence-bootstrap";
 
 const ACCOUNT_ID = TEST_PERSISTENCE_ACCOUNT_ID;
 
@@ -74,6 +79,19 @@ describe("DashboardClient persistence gate", () => {
     expect(screen.queryByText("Migrar dados para a conta")).toBeNull();
     expect(screen.queryByText("Migração necessária")).toBeNull();
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("usa o bootstrap cloud para o rótulo de loading (não o estado local inicial)", () => {
+    // Synchronous first paint: usesCloudPersistence still false, but canonical is v2_cloud.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => undefined)),
+    );
+    const { container } = render(<DashboardClient persistenceBootstrap={testBootstrapActive} />);
+    const loading = container.querySelector('[data-testid="dashboard-persistence-loading"]');
+    expect(loading).toBeTruthy();
+    expect(loading?.textContent).toMatch(/A carregar os dados da conta/);
+    expect(loading?.textContent).not.toMatch(/armazenamento local/);
   });
 
   it("unlocks with a valid marker without deleting V1 jobs", async () => {
