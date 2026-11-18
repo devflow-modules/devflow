@@ -88,6 +88,17 @@ export const JOB_DECISION_V2_NOW_REVIEWING =
   "Abra o portal da empresa, envie você mesmo e confirme com «Sim, enviei». Registrar candidatura é opcional e não substitui o envio externo.";
 export const JOB_DECISION_V2_NOW_APPLIED =
   "Envio confirmado. Acompanhe em Candidaturas e registre respostas quando chegarem.";
+/** Decision briefing: three questions above the fold on the job workspace. */
+export const JOB_DECISION_BRIEF_ASKS = "O que a vaga pede?";
+export const JOB_DECISION_BRIEF_SHOWS = "O que o perfil já demonstra?";
+export const JOB_DECISION_BRIEF_CONFIRM = "O que ainda preciso confirmar?";
+export const JOB_DECISION_BRIEF_ASKS_EMPTY =
+  "Ainda sem requisitos estruturados — confirme no anúncio ou cole o texto completo em Descobrir.";
+export const JOB_DECISION_BRIEF_SHOWS_EMPTY =
+  "Ainda sem evidências cruzadas — o Match não encontrou overlaps claros com o currículo atual.";
+export const JOB_DECISION_BRIEF_CONFIRM_EMPTY =
+  "Nada crítico listado agora. Revise o anúncio e a preparação se quiser fechar detalhes.";
+export const JOB_DECISION_BRIEF_MORE = "Ver requisitos e evidências completos";
 export const JOB_DECISION_V2_AGE = "Datas";
 export const JOB_DECISION_V2_HISTORY_UNAVAILABLE =
   "Histórico de eventos não disponível neste modo — só o estado actual é mostrado.";

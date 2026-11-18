@@ -74,6 +74,14 @@ import {
   JOB_QUEUE_HISTORICAL_NOTE,
   JOB_QUEUE_IGNORE_LABEL,
   JOB_QUEUE_RESTORE_LABEL,
+  JOB_QUEUE_FIT_LABEL,
+  JOB_QUEUE_NEXT_ACTION_LABEL,
+  JOB_QUEUE_NEXT_APPLIED,
+  JOB_QUEUE_NEXT_IGNORED,
+  JOB_QUEUE_NEXT_OPEN_DETAIL,
+  JOB_QUEUE_NEXT_OPEN_PREP,
+  JOB_QUEUE_NEXT_REEVALUATE,
+  JOB_QUEUE_STAGE_LABEL,
   MANUAL_APPLICATION_PACK_RECORD_HINT,
   JOB_QUEUE_SORT_LABEL,
   JOB_QUEUE_SORT_MATCH,
@@ -116,7 +124,7 @@ import {
   type OpportunityQueueView,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
@@ -126,6 +134,12 @@ import { loadDashboardAnalytics } from "@/lib/local-analytics-storage";
 import { loadDashboardContacts } from "@/lib/local-contact-storage";
 import { loadDashboardImport } from "@/lib/local-import-storage";
 import {
+  consumeOpportunityQueueAnchor,
+  markOpportunityQueueAnchor,
+  readOpportunityQueueNavState,
+  saveOpportunityQueueFilters,
+} from "@/lib/opportunity-queue-nav-state";
+import {
   jobAnalysisPath,
   nextInboxDraftAfterEvaluate,
   type InboxEvaluateStatus,
@@ -133,6 +147,18 @@ import {
 import { JobDiscoveryPanel } from "@/components/dashboard/job-discovery-panel";
 import { NetworkingQueuePanel } from "@/components/dashboard/networking-queue-panel";
 import type { DiscoveredJobSaveStatus, JobSearchHit } from "@/lib/job-sources/types";
+
+function queueNextActionCopy(input: {
+  status: ApplyFlowJob["status"];
+  needsManualAttention: boolean;
+  stale: boolean;
+}): string {
+  if (input.status === "applied") return JOB_QUEUE_NEXT_APPLIED;
+  if (input.status === "ignored") return JOB_QUEUE_NEXT_IGNORED;
+  if (input.stale) return JOB_QUEUE_NEXT_REEVALUATE;
+  if (input.needsManualAttention) return JOB_QUEUE_NEXT_OPEN_PREP;
+  return JOB_QUEUE_NEXT_OPEN_DETAIL;
+}
 
 const fieldClass = applyFlowControlClass;
 
@@ -556,6 +582,7 @@ function JobInboxCard({
   onReevaluateJob,
   onIgnoreJob,
   onRestoreJob,
+  dense = false,
 }: {
   job: ApplyFlowJob;
   applications?: readonly ApplyFlowApplicationV2Envelope[];
@@ -567,6 +594,8 @@ function JobInboxCard({
   onReevaluateJob?: (jobId: string) => void;
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
+  /** Queue-first card: title/company/stage/next action; fit kept separate from stage. */
+  dense?: boolean;
 }) {
   const defaultVariant = resumeLibrary?.variants.length ? getDefaultResumeVariant(resumeLibrary) : null;
   const analysis = presentInboxJobAnalysis(job, defaultVariant?.profile ?? null);
@@ -594,9 +623,105 @@ function JobInboxCard({
         !job.applicationPack,
     );
   const needsManualAttention = jobNeedsManualPrepAttention(job, analysis);
+  const stale = isJobMatchStale(job, resumeLibrary);
   const sourceOpenable = isOpenableJobUrl(job.url);
   const networkingItem = selectNetworkingQueue([job], loadDashboardContacts().contacts)[0];
   const networkingLabel = networkingItem ? networkingIndicatorLabel(networkingItem) : "Sem contato";
+  const nextAction = queueNextActionCopy({
+    status: job.status,
+    needsManualAttention,
+    stale,
+  });
+  const primaryCtaLabel = needsManualAttention ? JOB_INBOX_OPEN_MANUAL_PREP_LABEL : JOB_DECISION_V2_LINK;
+
+  if (dense) {
+    return (
+      <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
+        <div className="grid gap-1">
+          <p className="text-base font-semibold tracking-tight text-[color:var(--af-text)]">{job.title}</p>
+          {job.company ? <p className="text-sm text-[color:var(--af-text)]">{job.company}</p> : null}
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div data-testid={`job-queue-stage-${job.id}`}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+              {JOB_QUEUE_STAGE_LABEL}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <ApplyFlowBadge tone="neutral">{APPLYFLOW_APPLICATION_STATUS_LABELS_PT[job.status]}</ApplyFlowBadge>
+              {needsManualAttention ? (
+                <ApplyFlowBadge tone="warning" data-testid={`job-inbox-manual-prep-badge-${job.id}`}>
+                  {JOB_INBOX_MANUAL_PREP_BADGE}
+                </ApplyFlowBadge>
+              ) : null}
+              {stale ? <ApplyFlowBadge tone="warning">{JOB_INBOX_STALE_LABEL}</ApplyFlowBadge> : null}
+            </div>
+          </div>
+          <div data-testid={`job-queue-fit-${job.id}`}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+              {JOB_QUEUE_FIT_LABEL}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <ApplyFlowBadge tone={matchDecisionTone(analysis.decision)}>
+                {JOB_MATCH_DECISION_LABELS[analysis.decision]}
+              </ApplyFlowBadge>
+              <span className="tabular-nums text-sm text-[color:var(--af-text)]">{analysis.score}/100</span>
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-[color:var(--af-text)]" data-testid={`job-queue-next-${job.id}`}>
+          <span className="font-medium">{JOB_QUEUE_NEXT_ACTION_LABEL}: </span>
+          {nextAction}
+        </p>
+        {analysis.decision === "needs_info" ? (
+          <p className="mt-2 text-xs text-[color:var(--af-text-muted)]" data-testid={`job-inbox-needs-info-${job.id}`}>
+            {JOB_INBOX_INCOMPLETE_HINT}
+          </p>
+        ) : needsManualAttention ? (
+          <p
+            className="mt-2 text-xs text-[color:var(--af-text-muted)]"
+            data-testid={`job-inbox-manual-prep-hint-${job.id}`}
+          >
+            {JOB_INBOX_MANUAL_PREP_ATTENTION_HINT}
+          </p>
+        ) : null}
+        <p className="mt-3 flex flex-wrap items-center gap-2">
+          <Link
+            href={jobAnalysisPath(job.id)}
+            className={applyFlowButtonClass({ variant: "primary", size: "sm" })}
+            data-testid={`job-inbox-primary-cta-${job.id}`}
+            onClick={() => markOpportunityQueueAnchor(job.id)}
+          >
+            {primaryCtaLabel}
+          </Link>
+          {onReevaluateJob && stale ? (
+            <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
+              {JOB_INBOX_REEVALUATE_LABEL}
+            </ApplyFlowButton>
+          ) : null}
+          {job.status === "reviewing" && onIgnoreJob ? (
+            <ApplyFlowButton
+              variant="secondary"
+              size="sm"
+              data-testid={`job-queue-ignore-${job.id}`}
+              onClick={() => onIgnoreJob(job.id)}
+            >
+              {JOB_QUEUE_IGNORE_LABEL}
+            </ApplyFlowButton>
+          ) : null}
+          {job.status === "ignored" && onRestoreJob ? (
+            <ApplyFlowButton
+              variant="secondary"
+              size="sm"
+              data-testid={`job-queue-restore-${job.id}`}
+              onClick={() => onRestoreJob(job.id)}
+            >
+              {JOB_QUEUE_RESTORE_LABEL}
+            </ApplyFlowButton>
+          ) : null}
+        </p>
+      </ApplyFlowCard>
+    );
+  }
 
   return (
     <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
@@ -609,7 +734,7 @@ function JobInboxCard({
             {JOB_INBOX_MANUAL_PREP_BADGE}
           </ApplyFlowBadge>
         ) : null}
-        {isJobMatchStale(job, resumeLibrary) ? (
+        {stale ? (
           <ApplyFlowBadge tone="warning">{JOB_INBOX_STALE_LABEL}</ApplyFlowBadge>
         ) : null}
         <ApplyFlowBadge tone="neutral">{APPLYFLOW_APPLICATION_STATUS_LABELS_PT[job.status]}</ApplyFlowBadge>
@@ -677,10 +802,11 @@ function JobInboxCard({
           href={jobAnalysisPath(job.id)}
           className={applyFlowButtonClass({ variant: "primary", size: "sm" })}
           data-testid={`job-inbox-primary-cta-${job.id}`}
+          onClick={() => markOpportunityQueueAnchor(job.id)}
         >
-          {needsManualAttention ? JOB_INBOX_OPEN_MANUAL_PREP_LABEL : JOB_DECISION_V2_LINK}
+          {primaryCtaLabel}
         </Link>
-        {onReevaluateJob && isJobMatchStale(job, resumeLibrary) ? (
+        {onReevaluateJob && stale ? (
           <ApplyFlowButton variant="secondary" size="sm" onClick={() => onReevaluateJob(job.id)}>
             {JOB_INBOX_REEVALUATE_LABEL}
           </ApplyFlowButton>
@@ -803,6 +929,8 @@ export function JobInboxPanel({
   const [queueSort, setQueueSort] = useState<OpportunityQueueSort>("match");
   const [decisionFilter, setDecisionFilter] = useState<JobMatchDecision | "all">("all");
   const [sourceFilter, setSourceFilter] = useState<ApplyFlowJobSource | "all">("all");
+  const [pendingAnchorJobId, setPendingAnchorJobId] = useState<string | null>(null);
+  const queueFiltersHydrated = useRef(false);
 
   const queueCounts = useMemo(() => countOpportunityQueueViews(jobs), [jobs]);
   const visibleJobs = useMemo(
@@ -816,6 +944,41 @@ export function JobInboxPanel({
       }),
     [jobs, queueView, queueSort, decisionFilter, sourceFilter, resumeLibrary],
   );
+
+  useLayoutEffect(() => {
+    if (focus !== "queue" || queueFiltersHydrated.current) return;
+    queueFiltersHydrated.current = true;
+    const saved = readOpportunityQueueNavState();
+    if (!saved) return;
+    setQueueView(saved.view);
+    setQueueSort(saved.sort);
+    setDecisionFilter(saved.decision);
+    setSourceFilter(saved.source);
+    if (saved.anchorJobId) setPendingAnchorJobId(saved.anchorJobId);
+  }, [focus]);
+
+  useEffect(() => {
+    if (focus !== "queue" || !queueFiltersHydrated.current) return;
+    saveOpportunityQueueFilters({
+      view: queueView,
+      sort: queueSort,
+      decision: decisionFilter,
+      source: sourceFilter,
+    });
+  }, [focus, queueView, queueSort, decisionFilter, sourceFilter]);
+
+  useEffect(() => {
+    if (focus !== "queue" || !pendingAnchorJobId) return;
+    const anchorId = pendingAnchorJobId;
+    setPendingAnchorJobId(null);
+    // Consume once: if the job left the filter, keep filters and land at a stable list top.
+    consumeOpportunityQueueAnchor();
+    const frame = window.requestAnimationFrame(() => {
+      const card = document.querySelector<HTMLElement>(`[data-testid="job-inbox-card-${anchorId}"]`);
+      card?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focus, pendingAnchorJobId, visibleJobs]);
 
   const emptyMessage =
     visibleJobs.length === 0
@@ -1085,6 +1248,7 @@ export function JobInboxPanel({
                     onIgnoreJob={onIgnoreJob}
                     onRestoreJob={onRestoreJob}
                     applications={applications}
+                    dense={focus === "queue"}
                   />
                 </li>
               ))}
