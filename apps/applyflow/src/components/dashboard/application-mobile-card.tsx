@@ -15,6 +15,8 @@ import {
   formatApplicationUpdatedAge,
   isDisplayDerivedFromAppliedJob,
   isOpenableJobUrl,
+  resolveApplicationCompanyName,
+  resolveApplicationJobTitle,
   type ApplyFlowApplication,
   type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
@@ -62,6 +64,8 @@ export function ApplicationMobileCard({
   const createdAtLabel = Number.isFinite(createdAtMs)
     ? new Date(createdAtMs).toLocaleDateString("pt-BR")
     : "—";
+  const displayJobTitle = resolveApplicationJobTitle(envelope, linkedJob);
+  const displayCompany = resolveApplicationCompanyName(envelope, linkedJob);
 
   return (
     <ApplyFlowCard
@@ -72,10 +76,10 @@ export function ApplicationMobileCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-[color:var(--af-text)]">
-            {application.jobTitle ?? "—"}
+            {displayJobTitle}
           </p>
           <p className="truncate text-xs text-[color:var(--af-text-muted)]">
-            {application.companyName ?? "—"}
+            {displayCompany}
           </p>
         </div>
         <ApplyFlowBadge tone={applicationStatusTone(application.status)}>

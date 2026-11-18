@@ -89,6 +89,8 @@ import {
   isDisplayDerivedFromAppliedJob,
   isOpenableJobUrl,
   listDashboardApplicationsForDisplay,
+  resolveApplicationCompanyName,
+  resolveApplicationJobTitle,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   type ApplyFlowApplicationV2Envelope,
@@ -1704,6 +1706,8 @@ export function DashboardClient({
                     const createdAtLabel = Number.isFinite(createdAtMs)
                       ? new Date(createdAtMs).toLocaleDateString("pt-BR")
                       : "—";
+                    const displayCompany = resolveApplicationCompanyName(envelope, linkedJob);
+                    const displayJobTitle = resolveApplicationJobTitle(envelope, linkedJob);
                     return (
                     <tr
                       key={a.id}
@@ -1722,16 +1726,16 @@ export function DashboardClient({
                       </td>
                       <td
                         className="max-w-[130px] truncate px-3 py-3 text-[color:var(--af-text)] sm:max-w-[160px]"
-                        title={a.companyName}
+                        title={displayCompany}
                       >
-                        {a.companyName ?? "—"}
+                        {displayCompany}
                       </td>
                       <td
                         className="max-w-[150px] truncate px-3 py-3 font-medium text-[color:var(--af-text)] sm:max-w-[180px]"
-                        title={a.jobTitle}
+                        title={displayJobTitle}
                       >
                         <div className="grid gap-0.5">
-                          <span>{a.jobTitle ?? "—"}</span>
+                          <span>{displayJobTitle}</span>
                           {showRemoteOk && remoteOkUrl ? (
                             <a
                               href={remoteOkUrl}

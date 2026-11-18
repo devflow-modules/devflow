@@ -860,6 +860,7 @@ export function JobInboxPanel({
         matchAvailable={matchAvailable}
         onSave={onSaveDiscoveredJob}
         resumeLibrary={resumeLibrary}
+        embeddedInDiscoverSection={focus === "discover"}
       />
       <details className="mb-6 rounded-[var(--af-radius-md)] border border-[color:var(--af-border)] bg-[color:var(--af-surface)] p-4">
         <summary

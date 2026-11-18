@@ -185,4 +185,46 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     expect(await screen.findByText("Ainda sem candidaturas")).toBeTruthy();
     expect(screen.queryByText("Stefanini Brasil")).toBeNull();
   });
+
+  it("incomplete Application with sourceJobId reuses linked job title/company (no em dash)", async () => {
+    const linked = baseJob({
+      id: "job_with_app",
+      company: "Persisted Co",
+      title: "Backend Engineer",
+      status: "applied",
+    });
+    const incomplete: ApplyFlowApplicationV2Envelope = {
+      id: "app_persisted",
+      createdAt: NOW.toISOString(),
+      updatedAt: NOW.toISOString(),
+      source: "paste",
+      status: "applied",
+      appliedAt: NOW.toISOString(),
+      // Historical bad fixture used role/company instead of jobTitle/companyName.
+      v2: { sourceJobId: "job_with_app" },
+    };
+    const legacyApplied = baseJob({
+      id: "job_legacy_applied",
+      company: "Legacy Corp",
+      title: "Legacy Applied Engineer",
+      status: "applied",
+    });
+
+    persistDashboardJobs([linked, legacyApplied]);
+    persistDashboardImport([incomplete]);
+
+    render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/2 candidaturas registradas/)).toBeTruthy();
+    });
+    expect(screen.getByText("Backend Engineer")).toBeTruthy();
+    expect(screen.getByText("Persisted Co")).toBeTruthy();
+    expect(screen.getByText("Legacy Applied Engineer")).toBeTruthy();
+    expect(screen.getByText("Legacy Corp")).toBeTruthy();
+    expect(screen.queryByText("Cargo não informado")).toBeNull();
+    expect(screen.queryByText("Empresa não informada")).toBeNull();
+    expect(screen.getByTestId("application-row")).toBeTruthy();
+    expect(screen.getByTestId("application-row-derived-applied-job")).toBeTruthy();
+  });
 });

@@ -7,6 +7,8 @@ export const JOB_INBOX_DESCRIPTION =
 export const JOB_DISCOVERY_TITLE = "Buscar oportunidades";
 export const JOB_DISCOVERY_DESCRIPTION =
   "Escolha uma fonte e busque. O currículo não sai do navegador. Um resultado só entra na fila quando você salva.";
+/** Distinct control group under the Discover section (search form — not a second page title). */
+export const JOB_DISCOVERY_SEARCH_GROUP = "Fontes e busca";
 export const JOB_DISCOVERY_ADVANCED_FILTERS = "Mais filtros";
 export const JOB_DISCOVERY_ADVANCED_FILTERS_HIDE = "Ocultar filtros";
 export const JOB_DISCOVERY_PASTE_TOGGLE = "Colar anúncio manualmente";

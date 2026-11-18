@@ -58,12 +58,12 @@ import {
   JOB_DISCOVERY_SAVE_ERROR,
   JOB_DISCOVERY_SAVED,
   JOB_DISCOVERY_SEARCH,
+  JOB_DISCOVERY_SEARCH_GROUP,
   JOB_DISCOVERY_SORT,
   JOB_DISCOVERY_SOURCE,
   JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_SOURCE_THEIRSTACK,
   JOB_DISCOVERY_THEIRSTACK_NOTE,
-  JOB_DISCOVERY_TITLE,
   JOB_DISCOVERY_VIEW_LISTING,
   JOB_DISCOVERY_VIEW_LISTING_GENERIC,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
@@ -537,11 +537,14 @@ export function JobDiscoveryPanel({
   onSave,
   onSearch = requestJobSearch,
   resumeLibrary = null,
+  /** When true, section already owns JOB_DISCOVERY_TITLE + description — avoid repeating them. */
+  embeddedInDiscoverSection = false,
 }: {
   matchAvailable: boolean;
   onSave?: (hit: JobSearchHit) => Promise<DiscoveredJobSaveStatus>;
   onSearch?: typeof requestJobSearch;
   resumeLibrary?: ResumeLibrary | null;
+  embeddedInDiscoverSection?: boolean;
 }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [hits, setHits] = useState<JobSearchHit[]>([]);
@@ -621,8 +624,10 @@ export function JobDiscoveryPanel({
 
   return (
     <ApplyFlowCard padding="md" className="mb-6">
-      <h3 className="text-base font-semibold text-[color:var(--af-text)]">{JOB_DISCOVERY_TITLE}</h3>
-      <p className="mt-1 text-sm text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_DESCRIPTION}</p>
+      <h3 className="text-base font-semibold text-[color:var(--af-text)]">{JOB_DISCOVERY_SEARCH_GROUP}</h3>
+      {!embeddedInDiscoverSection ? (
+        <p className="mt-1 text-sm text-[color:var(--af-text-muted)]">{JOB_DISCOVERY_DESCRIPTION}</p>
+      ) : null}
       <form
         className="mt-4 grid gap-3"
         onSubmit={(event) => {
