@@ -365,7 +365,10 @@ function ApplicationPackView({
   );
 
   return (
-    <details className="mt-3 border-t border-[color:var(--af-border)] pt-3">
+    <details
+      className="mt-3 border-t border-[color:var(--af-border)] pt-3"
+      data-testid={`application-pack-open-${job.id}`}
+    >
       <summary
         className={cn(
           "cursor-pointer text-sm font-medium text-[color:var(--af-text)]",
@@ -719,6 +722,23 @@ function JobInboxCard({
             </ApplyFlowButton>
           ) : null}
         </p>
+        {showPrepare && resumeLibrary && onCreateApplicationPack ? (
+          <ApplicationPackPrepare
+            job={job}
+            resumeLibrary={resumeLibrary}
+            onCreateApplicationPack={onCreateApplicationPack}
+          />
+        ) : null}
+        {job.applicationPack ? (
+          <ApplicationPackView
+            job={job}
+            currentAnalysis={analysis}
+            currentVariant={
+              defaultVariant ? { id: defaultVariant.id, name: defaultVariant.name } : null
+            }
+            onTogglePackChecklist={onTogglePackChecklist}
+          />
+        ) : null}
       </ApplyFlowCard>
     );
   }

@@ -93,4 +93,46 @@ describe("Oportunidades queue navigation context", () => {
     });
     expect(window.sessionStorage.getItem(OPPORTUNITY_QUEUE_NAV_STORAGE_KEY)).toBeTruthy();
   });
+
+  it("keeps saved Application Pack openable on dense queue cards", () => {
+    const packed = reviewingJob({
+      id: "job_queue_nav_packed",
+      applicationPack: {
+        version: 1,
+        packVersion: "application-pack-v1",
+        createdAt: "2026-11-18T12:00:00.000Z",
+        updatedAt: "2026-11-18T12:00:00.000Z",
+        jobId: "job_queue_nav_packed",
+        resume: { variantId: "rv_1", variantName: "Perfil principal", recommendedByRouter: false },
+        match: {
+          score: 71,
+          decision: "stretch",
+          matchedSkills: ["React"],
+          missingSkills: [],
+          scoringVersion: "v1",
+        },
+        highlights: ["React"],
+        gaps: [],
+        candidateFacts: { name: "Fixture" },
+        checklist: [
+          { id: "review-resume", done: false },
+          { id: "review-highlights", done: false },
+          { id: "review-gaps", done: false },
+          { id: "review-answers", done: false },
+          { id: "open-job", done: false },
+          { id: "mark-applied", done: false },
+        ],
+      },
+    });
+    render(
+      <JobInboxPanel
+        focus="queue"
+        jobs={[packed]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId("application-pack-open-job_queue_nav_packed")).toBeTruthy();
+  });
 });
