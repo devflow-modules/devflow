@@ -13,6 +13,7 @@ import {
   deriveApplicationNextAction,
   formatApplicationStaleUpdateAge,
   formatApplicationUpdatedAge,
+  isDisplayDerivedFromAppliedJob,
   isOpenableJobUrl,
   type ApplyFlowApplication,
   type ApplyFlowApplicationV2Envelope,
@@ -27,6 +28,7 @@ export function ApplicationMobileCard({
   prepareInterviewHint,
   analysisLabel,
   practiceBusy,
+  persistActionsEnabled = true,
   onMarkSent,
   onPractice,
 }: {
@@ -37,23 +39,35 @@ export function ApplicationMobileCard({
   prepareInterviewHint: string;
   analysisLabel: string;
   practiceBusy: boolean;
+  /** False for read-only rows derived from applied jobs without a persisted Application. */
+  persistActionsEnabled?: boolean;
   onMarkSent: () => void;
   onPractice: () => void;
 }) {
   const envelope = application as ApplyFlowApplicationV2Envelope;
+  const derived = isDisplayDerivedFromAppliedJob(envelope) || !persistActionsEnabled;
   const nextHint = deriveApplicationNextAction({
     status: application.status,
     jobId: envelope.v2?.sourceJobId,
   });
-  const ageHint =
-    formatApplicationStaleUpdateAge(application.updatedAt) ??
-    formatApplicationUpdatedAge(application.updatedAt);
+  const ageHint = derived
+    ? null
+    : formatApplicationStaleUpdateAge(application.updatedAt) ??
+      formatApplicationUpdatedAge(application.updatedAt);
   const showRemoteOk =
     linkedJob?.source === "remoteok" && isOpenableJobUrl(linkedJob.url ?? application.jobUrl);
   const remoteOkUrl = linkedJob?.url ?? application.jobUrl;
+  const createdAtMs = Date.parse(application.createdAt);
+  const createdAtLabel = Number.isFinite(createdAtMs)
+    ? new Date(createdAtMs).toLocaleDateString("pt-BR")
+    : "—";
 
   return (
-    <ApplyFlowCard padding="md" className="grid gap-3" data-testid="application-mobile-card">
+    <ApplyFlowCard
+      padding="md"
+      className="grid gap-3"
+      data-testid={derived ? "application-mobile-card-derived" : "application-mobile-card"}
+    >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-[color:var(--af-text)]">
@@ -69,7 +83,7 @@ export function ApplicationMobileCard({
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[color:var(--af-text-muted)]">
-        <span>{new Date(application.createdAt).toLocaleDateString("pt-BR")}</span>
+        <span>{createdAtLabel}</span>
         {ageHint ? <span data-testid="application-row-age">{ageHint.label}</span> : null}
         {application.fitScore != null ? <span>Fit {application.fitScore}</span> : null}
       </div>
@@ -93,21 +107,23 @@ export function ApplicationMobileCard({
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {application.status === "reviewing" ? (
+        {!derived && application.status === "reviewing" ? (
           <ApplyFlowButton type="button" variant="outlineBrand" size="sm" onClick={onMarkSent}>
             {markSentLabel}
           </ApplyFlowButton>
         ) : null}
-        <ApplyFlowButton
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={practiceBusy}
-          title={prepareInterviewHint}
-          onClick={onPractice}
-        >
-          {prepareInterviewLabel}
-        </ApplyFlowButton>
+        {!derived ? (
+          <ApplyFlowButton
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={practiceBusy}
+            title={prepareInterviewHint}
+            onClick={onPractice}
+          >
+            {prepareInterviewLabel}
+          </ApplyFlowButton>
+        ) : null}
         {envelope.v2?.sourceJobId ? (
           <Link
             href={`/dashboard/jobs/${encodeURIComponent(envelope.v2.sourceJobId)}`}
