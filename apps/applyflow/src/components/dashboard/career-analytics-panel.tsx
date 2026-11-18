@@ -178,7 +178,7 @@ export function CareerAnalyticsPanel({
   }
 
   if (!snapshot) {
-    return <p className="text-sm text-[color:var(--af-text-muted)]">A carregar…</p>;
+    return <p className="text-sm text-[color:var(--af-text-muted)]">Carregando…</p>;
   }
 
   const {

@@ -3,7 +3,7 @@ import type { ApplicationDecisionSnapshot } from "@devflow/applyflow-core";
 export const JOB_DECISION_V2_EYEBROW = "Oportunidade";
 export const JOB_DECISION_V2_TITLE = "Espaço da oportunidade";
 export const JOB_DECISION_V2_HINT =
-  "Análise local. Guardar ou registar não envia a candidatura ao empregador.";
+  "Análise local. Salvar ou registrar não envia a candidatura ao empregador.";
 export const JOB_DECISION_V2_CURRENT_ANALYSIS = "Análise atual";
 export const JOB_DECISION_V2_AT_APPLY_ANALYSIS = "Análise no envio";
 export const JOB_DECISION_V2_CURRENT_HINT =
@@ -18,7 +18,7 @@ export const JOB_DECISION_V2_BACK_HREF = "/dashboard/opportunities";
 export const JOB_DECISION_V2_OTHER_TRANSITIONS = "Outras atualizações de status";
 export const JOB_DECISION_V2_MATCH_LABEL = "Match";
 export const JOB_DECISION_V2_APPLICATION_LABEL = "Candidatura";
-export const JOB_DECISION_V2_NOT_REGISTERED = "Ainda não registada";
+export const JOB_DECISION_V2_NOT_REGISTERED = "Ainda não registrada";
 export const JOB_DECISION_V2_READINESS_SUMMARY = "Preparação";
 export const JOB_DECISION_V2_READINESS_DETAILS = "Ver checklist completo";
 export const JOB_DECISION_V2_READINESS_DETAILS_HIDE = "Ocultar checklist";
@@ -83,6 +83,11 @@ export const JOB_DECISION_V2_MARK_SENT_HINT =
   "Usa isto depois de enviares tu ao empregador. Actualiza o estágio desta candidatura. Não cria outro registo e não mexe na análise congelada.";
 export const JOB_DECISION_V2_MARKED_SENT = "Candidatura marcada como enviada neste browser.";
 export const JOB_DECISION_V2_NEXT_STEP = "Próximo passo";
+export const JOB_DECISION_V2_NOW_TITLE = "Agora";
+export const JOB_DECISION_V2_NOW_REVIEWING =
+  "Abra o portal da empresa, envie você mesmo e confirme com «Sim, enviei». Registrar candidatura é opcional e não substitui o envio externo.";
+export const JOB_DECISION_V2_NOW_APPLIED =
+  "Envio confirmado. Acompanhe em Candidaturas e registre respostas quando chegarem.";
 export const JOB_DECISION_V2_AGE = "Datas";
 export const JOB_DECISION_V2_HISTORY_UNAVAILABLE =
   "Histórico de eventos não disponível neste modo — só o estado actual é mostrado.";

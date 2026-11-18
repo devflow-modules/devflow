@@ -110,7 +110,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
       <DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />,
     );
     expect(await screen.findByText("Local Harness")).toBeTruthy();
-    expect(screen.getByText(/1 candidatura registada/)).toBeTruthy();
+    expect(screen.getByText(/1 candidatura registrada/)).toBeTruthy();
     expect(screen.queryByText("Ainda sem candidaturas")).toBeNull();
     expect(screen.getAllByText("Synthetic Engineer")).toHaveLength(1);
     first.unmount();
@@ -118,7 +118,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     // Reload: remount from the same localStorage — still one row, no write of Application.
     render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
     expect(await screen.findByText("Local Harness")).toBeTruthy();
-    expect(screen.getByText(/1 candidatura registada/)).toBeTruthy();
+    expect(screen.getByText(/1 candidatura registrada/)).toBeTruthy();
     expect(screen.getAllByText("Synthetic Engineer")).toHaveLength(1);
     expect(screen.getByTestId("application-row-derived-applied-job")).toBeTruthy();
   });
@@ -162,7 +162,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/2 candidaturas registadas/)).toBeTruthy();
+      expect(screen.getByText(/2 candidaturas registradas/)).toBeTruthy();
     });
     expect(screen.getByText("Wagmo")).toBeTruthy();
     expect(screen.getByText("Oowlish")).toBeTruthy();
@@ -184,5 +184,47 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
     expect(await screen.findByText("Ainda sem candidaturas")).toBeTruthy();
     expect(screen.queryByText("Stefanini Brasil")).toBeNull();
+  });
+
+  it("incomplete Application with sourceJobId reuses linked job title/company (no em dash)", async () => {
+    const linked = baseJob({
+      id: "job_with_app",
+      company: "Persisted Co",
+      title: "Backend Engineer",
+      status: "applied",
+    });
+    const incomplete: ApplyFlowApplicationV2Envelope = {
+      id: "app_persisted",
+      createdAt: NOW.toISOString(),
+      updatedAt: NOW.toISOString(),
+      source: "paste",
+      status: "applied",
+      appliedAt: NOW.toISOString(),
+      // Historical bad fixture used role/company instead of jobTitle/companyName.
+      v2: { sourceJobId: "job_with_app" },
+    };
+    const legacyApplied = baseJob({
+      id: "job_legacy_applied",
+      company: "Legacy Corp",
+      title: "Legacy Applied Engineer",
+      status: "applied",
+    });
+
+    persistDashboardJobs([linked, legacyApplied]);
+    persistDashboardImport([incomplete]);
+
+    render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/2 candidaturas registradas/)).toBeTruthy();
+    });
+    expect(screen.getByText("Backend Engineer")).toBeTruthy();
+    expect(screen.getByText("Persisted Co")).toBeTruthy();
+    expect(screen.getByText("Legacy Applied Engineer")).toBeTruthy();
+    expect(screen.getByText("Legacy Corp")).toBeTruthy();
+    expect(screen.queryByText("Cargo não informado")).toBeNull();
+    expect(screen.queryByText("Empresa não informada")).toBeNull();
+    expect(screen.getByTestId("application-row")).toBeTruthy();
+    expect(screen.getByTestId("application-row-derived-applied-job")).toBeTruthy();
   });
 });

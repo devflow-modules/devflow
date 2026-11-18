@@ -159,7 +159,7 @@ export function InboundApplicationResponsePanelView({
   return (
     <ApplyFlowSection
       id="inbound-responses"
-      eyebrow={INBOUND_RESPONSE_EYEBROW}
+      eyebrow={INBOUND_RESPONSE_EYEBROW || undefined}
       title={INBOUND_RESPONSE_TITLE}
       description={INBOUND_RESPONSE_DESCRIPTION}
     >

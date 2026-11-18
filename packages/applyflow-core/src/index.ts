@@ -581,6 +581,12 @@ export {
   listDashboardApplicationsForDisplay,
 } from "./applications-display-list.js";
 export {
+  APPLICATION_COMPANY_MISSING,
+  APPLICATION_JOB_TITLE_MISSING,
+  resolveApplicationCompanyName,
+  resolveApplicationJobTitle,
+} from "./application-display-labels.js";
+export {
   deriveApplicationReadiness,
 } from "./application-readiness.js";
 export type {

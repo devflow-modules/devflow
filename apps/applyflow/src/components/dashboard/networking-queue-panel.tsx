@@ -29,7 +29,7 @@ const FILTER_LABELS: Record<NetworkingQueueFilter, string> = {
   sent: "Sent",
   replied: "Replied",
   follow_up: "Follow-up",
-  no_contact: "No contact",
+  no_contact: "Sem contato",
 };
 
 export function NetworkingQueuePanel({
@@ -141,7 +141,7 @@ export function NetworkingQueuePanel({
                       {item.company ?? "—"} · {item.title}
                     </p>
                     <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">
-                      {item.contactName ?? "No contact"}
+                      {item.contactName ?? "Sem contato"}
                       {item.strategy ? ` · ${NETWORKING_STRATEGY_LABELS[item.strategy]}` : ""}
                     </p>
                   </div>
