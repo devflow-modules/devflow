@@ -220,24 +220,44 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           set -euo pipefail
-          # --with-deps can hang for 15+ minutes on azure.archive.ubuntu.com (Ign → stall).
-          # Prefer archive.ubuntu.com, download browser separately, then bound apt deps.
-          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
-            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
-              /etc/apt/sources.list.d/ubuntu.sources || true
+          # --with-deps / install-deps can stall on regional Ubuntu mirrors
+          # (azure.archive or *.ec2.archive). Force archive.ubuntu.com, download
+          # the browser separately, then bound apt deps.
+          # Observed failure mode on PR #286 (3×): timeout 124 while apt fetched
+          # fonts/mesa from us-east-2.ec2.archive.ubuntu.com; retry then hit
+          # /var/lib/dpkg/lock-frontend held by the orphaned apt-get.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           fi
-          if [ -f /etc/apt/sources.list ]; then
-            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
-              /etc/apt/sources.list || true
-          fi
+          for sources in /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources; do
+            if [ -f "$sources" ]; then
+              sudo sed -i \
+                -e 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+                -e 's|http://[a-z0-9.-]*\.ec2\.archive\.ubuntu\.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+                "$sources" || true
+            fi
+          done
           pnpm --filter applyflow exec playwright install chromium
+          wait_for_dpkg_lock() {
+            for _ in $(seq 1 90); do
+              if ! sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
+                && ! sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; then
+                return 0
+              fi
+              sleep 2
+            done
+            return 1
+          }
           set +e
-          timeout 240 pnpm --filter applyflow exec playwright install-deps chromium
+          timeout 300 pnpm --filter applyflow exec playwright install-deps chromium
           status=$?
           set -e
           if [ "$status" -ne 0 ]; then
-            echo "playwright install-deps failed or timed out (exit=$status); retrying once..."
-            timeout 240 pnpm --filter applyflow exec playwright install-deps chromium
+            echo "playwright install-deps failed or timed out (exit=$status); clearing orphaned apt then retrying once..."
+            sudo killall -q apt-get apt || true
+            wait_for_dpkg_lock || true
+            sudo dpkg --configure -a || true
+            timeout 300 pnpm --filter applyflow exec playwright install-deps chromium
           fi
 
       - name: ApplyFlow critical E2E

@@ -1,3 +1,5 @@
+import { isDisplayDerivedFromAppliedJob } from "./applications-display-list.js";
+import type { ApplyFlowApplicationV2Envelope } from "./application-record-v2.js";
 import type { ApplyFlowApplication, ApplyFlowApplicationStatus } from "./application-types.js";
 import { APPLYFLOW_APPLICATION_STATUS_LABELS_PT } from "./application-types.js";
 
@@ -64,6 +66,8 @@ export function getApplicationsByPeriod(
   const floor = getPeriodCreatedAtFloor(period, now);
   if (floor == null) return applications;
   return applications.filter((a) => {
+    // Legacy applied-job rows have no proven createdAt — keep them visible for every period.
+    if (isDisplayDerivedFromAppliedJob(a as ApplyFlowApplicationV2Envelope)) return true;
     const t = parseIsoTime(a.createdAt);
     return Number.isFinite(t) && t >= floor;
   });

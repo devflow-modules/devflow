@@ -574,6 +574,13 @@ export {
   resolveApplicationRegistration,
 } from "./application-identity.js";
 export {
+  DISPLAY_DERIVED_APPLIED_JOB_ID_PREFIX,
+  displayApplicationFromAppliedJob,
+  displayDerivedApplicationId,
+  isDisplayDerivedFromAppliedJob,
+  listDashboardApplicationsForDisplay,
+} from "./applications-display-list.js";
+export {
   deriveApplicationReadiness,
 } from "./application-readiness.js";
 export type {

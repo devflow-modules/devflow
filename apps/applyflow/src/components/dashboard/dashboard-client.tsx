@@ -84,7 +84,9 @@ import {
   deriveApplicationNextAction,
   formatApplicationUpdatedAge,
   formatApplicationStaleUpdateAge,
+  isDisplayDerivedFromAppliedJob,
   isOpenableJobUrl,
+  listDashboardApplicationsForDisplay,
   type ApplyFlowApplication,
   type ApplyFlowApplicationStatus,
   type ApplyFlowApplicationV2Envelope,
@@ -465,14 +467,19 @@ export function DashboardClient({
 
   const now = useMemo(() => new Date(), []);
 
+  const applicationsForDisplay = useMemo(
+    () => listDashboardApplicationsForDisplay(applications, jobs),
+    [applications, jobs],
+  );
+
   const workFlags = useMemo(
     () =>
       dashboardWorkFlags({
         resumeCount: resumeLibrary?.variants.length ?? 0,
         jobCount: jobs.length,
-        applicationCount: applications.length,
+        applicationCount: applicationsForDisplay.length,
       }),
-    [resumeLibrary?.variants.length, jobs.length, applications.length],
+    [resumeLibrary?.variants.length, jobs.length, applicationsForDisplay.length],
   );
   const nextStep = dashboardNextStepId(workFlags);
   const nextStepHref = nextStep === "analyze" ? dashboardAnalyzeHref(jobs) : undefined;
@@ -481,8 +488,8 @@ export function DashboardClient({
   const showLabExport = shouldShowInterviewLabExport(applications.length);
 
   const filtered = useMemo(
-    () => applyDashboardTableFilters(applications, filters, now),
-    [applications, filters, now],
+    () => applyDashboardTableFilters(applicationsForDisplay, filters, now),
+    [applicationsForDisplay, filters, now],
   );
 
   const careerExportPreview = useMemo(() => {
@@ -1370,7 +1377,7 @@ export function DashboardClient({
           <DashboardNextStep step={nextStep} href={nextStepHref} />
           <DashboardOverviewShortcuts
             activeOpportunityCount={queueCounts.active}
-            applicationCount={applications.length}
+            applicationCount={applicationsForDisplay.length}
             hasResume={Boolean(resumeLibrary)}
           />
         </>
@@ -1518,10 +1525,10 @@ export function DashboardClient({
             title={DASHBOARD_APPLICATIONS_TITLE}
             description={DASHBOARD_APPLICATIONS_DESCRIPTION}
           >
-            {applications.length === 0 ? (
+            {applicationsForDisplay.length === 0 ? (
               <ApplyFlowEmptyState
                 title="Ainda sem candidaturas"
-                description="Regista uma candidatura a partir da análise de uma oportunidade. Guardar uma vaga na fila ainda não cria candidatura."
+                description="Confirma o envio numa oportunidade (Sim, enviei) ou regista a candidatura na análise. Guardar uma vaga na fila ainda não cria candidatura."
                 secondary={
                   <Link
                     href="/dashboard/opportunities"
@@ -1534,7 +1541,8 @@ export function DashboardClient({
             ) : (
             <>
             <p className="mb-3 text-xs text-[color:var(--af-text-muted)]">
-              {applications.length} candidatura{applications.length === 1 ? "" : "s"} registada{applications.length === 1 ? "" : "s"}.{" "}
+              {applicationsForDisplay.length} candidatura{applicationsForDisplay.length === 1 ? "" : "s"} registada
+              {applicationsForDisplay.length === 1 ? "" : "s"}.{" "}
               <Link href="/dashboard/analytics" className="font-medium text-emerald-300 hover:text-emerald-200">
                 {CAREER_ANALYTICS_LINK}
               </Link>
@@ -1633,6 +1641,7 @@ export function DashboardClient({
             <ul className="mt-4 grid gap-3" data-testid="applications-mobile-list">
               {filtered.map((a) => {
                 const envelope = a as ApplyFlowApplicationV2Envelope;
+                const derived = isDisplayDerivedFromAppliedJob(envelope);
                 const linkedJob = envelope.v2?.sourceJobId
                   ? jobs.find((item) => item.id === envelope.v2?.sourceJobId)
                   : undefined;
@@ -1646,8 +1655,15 @@ export function DashboardClient({
                       prepareInterviewHint={DASHBOARD_PREPARE_INTERVIEW_HINT}
                       analysisLabel="Ver análise"
                       practiceBusy={practiceHandoffBusy}
-                      onMarkSent={() => commitApplicationSubmitted(a)}
-                      onPractice={() => void onPracticeThisRole(a)}
+                      persistActionsEnabled={!derived}
+                      onMarkSent={() => {
+                        if (derived) return;
+                        commitApplicationSubmitted(a);
+                      }}
+                      onPractice={() => {
+                        if (derived) return;
+                        void onPracticeThisRole(a);
+                      }}
                     />
                   </li>
                 );
@@ -1677,6 +1693,7 @@ export function DashboardClient({
                 <tbody className="divide-y divide-[color:var(--af-border)]">
                   {filtered.map((a) => {
                     const envelope = a as ApplyFlowApplicationV2Envelope;
+                    const derived = isDisplayDerivedFromAppliedJob(envelope);
                     const linkedJob = envelope.v2?.sourceJobId
                       ? jobs.find((item) => item.id === envelope.v2?.sourceJobId)
                       : undefined;
@@ -1684,19 +1701,25 @@ export function DashboardClient({
                       status: a.status,
                       jobId: envelope.v2?.sourceJobId,
                     });
-                    const ageHint =
-                      formatApplicationStaleUpdateAge(a.updatedAt) ?? formatApplicationUpdatedAge(a.updatedAt);
+                    const ageHint = derived
+                      ? null
+                      : formatApplicationStaleUpdateAge(a.updatedAt) ?? formatApplicationUpdatedAge(a.updatedAt);
                     const showRemoteOk =
                       linkedJob?.source === "remoteok" && isOpenableJobUrl(linkedJob.url ?? a.jobUrl);
                     const remoteOkUrl = linkedJob?.url ?? a.jobUrl;
+                    const createdAtMs = Date.parse(a.createdAt);
+                    const createdAtLabel = Number.isFinite(createdAtMs)
+                      ? new Date(createdAtMs).toLocaleDateString("pt-BR")
+                      : "—";
                     return (
                     <tr
                       key={a.id}
                       className="bg-[color:var(--af-bg)]/80 transition-colors hover:bg-[color:var(--af-surface-muted)]"
+                      data-testid={derived ? "application-row-derived-applied-job" : "application-row"}
                     >
                       <td className="whitespace-nowrap px-3 py-3 text-[color:var(--af-text-muted)]">
                         <div className="grid gap-0.5">
-                          <span>{new Date(a.createdAt).toLocaleDateString("pt-BR")}</span>
+                          <span>{createdAtLabel}</span>
                           {ageHint ? (
                             <span className="text-[10px] text-[color:var(--af-text-muted)]" data-testid="application-row-age">
                               {ageHint.label}
@@ -1743,7 +1766,7 @@ export function DashboardClient({
                               {nextHint.label}
                             </span>
                           ) : null}
-                          {a.status === "reviewing" ? (
+                          {!derived && a.status === "reviewing" ? (
                             <ApplyFlowButton
                               type="button"
                               variant="outlineBrand"
@@ -1785,17 +1808,21 @@ export function DashboardClient({
                         {a.notes ?? "—"}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 align-top">
-                        <ApplyFlowButton
-                          type="button"
-                          variant="outlineBrand"
-                          size="sm"
-                          className="max-w-[140px] whitespace-normal text-center text-[11px] leading-tight sm:max-w-none"
-                          disabled={practiceHandoffBusy}
-                          title={DASHBOARD_PREPARE_INTERVIEW_HINT}
-                          onClick={() => void onPracticeThisRole(a)}
-                        >
-                          {DASHBOARD_PREPARE_INTERVIEW}
-                        </ApplyFlowButton>
+                        {!derived ? (
+                          <ApplyFlowButton
+                            type="button"
+                            variant="outlineBrand"
+                            size="sm"
+                            className="max-w-[140px] whitespace-normal text-center text-[11px] leading-tight sm:max-w-none"
+                            disabled={practiceHandoffBusy}
+                            title={DASHBOARD_PREPARE_INTERVIEW_HINT}
+                            onClick={() => void onPracticeThisRole(a)}
+                          >
+                            {DASHBOARD_PREPARE_INTERVIEW}
+                          </ApplyFlowButton>
+                        ) : (
+                          <span className="text-[11px] text-[color:var(--af-text-muted)]">—</span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3">
                         <div className="grid gap-1">
