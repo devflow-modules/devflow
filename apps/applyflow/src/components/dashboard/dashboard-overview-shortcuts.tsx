@@ -17,8 +17,8 @@ export function DashboardOverviewShortcuts({
 }: Props) {
   return (
     <ApplyFlowSection
-      title="Onde queres trabalhar"
-      description="A visão geral resume o estado. Usa os atalhos para o fluxo do dia."
+      title="Seu fluxo do dia"
+      description="A visão geral resume o estado. Use os atalhos para a próxima tarefa."
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <ApplyFlowCard variant="muted" padding="md" className="flex flex-col gap-3">
@@ -26,8 +26,8 @@ export function DashboardOverviewShortcuts({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">Descobrir</p>
             <p className="mt-2 text-sm text-[color:var(--af-text-muted)]">
               {hasResume
-                ? "Pesquisar providers ou colar um anúncio."
-                : "Primeiro cadastra um perfil — depois a busca faz sentido."}
+                ? "Buscar em fontes ou colar um anúncio."
+                : "Primeiro cadastre um perfil — depois a busca faz sentido."}
             </p>
           </div>
           <Link
@@ -58,7 +58,7 @@ export function DashboardOverviewShortcuts({
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">Candidaturas</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--af-text)]">{applicationCount}</p>
-            <p className="text-sm text-[color:var(--af-text-muted)]">registadas — acompanhar estado e próximos passos</p>
+            <p className="text-sm text-[color:var(--af-text-muted)]">registradas — acompanhar estado e próximos passos</p>
           </div>
           <Link
             href="/dashboard/applications"

@@ -24,9 +24,12 @@ async function e2eLogout(request: APIRequestContext) {
 
 async function seedLocalResume(page: Page) {
   await page.goto("/dashboard/discover");
-  await expect(page.getByText("Procurar oportunidades")).toBeVisible();
-  const fileInput = page.locator('input[type="file"][accept*="json"]').first();
-  await fileInput.setInputFiles(resolve(__dirname, "../../public/demo/e2e-candidate-profile.json"));
+  const discover = page.getByTestId("discover-workspace");
+  await expect(discover).toBeVisible({ timeout: 30_000 });
+  await expect(discover.getByRole("heading", { name: "Buscar oportunidades", level: 2 })).toBeVisible();
+  await page
+    .getByTestId("resume-profile-import")
+    .setInputFiles(resolve(__dirname, "../../public/demo/e2e-candidate-profile.json"));
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
 
@@ -38,9 +41,13 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
 
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "ApplyFlow", exact: true })).toBeVisible();
-    await expect(page.getByTestId("home-primary-cta")).toBeVisible();
-    await page.getByTestId("home-primary-cta").click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    const homeCta = page.getByTestId("home-primary-cta");
+    await expect(homeCta).toBeVisible();
+    await expect(homeCta).toHaveAttribute("href", "/dashboard");
+    await Promise.all([
+      page.waitForURL(/\/dashboard(?:\/|$|\?)/, { timeout: 30_000 }),
+      homeCta.click(),
+    ]);
 
     await e2eLogin(api);
     await seedLocalResume(page);
@@ -77,7 +84,7 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
     expect(body.provider).toBe("remoteok");
 
     await page.getByTestId("discovery-save").click();
-    await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Salva na fila|já está/i).first()).toBeVisible({ timeout: 15_000 });
 
     await page.getByTestId("nav-opportunities").click();
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);

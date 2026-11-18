@@ -28,6 +28,7 @@ import {
   JOB_DISCOVERY_PREVIEW_UNKNOWN,
   JOB_DISCOVERY_SAVE,
   JOB_DISCOVERY_SEARCH,
+  JOB_DISCOVERY_SEARCH_GROUP,
   JOB_DISCOVERY_SOURCE,
   JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_SOURCE_THEIRSTACK,
@@ -71,10 +72,26 @@ describe("Job discovery UI", () => {
     const html = renderToStaticMarkup(
       <JobInboxPanel jobs={[]} error={null} matchAvailable onEvaluatePaste={() => undefined} />,
     );
-    expect(html.indexOf(JOB_DISCOVERY_TITLE)).toBeGreaterThan(-1);
-    expect(html.indexOf(JOB_DISCOVERY_TITLE)).toBeLessThan(html.indexOf(JOB_INBOX_SUBMIT_LABEL));
+    expect(html.indexOf(JOB_DISCOVERY_SEARCH_GROUP)).toBeGreaterThan(-1);
+    expect(html.indexOf(JOB_DISCOVERY_SEARCH_GROUP)).toBeLessThan(html.indexOf(JOB_INBOX_SUBMIT_LABEL));
     expect(html).toContain("discovery-paste-toggle");
     expect(html).not.toContain("Direct Apply");
+  });
+
+  it("keeps a single Buscar oportunidades title when embedded in Discover", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        jobs={[]}
+        error={null}
+        matchAvailable
+        focus="discover"
+        onEvaluatePaste={() => undefined}
+      />,
+    );
+    expect(html).toContain(`data-testid="discover-workspace"`);
+    expect(html.split(JOB_DISCOVERY_TITLE).length - 1).toBe(1);
+    expect(html).toContain(JOB_DISCOVERY_SEARCH_GROUP);
+    expect(html).toContain("discovery-paste-toggle");
   });
 
   it("keeps advanced filters collapsed until toggled", () => {

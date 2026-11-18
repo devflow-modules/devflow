@@ -15,10 +15,13 @@ import {
   formatApplicationUpdatedAge,
   isDisplayDerivedFromAppliedJob,
   isOpenableJobUrl,
+  resolveApplicationCompanyName,
+  resolveApplicationJobTitle,
   type ApplyFlowApplication,
   type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
 } from "@devflow/applyflow-core";
+import { DASHBOARD_DERIVED_APPLICATION_HINT } from "@/components/dashboard/dashboard-work-content";
 
 export function ApplicationMobileCard({
   application,
@@ -61,6 +64,8 @@ export function ApplicationMobileCard({
   const createdAtLabel = Number.isFinite(createdAtMs)
     ? new Date(createdAtMs).toLocaleDateString("pt-BR")
     : "—";
+  const displayJobTitle = resolveApplicationJobTitle(envelope, linkedJob);
+  const displayCompany = resolveApplicationCompanyName(envelope, linkedJob);
 
   return (
     <ApplyFlowCard
@@ -71,10 +76,10 @@ export function ApplicationMobileCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-[color:var(--af-text)]">
-            {application.jobTitle ?? "—"}
+            {displayJobTitle}
           </p>
           <p className="truncate text-xs text-[color:var(--af-text-muted)]">
-            {application.companyName ?? "—"}
+            {displayCompany}
           </p>
         </div>
         <ApplyFlowBadge tone={applicationStatusTone(application.status)}>
@@ -88,7 +93,11 @@ export function ApplicationMobileCard({
         {application.fitScore != null ? <span>Fit {application.fitScore}</span> : null}
       </div>
 
-      {nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
+      {derived ? (
+        <p className="text-xs text-[color:var(--af-text-muted)]" data-testid="application-row-derived-hint">
+          {DASHBOARD_DERIVED_APPLICATION_HINT}
+        </p>
+      ) : nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
         <p className="text-xs text-[color:var(--af-text)]" data-testid="application-row-next-action">
           {nextHint.label}
         </p>

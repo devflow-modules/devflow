@@ -19,21 +19,21 @@ export type ApplyFlowPersistencePrivacyCopy = {
 
 const COPY: Record<ApplyFlowPersistencePrivacyMode, ApplyFlowPersistencePrivacyCopy> = {
   v1: {
-    title: "Os teus dados ficam neste browser",
-    body: "Perfil, vagas e candidaturas locais ficam neste dispositivo durante a descoberta. O ApplyFlow não envia o teu currículo aos provedores de busca. Importações e a demo ficam guardadas localmente até limpares os dados do site.",
+    title: "Seus dados ficam neste navegador",
+    body: "Perfil, vagas e candidaturas locais ficam neste dispositivo durante a descoberta. O ApplyFlow não envia seu currículo aos provedores de busca. Importações e a demo ficam guardadas localmente até você limpar os dados do site.",
     storageLabel: undefined,
   },
   v2_offering: {
     title: "Conta pronta para sincronização",
-    body: "Podes manter dados neste navegador ou ativar/migrar para a persistência na nuvem da conta. A decisão é explícita — o browser não promove dados locais sozinho.",
+    body: "Você pode manter dados neste navegador ou ativar/migrar para a persistência na nuvem da conta. A decisão é explícita — o navegador não promove dados locais sozinho.",
   },
   v2_active: {
     title: "Dados da conta na nuvem",
-    body: "Vagas e candidaturas desta conta são gravadas na nuvem (servidor ApplyFlow). Um eventual backup neste navegador não é a fonte canónica.",
+    body: "Vagas e candidaturas desta conta são gravadas na nuvem (servidor ApplyFlow). Um eventual backup neste navegador não é a fonte canônica.",
   },
   v2_read_only: {
     title: "Conta em modo leitura",
-    body: "Os dados na nuvem continuam disponíveis para consulta. Alterações estão temporariamente desativadas. O armazenamento local não substitui a fonte canónica.",
+    body: "Os dados na nuvem continuam disponíveis para consulta. Alterações estão temporariamente desativadas. O armazenamento local não substitui a fonte canônica.",
   },
   v2_paused: {
     title: "Persistência na nuvem temporariamente indisponível",

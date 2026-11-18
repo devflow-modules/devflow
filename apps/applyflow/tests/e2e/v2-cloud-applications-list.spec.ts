@@ -65,7 +65,9 @@ async function seedAccountResume(page: Page) {
   });
   expect(saved.status()).toBe(200);
   await page.goto("/dashboard/discover");
-  await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
+  const discover = page.getByTestId("discover-workspace");
+  await expect(discover).toBeVisible({ timeout: 30_000 });
+  await expect(discover.getByRole("heading", { name: "Buscar oportunidades", level: 2 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
 
@@ -98,7 +100,7 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
       timeout: 30_000,
     });
     await page.getByTestId("discovery-save").click();
-    await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Salva na fila|já está/i).first()).toBeVisible({ timeout: 15_000 });
 
     const jobsAfterSave = await api.get("/api/applyflow/v2/jobs");
     expect(jobsAfterSave.status()).toBe(200);
@@ -149,7 +151,7 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
 
     await clearV1Caches(page);
     await page.goto("/dashboard/applications");
-    await expect(page.getByText(/1 candidatura registada/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/1 candidatura registrada/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("application-row-derived-applied-job")).toHaveCount(1);
     await expect(page.getByTestId("application-row")).toHaveCount(0);
     await expect(page.getByText("Ainda sem candidaturas")).toHaveCount(0);
@@ -165,7 +167,7 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
 
     await clearV1Caches(page);
     await page.reload();
-    await expect(page.getByText(/1 candidatura registada/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/1 candidatura registrada/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("application-row-derived-applied-job")).toHaveCount(1);
     await expect(page.getByTestId("application-row")).toHaveCount(0);
 
@@ -199,12 +201,14 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
       timeout: 30_000,
     });
     await page.getByTestId("discovery-save").click();
-    await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Salva na fila|já está/i).first()).toBeVisible({ timeout: 15_000 });
 
     const jobsRes = await api.get("/api/applyflow/v2/jobs");
     const jobs = ((await jobsRes.json()) as { jobs: Array<{ id: string }> }).jobs;
     const jobId = jobs[0]!.id;
 
+    await page.getByTestId("nav-opportunities").click();
+    await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId(`job-inbox-card-${jobId}`)).toBeVisible({ timeout: 20_000 });
     await page.getByTestId(`job-inbox-primary-cta-${jobId}`).click();
@@ -230,13 +234,13 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
 
     await clearV1Caches(page);
     await page.goto("/dashboard/applications");
-    await expect(page.getByText(/1 candidatura registada/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/1 candidatura registrada/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("application-row")).toHaveCount(1);
     await expect(page.getByTestId("application-row-derived-applied-job")).toHaveCount(0);
 
     await clearV1Caches(page);
     await page.reload();
-    await expect(page.getByText(/1 candidatura registada/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/1 candidatura registrada/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("application-row")).toHaveCount(1);
     await expect(page.getByTestId("application-row-derived-applied-job")).toHaveCount(0);
 

@@ -8,14 +8,15 @@ export function ApplyFlowSection({
   children,
   className,
   id,
-}: HTMLAttributes<HTMLDivElement> & {
+  ...rest
+}: HTMLAttributes<HTMLElement> & {
   eyebrow?: string;
   title: string;
   description?: ReactNode;
   children?: ReactNode;
 }) {
   return (
-    <section id={id} className={cn("scroll-mt-24", className)}>
+    <section id={id} className={cn("scroll-mt-24", className)} {...rest}>
       {eyebrow ? (
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-400/85">{eyebrow}</p>
       ) : null}

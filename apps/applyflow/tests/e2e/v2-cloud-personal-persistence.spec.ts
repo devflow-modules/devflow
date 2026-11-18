@@ -231,7 +231,7 @@ test.describe("account personal persistence", () => {
     expect(sessionBody.scopes).toContain("contacts:read");
 
     await page.goto("/account");
-    await page.getByRole("button", { name: "Probe /me" }).click();
+    await page.getByRole("button", { name: "Verificar sessão" }).click();
     await expect(page.getByTestId("personal-import-account")).toBeVisible();
     await expect(page.getByTestId("personal-import-submit")).toBeDisabled();
     await page.getByTestId("personal-import-confirm").check();
