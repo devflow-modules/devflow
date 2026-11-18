@@ -72,6 +72,7 @@ export function ResumeLibraryPanel({
         type="file"
         accept="application/json,.json"
         className="sr-only"
+        data-testid="resume-profile-import"
         onChange={(event) => {
           onImportProfileFile(event.target.files?.[0] ?? null);
           event.target.value = "";

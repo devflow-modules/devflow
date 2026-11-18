@@ -87,7 +87,8 @@ export default function HomePage() {
                 </p>
 
                 <div className="mx-auto mt-10 flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap lg:mx-0">
-                  <Link
+                  {/* Native anchor: hard navigation — avoids Next Link soft-nav race before hydration. */}
+                  <a
                     href="/dashboard"
                     className={applyFlowButtonClass({
                       variant: "primary",
@@ -97,7 +98,7 @@ export default function HomePage() {
                     data-testid="home-primary-cta"
                   >
                     Começar
-                  </Link>
+                  </a>
                   <Link
                     href="/login"
                     className={applyFlowButtonClass({

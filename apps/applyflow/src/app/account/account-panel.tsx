@@ -204,16 +204,25 @@ export function AccountPanel() {
           Conta na nuvem
         </h1>
         <p className="mt-2 text-sm text-[color:var(--af-text-muted)]">
-          Verifique a sessão com{" "}
-          <code className="text-[color:var(--af-text)]">GET /api/applyflow/v2/me</code>. Tokens e
-          cookies não são exibidos.
+          Confirme a sessão e veja onde ficam os dados desta conta. Tokens e credenciais não são
+          exibidos.
         </p>
       </div>
 
+      <section
+        className="space-y-2 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)]/40 px-3 py-3 text-sm"
+        aria-label="Sessão e armazenamento"
+      >
+        <p className="font-medium text-[color:var(--af-text)]">Sessão e armazenamento</p>
+        <p className="text-[color:var(--af-text-muted)]">
+          Com sessão ativa, vagas e candidaturas desta conta ficam na nuvem ApplyFlow. Sem sessão, a
+          descoberta continua no navegador e a sincronização na nuvem fica indisponível.
+        </p>
+      </section>
+
       {probe.status === "idle" ? (
         <p className="text-sm text-[color:var(--af-text-muted)]">
-          Use Verificar sessão para consultar{" "}
-          <code className="text-[color:var(--af-text)]">/me</code> com os cookies da sessão atual.
+          Use Verificar sessão para confirmar o acesso a esta conta.
         </p>
       ) : null}
 
@@ -339,6 +348,17 @@ export function AccountPanel() {
           Voltar ao login
         </Link>
       </div>
+
+      <details className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] px-3 py-2 text-xs text-[color:var(--af-text-muted)]">
+        <summary className="cursor-pointer font-medium text-[color:var(--af-text)]">
+          Detalhes técnicos da verificação
+        </summary>
+        <p className="mt-2 leading-relaxed">
+          A verificação usa a sessão atual no servidor (
+          <code className="text-[color:var(--af-text)]">GET /api/applyflow/v2/me</code>
+          ). Nenhum cookie ou token é mostrado nesta página.
+        </p>
+      </details>
     </ApplyFlowCard>
   );
 }

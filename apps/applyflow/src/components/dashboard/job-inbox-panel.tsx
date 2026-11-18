@@ -835,6 +835,7 @@ export function JobInboxPanel({
       id="job-inbox"
       title={sectionTitle}
       description={sectionDescription}
+      data-testid={focus === "discover" ? "discover-workspace" : "job-inbox"}
     >
       {focus === "queue" ? (
         <p className="mb-4 text-sm text-[color:var(--af-text-muted)]">
