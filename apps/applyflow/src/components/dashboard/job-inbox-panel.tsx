@@ -124,7 +124,7 @@ import {
   type OpportunityQueueView,
   type ResumeLibrary,
 } from "@devflow/applyflow-core";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
@@ -929,8 +929,9 @@ export function JobInboxPanel({
   const [queueSort, setQueueSort] = useState<OpportunityQueueSort>("match");
   const [decisionFilter, setDecisionFilter] = useState<JobMatchDecision | "all">("all");
   const [sourceFilter, setSourceFilter] = useState<ApplyFlowJobSource | "all">("all");
-  const [pendingAnchorJobId, setPendingAnchorJobId] = useState<string | null>(null);
   const queueFiltersHydrated = useRef(false);
+  const skipNextFilterPersist = useRef(false);
+  const pendingAnchorRef = useRef<string | null>(null);
 
   const queueCounts = useMemo(() => countOpportunityQueueViews(jobs), [jobs]);
   const visibleJobs = useMemo(
@@ -945,20 +946,27 @@ export function JobInboxPanel({
     [jobs, queueView, queueSort, decisionFilter, sourceFilter, resumeLibrary],
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (focus !== "queue" || queueFiltersHydrated.current) return;
     queueFiltersHydrated.current = true;
     const saved = readOpportunityQueueNavState();
     if (!saved) return;
+    skipNextFilterPersist.current = true;
+    // Session restore after mount — avoid SSR/client filter mismatch on first paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-shot sessionStorage hydrate
     setQueueView(saved.view);
     setQueueSort(saved.sort);
     setDecisionFilter(saved.decision);
     setSourceFilter(saved.source);
-    if (saved.anchorJobId) setPendingAnchorJobId(saved.anchorJobId);
+    if (saved.anchorJobId) pendingAnchorRef.current = saved.anchorJobId;
   }, [focus]);
 
   useEffect(() => {
     if (focus !== "queue" || !queueFiltersHydrated.current) return;
+    if (skipNextFilterPersist.current) {
+      skipNextFilterPersist.current = false;
+      return;
+    }
     saveOpportunityQueueFilters({
       view: queueView,
       sort: queueSort,
@@ -968,9 +976,10 @@ export function JobInboxPanel({
   }, [focus, queueView, queueSort, decisionFilter, sourceFilter]);
 
   useEffect(() => {
-    if (focus !== "queue" || !pendingAnchorJobId) return;
-    const anchorId = pendingAnchorJobId;
-    setPendingAnchorJobId(null);
+    if (focus !== "queue") return;
+    const anchorId = pendingAnchorRef.current;
+    if (!anchorId) return;
+    pendingAnchorRef.current = null;
     // Consume once: if the job left the filter, keep filters and land at a stable list top.
     consumeOpportunityQueueAnchor();
     const frame = window.requestAnimationFrame(() => {
@@ -978,7 +987,7 @@ export function JobInboxPanel({
       card?.scrollIntoView({ block: "center", behavior: "smooth" });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [focus, pendingAnchorJobId, visibleJobs]);
+  }, [focus, visibleJobs]);
 
   const emptyMessage =
     visibleJobs.length === 0
