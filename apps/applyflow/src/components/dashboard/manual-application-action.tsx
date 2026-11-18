@@ -1,7 +1,15 @@
 "use client";
 
-import { ApplyFlowButton } from "@/components/ui/ApplyFlowButton";
+import { ApplyFlowButton, applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
+import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import {
+  APPLICATION_RECORDED_APPLICATION_DETAIL,
+  APPLICATION_RECORDED_APPLICATION_TITLE,
+  APPLICATION_RECORDED_BACK_TO_QUEUE,
+  APPLICATION_RECORDED_EXTERNAL_NOTE,
+  APPLICATION_RECORDED_JOB_MARKED_DETAIL,
+  APPLICATION_RECORDED_JOB_MARKED_TITLE,
+  APPLICATION_RECORDED_VIEW_APPLICATIONS,
   MANUAL_APPLICATION_CONFIRM_BLOCKED,
   MANUAL_APPLICATION_CONFIRM_LATER,
   MANUAL_APPLICATION_CONFIRM_PROMPT,
@@ -12,23 +20,30 @@ import {
   MANUAL_APPLICATION_MARKING,
   MANUAL_APPLICATION_URL_UNAVAILABLE,
 } from "@/components/dashboard/job-inbox-content";
+import { JOB_DECISION_V2_BACK_HREF } from "@/components/dashboard/job-decision-v2-content";
 import {
   openManualApplicationUrl,
   resolveManualApplicationCta,
 } from "@/components/dashboard/manual-application-cta";
 import type { ApplyFlowJob, ApplyFlowJobSource } from "@devflow/applyflow-core";
+import Link from "next/link";
 import { useId, useRef, useState } from "react";
 
-type ConfirmPhase = "idle" | "awaiting" | "submitting" | "error";
+type ConfirmPhase = "idle" | "awaiting" | "submitting" | "error" | "success";
+
+export type ManualApplicationRecordKind = "job_stage" | "application";
 
 export function ManualApplicationAction({
   job,
   onMarkJobApplied,
+  recordKind = "job_stage",
   openUrl = openManualApplicationUrl,
   confirmFn = (message: string) => window.confirm(message),
 }: {
   job: ApplyFlowJob;
   onMarkJobApplied?: (jobId: string) => void | Promise<void>;
+  /** job_stage = only the opportunity moved to Aplicada; application = persisted Application updated. */
+  recordKind?: ManualApplicationRecordKind;
   openUrl?: typeof openManualApplicationUrl;
   confirmFn?: (message: string) => boolean;
 }) {
@@ -41,8 +56,43 @@ export function ManualApplicationAction({
     source: job.source as ApplyFlowJobSource,
   });
 
-  if (job.status === "applied") {
+  if (job.status === "applied" && phase !== "success") {
     return null;
+  }
+
+  if (phase === "success") {
+    const title =
+      recordKind === "application" ? APPLICATION_RECORDED_APPLICATION_TITLE : APPLICATION_RECORDED_JOB_MARKED_TITLE;
+    const detail =
+      recordKind === "application" ? APPLICATION_RECORDED_APPLICATION_DETAIL : APPLICATION_RECORDED_JOB_MARKED_DETAIL;
+    return (
+      <ApplyFlowCard
+        padding="md"
+        className="mt-2"
+        role="status"
+        data-testid={`manual-app-success-${job.id}`}
+      >
+        <p className="text-sm font-semibold text-[color:var(--af-text)]">{title}</p>
+        <p className="mt-1 text-sm text-[color:var(--af-text)]">{detail}</p>
+        <p className="mt-2 text-xs text-[color:var(--af-text-muted)]">{APPLICATION_RECORDED_EXTERNAL_NOTE}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            href="/dashboard/applications"
+            className={applyFlowButtonClass({ variant: "primary", size: "sm" })}
+            data-testid={`manual-app-view-applications-${job.id}`}
+          >
+            {APPLICATION_RECORDED_VIEW_APPLICATIONS}
+          </Link>
+          <Link
+            href={JOB_DECISION_V2_BACK_HREF}
+            className={applyFlowButtonClass({ variant: "secondary", size: "sm" })}
+            data-testid={`manual-app-back-queue-${job.id}`}
+          >
+            {APPLICATION_RECORDED_BACK_TO_QUEUE}
+          </Link>
+        </div>
+      </ApplyFlowCard>
+    );
   }
 
   if (cta.kind === "unavailable" || !cta.url) {
@@ -63,8 +113,7 @@ export function ManualApplicationAction({
     setPhase("submitting");
     try {
       await onMarkJobApplied(job.id);
-      // Parent updates job.status on success; keep local phase quiet on success.
-      setPhase("idle");
+      setPhase("success");
     } catch {
       setPhase("error");
     } finally {
