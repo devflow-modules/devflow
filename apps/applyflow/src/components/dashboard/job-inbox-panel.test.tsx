@@ -34,9 +34,12 @@ import {
   JOB_MATCH_DECISION_LABELS,
   jobNeedsManualPrepAttention,
   JOB_QUEUE_EMPTY_ACTIVE,
+  JOB_QUEUE_FIT_LABEL,
   JOB_QUEUE_IGNORE_LABEL,
+  JOB_QUEUE_NEXT_ACTION_LABEL,
   JOB_QUEUE_RESTORE_LABEL,
   JOB_QUEUE_SORT_MATCH,
+  JOB_QUEUE_STAGE_LABEL,
   JOB_QUEUE_VIEW_ACTIVE,
   JOB_QUEUE_VIEW_ALL,
   JOB_QUEUE_VIEW_IGNORED,
@@ -820,5 +823,24 @@ describe("JobInboxPanel opportunity queue", () => {
     expect(html).toContain(JOB_MATCH_DECISION_LABELS.skip);
     expect(html).toContain("Revisando");
     expect(html).toContain(JOB_QUEUE_IGNORE_LABEL);
+  });
+
+  it("queue focus prioritizes title, stage, fit, and next action without networking noise", () => {
+    const html = renderToStaticMarkup(
+      <JobInboxPanel
+        focus="queue"
+        jobs={[stretchJob]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+      />,
+    );
+    expect(html).toContain(stretchJob.title);
+    expect(html).toContain(JOB_QUEUE_STAGE_LABEL);
+    expect(html).toContain(JOB_QUEUE_FIT_LABEL);
+    expect(html).toContain(JOB_QUEUE_NEXT_ACTION_LABEL);
+    expect(html).toContain(JOB_DECISION_V2_LINK);
+    expect(html).not.toContain("Networking:");
+    expect(html).not.toContain(MANUAL_APPLICATION_CTA_LISTING_LABEL);
   });
 });
