@@ -59,8 +59,8 @@ export function deriveApplicationNextAction(input: {
     case "applying":
       return {
         kind: "complete_submission",
-        label: "Concluir / registrar envio",
-        detail: "Depois de enviares tu ao empregador, usa «Marcar como enviada».",
+        label: "Confirmar que você enviou",
+        detail: "Depois de enviar no site da empresa, use «Sim, enviei» ou «Marcar como enviada».",
         ...(analysisHref ? { href: analysisHref } : {}),
       };
     case "applied":

@@ -78,7 +78,9 @@ async function seedAccountResume(page: Page) {
   });
   expect(saved.status()).toBe(200);
   await page.goto("/dashboard/discover");
-  await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
+  const discover = page.getByTestId("discover-workspace");
+  await expect(discover).toBeVisible({ timeout: 30_000 });
+  await expect(discover.getByRole("heading", { name: "Buscar oportunidades", level: 2 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
 
@@ -119,7 +121,7 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
     await expect(page.getByTestId("discovery-match-preview")).toBeVisible({ timeout: 15_000 });
 
     await page.getByTestId("discovery-save").click();
-    await expect(page.getByText(/Guardada|já está/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Salva na fila|já está/i).first()).toBeVisible({ timeout: 15_000 });
 
     const jobsAfterSave = await api.get("/api/applyflow/v2/jobs");
     expect(jobsAfterSave.status()).toBe(200);
@@ -129,13 +131,15 @@ test.describe("ApplyFlow V2 cloud critical funnel + tenant isolation", () => {
 
     await clearV1JobApplicationCache(page);
     await page.reload();
-    await expect(page.getByText("Procurar oportunidades")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("discover-workspace")).toBeVisible({ timeout: 30_000 });
 
     const jobsAfterReload = await api.get("/api/applyflow/v2/jobs");
     expect(jobsAfterReload.status()).toBe(200);
     const reloadedJobs = (await jobsAfterReload.json()) as { jobs: Array<{ id: string }> };
     expect(reloadedJobs.jobs.some((j) => j.id === jobIdA)).toBe(true);
 
+    await page.getByTestId("nav-opportunities").click();
+    await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await page.getByTestId("job-queue-view-active").click();
     await expect(page.getByTestId(`job-inbox-card-${jobIdA}`)).toBeVisible({ timeout: 20_000 });
     // Primary CTA label depends on Pack availability (Analisar vaga vs Abrir preparação).

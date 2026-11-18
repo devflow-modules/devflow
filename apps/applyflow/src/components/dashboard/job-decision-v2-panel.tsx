@@ -89,6 +89,9 @@ import {
   JOB_DECISION_V2_NO_TEXT,
   JOB_DECISION_V2_NEED_APPLICATION,
   JOB_DECISION_V2_NEED_RESUME,
+  JOB_DECISION_V2_NOW_APPLIED,
+  JOB_DECISION_V2_NOW_REVIEWING,
+  JOB_DECISION_V2_NOW_TITLE,
   JOB_DECISION_V2_OPEN_LAB,
   JOB_DECISION_V2_INPUTS_HINT,
   JOB_DECISION_V2_LAB_HANDOFF,
@@ -947,7 +950,7 @@ export function JobDecisionV2Panel({
   }
 
   if (!snapshot) {
-    return <ApplyFlowLoadingState label="A carregar…" />;
+    return <ApplyFlowLoadingState label="Carregando…" />;
   }
 
   if (!job) {
@@ -1029,6 +1032,16 @@ export function JobDecisionV2Panel({
           />
         ) : null}
         <ApplyFlowCard padding="md" data-testid="job-workspace-manual-apply">
+          {job.status === "reviewing" || job.status === "applied" ? (
+            <div className="mb-3" data-testid="job-workspace-now">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">
+                {JOB_DECISION_V2_NOW_TITLE}
+              </p>
+              <p className="mt-1 text-sm text-[color:var(--af-text)]">
+                {job.status === "applied" ? JOB_DECISION_V2_NOW_APPLIED : JOB_DECISION_V2_NOW_REVIEWING}
+              </p>
+            </div>
+          ) : null}
           {job.status === "reviewing" ? (
             <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
           ) : null}

@@ -19,7 +19,7 @@ describe("persistencePrivacyCopyForMode", () => {
     expect(copy.title.toLowerCase()).not.toContain("local-first");
     expect(copy.body.toLowerCase()).not.toMatch(/ficam neste navegador/);
     expect(copy.body.toLowerCase()).toContain("nuvem");
-    expect(copy.body.toLowerCase()).toMatch(/não é a fonte canónica|nao e a fonte canonica/);
+    expect(copy.body.toLowerCase()).toMatch(/não é a fonte canônica|nao e a fonte canonica|não é a fonte canónica/);
     expect(copy.storageLabel).toBeUndefined();
   });
 

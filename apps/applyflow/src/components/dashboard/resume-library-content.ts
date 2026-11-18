@@ -1,4 +1,4 @@
-export const RESUME_LIBRARY_EYEBROW = "AF-JOBS-F1b";
+export const RESUME_LIBRARY_EYEBROW = "";
 export const RESUME_LIBRARY_TITLE = "Meu currículo";
 export const RESUME_LIBRARY_DESCRIPTION =
   "O currículo padrão é o que o ApplyFlow usa para avaliar vagas.";

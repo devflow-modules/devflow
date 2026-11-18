@@ -90,7 +90,7 @@ describe("DashboardClient persistence gate", () => {
     const { container } = render(<DashboardClient persistenceBootstrap={testBootstrapActive} />);
     const loading = container.querySelector('[data-testid="dashboard-persistence-loading"]');
     expect(loading).toBeTruthy();
-    expect(loading?.textContent).toMatch(/A carregar os dados da conta/);
+    expect(loading?.textContent).toMatch(/Carregando os dados da conta/);
     expect(loading?.textContent).not.toMatch(/armazenamento local/);
   });
 

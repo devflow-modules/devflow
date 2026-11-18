@@ -19,6 +19,6 @@ export const RESUME_STORAGE_DISCARD_LABEL = "Descartar currículos irrecuperáve
 
 export const RESUME_LIBRARY_EMPTY_TITLE = "Nenhum currículo configurado";
 export const RESUME_LIBRARY_EMPTY_DESCRIPTION =
-  "Cadastra o teu perfil para avaliar vagas. JSON continua disponível como opção. Sem um currículo, as vagas não são avaliadas.";
+  "Cadastre seu perfil para avaliar vagas. JSON continua disponível como opção. Sem um currículo, as vagas não são avaliadas.";
 
 export const INTERVIEW_LAB_INBOX_ONLY_HINT = "Disponível após importar histórico da extensão.";
