@@ -213,14 +213,20 @@ test.describe("ApplyFlow V2 Candidaturas list from applied jobs", () => {
     await expect(page.getByTestId("mark-application-sent")).toBeVisible({ timeout: 15_000 });
     await page.getByTestId("mark-application-sent").click();
 
-    const appsRes = await api.get("/api/applyflow/v2/applications");
-    const apps = (
-      (await appsRes.json()) as {
-        applications: Array<{ id: string; status: string; sourceJobId?: string | null; appliedAt?: string }>;
-      }
-    ).applications.filter((a) => a.sourceJobId === jobId);
-    expect(apps).toHaveLength(1);
-    expect(apps[0]!.status).toBe("applied");
+    // Cloud mark-sent is async (fire-and-forget in the panel); wait for persistence.
+    await expect
+      .poll(async () => {
+        const appsRes = await api.get("/api/applyflow/v2/applications");
+        if (appsRes.status() !== 200) return "pending";
+        const apps = (
+          (await appsRes.json()) as {
+            applications: Array<{ id: string; status: string; sourceJobId?: string | null }>;
+          }
+        ).applications.filter((a) => a.sourceJobId === jobId);
+        if (apps.length !== 1) return `count:${apps.length}`;
+        return apps[0]!.status;
+      }, { timeout: 30_000 })
+      .toBe("applied");
 
     await clearV1Caches(page);
     await page.goto("/dashboard/applications");
