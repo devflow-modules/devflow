@@ -65,8 +65,9 @@ async function seedAccountResume(page: Page) {
   });
   expect(saved.status()).toBe(200);
   await page.goto("/dashboard/discover");
-  await expect(page.getByTestId("discover-workspace")).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "Buscar oportunidades" })).toBeVisible();
+  const discover = page.getByTestId("discover-workspace");
+  await expect(discover).toBeVisible({ timeout: 30_000 });
+  await expect(discover.getByRole("heading", { name: "Buscar oportunidades", level: 2 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
 

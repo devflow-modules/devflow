@@ -24,8 +24,9 @@ async function e2eLogout(request: APIRequestContext) {
 
 async function seedLocalResume(page: Page) {
   await page.goto("/dashboard/discover");
-  await expect(page.getByTestId("discover-workspace")).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "Buscar oportunidades" })).toBeVisible();
+  const discover = page.getByTestId("discover-workspace");
+  await expect(discover).toBeVisible({ timeout: 30_000 });
+  await expect(discover.getByRole("heading", { name: "Buscar oportunidades", level: 2 })).toBeVisible();
   await page
     .getByTestId("resume-profile-import")
     .setInputFiles(resolve(__dirname, "../../public/demo/e2e-candidate-profile.json"));
