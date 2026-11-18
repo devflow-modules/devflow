@@ -13,6 +13,11 @@ export type ApplyFlowApplicationV2Meta = {
   nextActionAt?: string;
   /** Link to inbox job. Never used as Outcome.applicationId. */
   sourceJobId?: string;
+  /**
+   * Read-only list row derived from a job already marked applied without a persisted Application.
+   * Never write this marker to storage; actions that require an Application must stay gated.
+   */
+  displayDerivedFromAppliedJob?: boolean;
 };
 
 export type ApplyFlowApplicationV2Envelope = ApplyFlowApplication & {

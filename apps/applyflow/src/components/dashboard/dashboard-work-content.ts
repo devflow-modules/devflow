@@ -8,7 +8,7 @@ export const DASHBOARD_JOBS_TITLE = "Vagas";
 export const DASHBOARD_JOBS_DESCRIPTION = "Cola o anúncio completo. A avaliação é local e não envia a candidatura.";
 export const DASHBOARD_APPLICATIONS_TITLE = "Candidaturas";
 export const DASHBOARD_APPLICATIONS_DESCRIPTION =
-  "Só entram vagas que registaste. Uma vaga salva ainda não é uma candidatura.";
+  "Só entram envios confirmados. Uma vaga salva ainda não é uma candidatura.";
 export const DASHBOARD_APPLICATIONS_EMPTY = "Ainda não há candidaturas registadas.";
 export const DASHBOARD_DATA_TITLE = "Dados e cópias";
 export const DASHBOARD_DATA_DESCRIPTION =
