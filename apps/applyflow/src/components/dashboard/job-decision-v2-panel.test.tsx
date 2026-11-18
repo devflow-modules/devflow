@@ -107,14 +107,14 @@ describe("JobDecisionV2Panel", () => {
 
   it("renderiza o estado de carregamento no servidor", () => {
     const html = renderToStaticMarkup(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
-    expect(html).toContain("A carregar");
+    expect(html).toContain("Carregando");
     expect(html).not.toContain(JOB_DECISION_V2_TITLE);
   });
 
   it("mostra vaga em falta depois da hidratação", () => {
     render(<JobDecisionV2Panel jobId="missing" persistenceBootstrap={testBootstrapV1} />);
     expect(screen.getByText(JOB_DECISION_V2_MISSING)).toBeTruthy();
-    expect(screen.queryByText("A carregar…")).toBeNull();
+    expect(screen.queryByText("Carregando…")).toBeNull();
   });
 
   it("mostra editor oficial sem decision/Pack e só aplica via Sim, enviei", async () => {

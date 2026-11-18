@@ -35,10 +35,12 @@ import {
   CURRICULUM_ROUTER_EQUIVALENT_HINT,
   CURRICULUM_ROUTER_NOT_AN_ACTION,
   CURRICULUM_ROUTER_SKIP_HINT,
+  JOB_DISCOVERY_DESCRIPTION,
   JOB_DISCOVERY_PASTE_HEADING,
   JOB_DISCOVERY_PASTE_TOGGLE,
   JOB_DISCOVERY_PASTE_TOGGLE_HINT,
   JOB_DISCOVERY_SOURCE_REMOTEOK,
+  JOB_DISCOVERY_TITLE,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
   JOB_INBOX_COMPANY_LABEL,
   JOB_INBOX_DESCRIPTION,
@@ -594,7 +596,7 @@ function JobInboxCard({
   const needsManualAttention = jobNeedsManualPrepAttention(job, analysis);
   const sourceOpenable = isOpenableJobUrl(job.url);
   const networkingItem = selectNetworkingQueue([job], loadDashboardContacts().contacts)[0];
-  const networkingLabel = networkingItem ? networkingIndicatorLabel(networkingItem) : "No contact";
+  const networkingLabel = networkingItem ? networkingIndicatorLabel(networkingItem) : "Sem contato";
 
   return (
     <ApplyFlowCard padding="md" data-testid={`job-inbox-card-${job.id}`}>
@@ -778,17 +780,19 @@ export function JobInboxPanel({
   onIgnoreJob?: (jobId: string) => void;
   onRestoreJob?: (jobId: string) => void;
   applications?: readonly ApplyFlowApplicationV2Envelope[];
-  /** discover = search + paste (+ queue after save); queue = opportunity queue first; all = legacy combined. */
+  /** discover = search + paste; queue = opportunity queue; all = legacy combined. */
   focus?: "all" | "discover" | "queue";
 }) {
   const showDiscover = focus === "all" || focus === "discover";
-  const showQueue = focus === "all" || focus === "queue" || focus === "discover";
-  const sectionTitle = focus === "queue" ? "Oportunidades" : JOB_INBOX_TITLE;
+  /** Discover stays search/paste-first; queue lives on Oportunidades. */
+  const showQueue = focus === "all" || focus === "queue";
+  const sectionTitle =
+    focus === "queue" ? "Oportunidades" : focus === "discover" ? JOB_DISCOVERY_TITLE : JOB_INBOX_TITLE;
   const sectionDescription =
     focus === "queue"
       ? "Vagas salvas sob consideração. Salvar não envia candidatura."
       : focus === "discover"
-        ? "Pesquisa providers ou cola um anúncio. Avaliar e guardar não candidata por ti."
+        ? JOB_DISCOVERY_DESCRIPTION
         : JOB_INBOX_DESCRIPTION;
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
@@ -834,10 +838,19 @@ export function JobInboxPanel({
     >
       {focus === "queue" ? (
         <p className="mb-4 text-sm text-[color:var(--af-text-muted)]">
-          Precisas de mais vagas?{" "}
+          Precisa de mais vagas?{" "}
           <Link href="/dashboard/discover" className="font-medium text-emerald-300 hover:text-emerald-200">
             Ir para Descobrir
           </Link>
+        </p>
+      ) : null}
+      {focus === "discover" ? (
+        <p className="mb-4 text-sm text-[color:var(--af-text-muted)]">
+          Depois de salvar, continue em{" "}
+          <Link href="/dashboard/opportunities" className="font-medium text-emerald-300 hover:text-emerald-200">
+            Oportunidades
+          </Link>
+          .
         </p>
       ) : null}
       {showDiscover ? (
@@ -955,7 +968,7 @@ export function JobInboxPanel({
         <div className="mt-5" data-testid="job-opportunity-queue">
           <ApplyFlowEmptyState
             title="Ainda sem oportunidades"
-            description="Guarda uma vaga a partir de Descobrir. Salvar não envia candidatura."
+            description="Salve uma vaga a partir de Descobrir. Salvar não envia candidatura."
             secondary={
               focus === "queue" ? (
                 <Link

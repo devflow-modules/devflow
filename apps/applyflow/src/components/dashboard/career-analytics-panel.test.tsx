@@ -15,7 +15,7 @@ afterEach(() => {
 describe("CareerAnalyticsPanel", () => {
   it("renderiza o estado de carregamento no servidor", () => {
     const html = renderToStaticMarkup(<CareerAnalyticsPanel persistenceBootstrap={testBootstrapV1} />);
-    expect(html).toContain("A carregar");
+    expect(html).toContain("Carregando");
     expect(html).not.toContain(CAREER_ANALYTICS_TITLE);
   });
 
@@ -24,6 +24,6 @@ describe("CareerAnalyticsPanel", () => {
     expect(screen.getByText(CAREER_ANALYTICS_TITLE)).toBeTruthy();
     expect(screen.getByText(CAREER_ANALYTICS_EMPTY)).toBeTruthy();
     expect(screen.getByTestId("analytics-empty-cta")).toBeTruthy();
-    expect(screen.queryByText("A carregar…")).toBeNull();
+    expect(screen.queryByText("Carregando…")).toBeNull();
   });
 });

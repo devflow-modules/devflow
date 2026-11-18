@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 export function ApplyFlowLoadingState({
-  label = "A carregar…",
+  label = "Carregando…",
   compact = false,
   className,
 }: {

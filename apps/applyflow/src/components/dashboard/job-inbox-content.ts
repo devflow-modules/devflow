@@ -1,12 +1,12 @@
 import type { CurriculumRecommendation, JobMatchDecision } from "@devflow/applyflow-core";
 
-export const JOB_INBOX_EYEBROW = "AF-JOBS-F1";
+export const JOB_INBOX_EYEBROW = "";
 export const JOB_INBOX_TITLE = "Vagas";
 export const JOB_INBOX_DESCRIPTION =
-  "Procura oportunidades ou cola um anúncio. A avaliação é local e não envia a candidatura.";
-export const JOB_DISCOVERY_TITLE = "Procurar oportunidades";
+  "Busque oportunidades ou cole um anúncio. A avaliação é local e não envia a candidatura.";
+export const JOB_DISCOVERY_TITLE = "Buscar oportunidades";
 export const JOB_DISCOVERY_DESCRIPTION =
-  "Escolhe uma fonte e busca. O currículo não sai do browser. Um resultado só entra na inbox quando escolhes guardar.";
+  "Escolha uma fonte e busque. O currículo não sai do navegador. Um resultado só entra na fila quando você salva.";
 export const JOB_DISCOVERY_ADVANCED_FILTERS = "Mais filtros";
 export const JOB_DISCOVERY_ADVANCED_FILTERS_HIDE = "Ocultar filtros";
 export const JOB_DISCOVERY_PASTE_TOGGLE = "Colar anúncio manualmente";
@@ -45,7 +45,7 @@ export const JOB_DISCOVERY_VIEW_LISTING = "Ver anúncio no Jobgether";
 export const JOB_DISCOVERY_VIEW_LISTING_GENERIC = "Ver anúncio";
 export const JOB_DISCOVERY_VIEW_LISTING_REMOTEOK = "Ver anúncio no Remote OK";
 export const JOB_DISCOVERY_DIRECT_APPLY = "Candidatura direta";
-export const JOB_DISCOVERY_SAVE = "Guardar e analisar";
+export const JOB_DISCOVERY_SAVE = "Salvar e analisar";
 export const JOB_DISCOVERY_ADD_DESCRIPTION = "Adicionar descrição";
 export const JOB_DISCOVERY_PREVIEW_ANALYZE = "Analisar compatibilidade";
 export const JOB_DISCOVERY_DESCRIPTION_LABEL = "Descrição da vaga";
@@ -54,10 +54,10 @@ export const JOB_DISCOVERY_DESCRIPTION_HINT =
 export const JOB_DISCOVERY_DESCRIPTION_EMPTY = "Cola a descrição da vaga para analisar.";
 export const JOB_DISCOVERY_ANALYZE = "Analisar vaga";
 export const JOB_DISCOVERY_CANCEL = "Cancelar";
-export const JOB_DISCOVERY_SAVED = "Guardada na inbox.";
-export const JOB_DISCOVERY_DUPLICATE = "Esta vaga já está na inbox.";
+export const JOB_DISCOVERY_SAVED = "Salva na fila de oportunidades.";
+export const JOB_DISCOVERY_DUPLICATE = "Esta vaga já está na fila.";
 export const JOB_DISCOVERY_MISSING_DESCRIPTION =
-  "A fonte não enviou a descrição desta vaga. Cola o texto para ver a aderência e, se quiseres, guarda depois.";
+  "A fonte não enviou a descrição desta vaga. Cole o texto para ver a aderência e, se quiser, salve depois.";
 export const JOB_DISCOVERY_PREVIEW_SCORE_SUFFIX = "% de aderência";
 export const JOB_DISCOVERY_PREVIEW_MATCHED = "Compatíveis";
 export const JOB_DISCOVERY_PREVIEW_MISSING = "Lacunas";
@@ -68,7 +68,7 @@ export const JOB_DISCOVERY_PREVIEW_SORT = "Ordenar resultados";
 export const JOB_DISCOVERY_PREVIEW_SORT_DEFAULT = "Ordem da busca";
 export const JOB_DISCOVERY_PREVIEW_SORT_MATCH = "Maior aderência";
 export const JOB_DISCOVERY_PREVIEW_SORT_HINT = "Ordena apenas os resultados carregados.";
-export const JOB_DISCOVERY_SAVE_ERROR = "Não foi possível guardar esta vaga.";
+export const JOB_DISCOVERY_SAVE_ERROR = "Não foi possível salvar esta vaga.";
 export const JOB_DISCOVERY_ANY = "Qualquer";
 export const JOB_DISCOVERY_PASTE_HEADING = "Colar anúncio";
 

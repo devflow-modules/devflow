@@ -198,26 +198,27 @@ export function AccountPanel() {
     <ApplyFlowCard className="w-full max-w-lg space-y-5" padding="lg">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300/90">
-          ApplyFlow · Persistence V2
+          ApplyFlow · Conta
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[color:var(--af-text)]">
-          Cloud account
+          Conta na nuvem
         </h1>
         <p className="mt-2 text-sm text-[color:var(--af-text-muted)]">
-          Safe probe of <code className="text-[color:var(--af-text)]">GET /api/applyflow/v2/me</code>.
-          No tokens or cookies are displayed.
+          Verifique a sessão com{" "}
+          <code className="text-[color:var(--af-text)]">GET /api/applyflow/v2/me</code>. Tokens e
+          cookies não são exibidos.
         </p>
       </div>
 
       {probe.status === "idle" ? (
         <p className="text-sm text-[color:var(--af-text-muted)]">
-          Click probe to call <code className="text-[color:var(--af-text)]">/me</code> with the
-          current SSR session cookies.
+          Use Verificar sessão para consultar{" "}
+          <code className="text-[color:var(--af-text)]">/me</code> com os cookies da sessão atual.
         </p>
       ) : null}
 
       {probe.status === "loading" ? (
-        <p className="text-sm text-[color:var(--af-text-muted)]">Checking session…</p>
+        <p className="text-sm text-[color:var(--af-text-muted)]">Verificando sessão…</p>
       ) : null}
 
       {probe.status === "ok" ? (
@@ -225,9 +226,9 @@ export function AccountPanel() {
           className="rounded-[var(--af-radius-sm)] border border-emerald-500/35 bg-emerald-950/30 px-3 py-3 text-sm text-emerald-100"
           role="status"
         >
-          <p>Authenticated</p>
+          <p>Sessão autenticada</p>
           <p className="mt-1 text-[color:var(--af-text-muted)]">
-            Account ID:{" "}
+            ID da conta:{" "}
             <code className="text-[color:var(--af-text)]">{maskAccountId(probe.accountId)}</code>
           </p>
         </div>
@@ -239,13 +240,13 @@ export function AccountPanel() {
           role="alert"
         >
           <p>
-            Probe failed ({probe.httpStatus || "network"}): {probe.error}
+            Falha na verificação ({probe.httpStatus || "rede"}): {probe.error}
           </p>
           {probe.httpStatus === 401 ? (
             <p className="mt-2 text-red-200/90">
-              No session.{" "}
+              Sem sessão.{" "}
               <Link href="/login" className="underline underline-offset-2">
-                Sign in
+                Entrar
               </Link>
             </p>
           ) : null}
@@ -314,7 +315,7 @@ export function AccountPanel() {
           onClick={() => void runProbe()}
           disabled={probe.status === "loading"}
         >
-          {probe.status === "idle" ? "Probe /me" : "Refresh /me"}
+          {probe.status === "idle" ? "Verificar sessão" : "Atualizar sessão"}
         </ApplyFlowButton>
         <ApplyFlowButton
           type="button"
@@ -323,7 +324,7 @@ export function AccountPanel() {
           onClick={() => void linkExtension()}
           disabled={probe.status !== "ok" || linking}
         >
-          {linking ? "A ligar…" : "Ligar extensão"}
+          {linking ? "Conectando…" : "Ligar extensão"}
         </ApplyFlowButton>
         <ApplyFlowButton
           type="button"
@@ -332,10 +333,10 @@ export function AccountPanel() {
           onClick={() => void handleSignOut()}
           disabled={signingOut}
         >
-          {signingOut ? "A sair…" : "Sair"}
+          {signingOut ? "Saindo…" : "Sair"}
         </ApplyFlowButton>
         <Link href="/login" className={applyFlowButtonClass({ variant: "secondary" })}>
-          Back to login
+          Voltar ao login
         </Link>
       </div>
     </ApplyFlowCard>

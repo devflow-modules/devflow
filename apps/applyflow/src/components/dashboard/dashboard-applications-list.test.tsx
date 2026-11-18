@@ -110,7 +110,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
       <DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />,
     );
     expect(await screen.findByText("Local Harness")).toBeTruthy();
-    expect(screen.getByText(/1 candidatura registada/)).toBeTruthy();
+    expect(screen.getByText(/1 candidatura registrada/)).toBeTruthy();
     expect(screen.queryByText("Ainda sem candidaturas")).toBeNull();
     expect(screen.getAllByText("Synthetic Engineer")).toHaveLength(1);
     first.unmount();
@@ -118,7 +118,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     // Reload: remount from the same localStorage — still one row, no write of Application.
     render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
     expect(await screen.findByText("Local Harness")).toBeTruthy();
-    expect(screen.getByText(/1 candidatura registada/)).toBeTruthy();
+    expect(screen.getByText(/1 candidatura registrada/)).toBeTruthy();
     expect(screen.getAllByText("Synthetic Engineer")).toHaveLength(1);
     expect(screen.getByTestId("application-row-derived-applied-job")).toBeTruthy();
   });
@@ -162,7 +162,7 @@ describe("DashboardClient Candidaturas list (V1 local)", () => {
     render(<DashboardClient persistenceBootstrap={testBootstrapV1} workspace="applications" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/2 candidaturas registadas/)).toBeTruthy();
+      expect(screen.getByText(/2 candidaturas registradas/)).toBeTruthy();
     });
     expect(screen.getByText("Wagmo")).toBeTruthy();
     expect(screen.getByText("Oowlish")).toBeTruthy();

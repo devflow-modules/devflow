@@ -33,11 +33,13 @@ import {
   DASHBOARD_APPLICATIONS_TITLE,
   DASHBOARD_DATA_DESCRIPTION,
   DASHBOARD_DATA_TITLE,
+  DASHBOARD_DERIVED_APPLICATION_HINT,
   DASHBOARD_PREPARE_INTERVIEW,
   DASHBOARD_PREPARE_INTERVIEW_HINT,
   DASHBOARD_OPEN_INTERVIEW_LAB_HINT,
   DASHBOARD_MARK_SENT,
 } from "@/components/dashboard/dashboard-work-content";
+import { INBOUND_RESPONSE_SECONDARY_SUMMARY } from "@/components/dashboard/inbound-application-response-content";
 import {
   dashboardAnalyzeHref,
   dashboardNextStepId,
@@ -1237,8 +1239,8 @@ export function DashboardClient({
         <ApplyFlowLoadingState
           label={
             loadingFromCloud
-              ? "A carregar os dados da conta…"
-              : "A preparar o painel e ler o armazenamento local…"
+              ? "Carregando os dados da conta…"
+              : "Preparando o painel e lendo o armazenamento local…"
           }
         />
       </ApplyFlowCard>
@@ -1511,15 +1513,6 @@ export function DashboardClient({
 
       {showApplications ? (
         <>
-          <InboundApplicationResponsePanel
-            applications={applications}
-            outcomes={loadDashboardAnalytics().outcomes}
-            gmailRuntimeEnabled={gmailRuntimeEnabled}
-            persistenceV2Enabled={usesCloudPersistence}
-            onApplicationUpdated={(application) => {
-              setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
-            }}
-          />
           <ApplyFlowSection
             id="applications"
             title={DASHBOARD_APPLICATIONS_TITLE}
@@ -1528,7 +1521,7 @@ export function DashboardClient({
             {applicationsForDisplay.length === 0 ? (
               <ApplyFlowEmptyState
                 title="Ainda sem candidaturas"
-                description="Confirma o envio numa oportunidade (Sim, enviei) ou regista a candidatura na análise. Guardar uma vaga na fila ainda não cria candidatura."
+                description="Confirme o envio em uma oportunidade (Sim, enviei) ou registre a candidatura na análise. Salvar uma vaga na fila ainda não cria candidatura."
                 secondary={
                   <Link
                     href="/dashboard/opportunities"
@@ -1541,7 +1534,7 @@ export function DashboardClient({
             ) : (
             <>
             <p className="mb-3 text-xs text-[color:var(--af-text-muted)]">
-              {applicationsForDisplay.length} candidatura{applicationsForDisplay.length === 1 ? "" : "s"} registada
+              {applicationsForDisplay.length} candidatura{applicationsForDisplay.length === 1 ? "" : "s"} registrada
               {applicationsForDisplay.length === 1 ? "" : "s"}.{" "}
               <Link href="/dashboard/analytics" className="font-medium text-emerald-300 hover:text-emerald-200">
                 {CAREER_ANALYTICS_LINK}
@@ -1757,7 +1750,15 @@ export function DashboardClient({
                           <ApplyFlowBadge tone={applicationStatusTone(a.status)}>
                             {APPLYFLOW_APPLICATION_STATUS_LABELS_PT[a.status]}
                           </ApplyFlowBadge>
-                          {nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
+                          {derived ? (
+                            <span
+                              className="max-w-[160px] text-[10px] text-[color:var(--af-text-muted)]"
+                              data-testid="application-row-derived-hint"
+                              title={DASHBOARD_DERIVED_APPLICATION_HINT}
+                            >
+                              {DASHBOARD_DERIVED_APPLICATION_HINT}
+                            </span>
+                          ) : nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
                             <span
                               className="max-w-[140px] truncate text-[10px] text-[color:var(--af-text-muted)]"
                               data-testid="application-row-next-action"
@@ -1858,6 +1859,22 @@ export function DashboardClient({
             </>
             )}
           </ApplyFlowSection>
+          <details className="rounded-[var(--af-radius)] border border-[color:var(--af-border)] bg-[color:var(--af-bg-soft)]/40 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-[color:var(--af-text)]">
+              {INBOUND_RESPONSE_SECONDARY_SUMMARY}
+            </summary>
+            <div className="mt-4">
+              <InboundApplicationResponsePanel
+                applications={applications}
+                outcomes={loadDashboardAnalytics().outcomes}
+                gmailRuntimeEnabled={gmailRuntimeEnabled}
+                persistenceV2Enabled={usesCloudPersistence}
+                onApplicationUpdated={(application) => {
+                  setApplications((prev) => [...prev.filter((item) => item.id !== application.id), application]);
+                }}
+              />
+            </div>
+          </details>
         </>
       ) : null}
 
@@ -1921,7 +1938,7 @@ export function DashboardClient({
               data-testid="load-demo"
               onClick={() => void loadDemo()}
             >
-              {demoLoading ? "A carregar demo…" : "Carregar demo"}
+              {demoLoading ? "Carregando demo…" : "Carregar demo"}
             </ApplyFlowButton>
             <p className="text-center text-[11px] text-[color:var(--af-text-muted)] sm:text-left">
               ~20 vagas fictícias · sem PII

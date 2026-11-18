@@ -19,6 +19,7 @@ import {
   type ApplyFlowApplicationV2Envelope,
   type ApplyFlowJob,
 } from "@devflow/applyflow-core";
+import { DASHBOARD_DERIVED_APPLICATION_HINT } from "@/components/dashboard/dashboard-work-content";
 
 export function ApplicationMobileCard({
   application,
@@ -88,7 +89,11 @@ export function ApplicationMobileCard({
         {application.fitScore != null ? <span>Fit {application.fitScore}</span> : null}
       </div>
 
-      {nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
+      {derived ? (
+        <p className="text-xs text-[color:var(--af-text-muted)]" data-testid="application-row-derived-hint">
+          {DASHBOARD_DERIVED_APPLICATION_HINT}
+        </p>
+      ) : nextHint.kind !== "terminal" && nextHint.kind !== "none" ? (
         <p className="text-xs text-[color:var(--af-text)]" data-testid="application-row-next-action">
           {nextHint.label}
         </p>
