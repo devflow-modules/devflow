@@ -194,6 +194,55 @@ describe("Oportunidades queue navigation context", () => {
     expect(readOpportunityQueueNavState()?.anchorJobId).toBeUndefined();
   });
 
+  it("keeps the return anchor until queue chrome exists after delayed job hydrate", async () => {
+    const stretchOnly = reviewingJob({
+      id: "job_delayed_hydrate",
+      jobMatch: { ...reviewingJob().jobMatch, decision: "stretch" },
+    });
+    saveOpportunityQueueFilters({
+      view: "active",
+      sort: "match",
+      decision: "apply",
+      source: "all",
+    });
+    markOpportunityQueueAnchor("job_delayed_hydrate");
+
+    const view = render(
+      <JobInboxPanel
+        focus="queue"
+        jobs={[]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+      />,
+    );
+
+    // Empty job list does not mount filter controls — anchor must remain for a later paint.
+    expect(screen.queryByTestId("job-queue-filter-decision")).toBeNull();
+    await waitFor(() => {
+      expect(readOpportunityQueueNavState()?.anchorJobId).toBe("job_delayed_hydrate");
+    });
+
+    view.rerender(
+      <JobInboxPanel
+        focus="queue"
+        jobs={[stretchOnly]}
+        error={null}
+        onEvaluatePaste={() => undefined}
+        onIgnoreJob={() => undefined}
+      />,
+    );
+
+    await waitFor(() => {
+      expect((screen.getByTestId("job-queue-filter-decision") as HTMLSelectElement).value).toBe("apply");
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId("job-queue-filter-decision"));
+    });
+    expect(screen.queryByTestId("job-inbox-card-job_delayed_hydrate")).toBeNull();
+    expect(readOpportunityQueueNavState()?.anchorJobId).toBeUndefined();
+  });
+
   it("does not steal focus when opening Oportunidades without a return anchor", async () => {
     renderQueue([reviewingJob()]);
     await waitFor(() => {

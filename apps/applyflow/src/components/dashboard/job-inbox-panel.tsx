@@ -1035,31 +1035,44 @@ export function JobInboxPanel({
     const frame = window.requestAnimationFrame(() => {
       if (cancelled) return;
       if (pendingAnchorRef.current !== anchorId) return;
-      pendingAnchorRef.current = null;
-      // Consume once: if the job left the filter, keep filters and fall back to a queue control.
-      consumeOpportunityQueueAnchor();
 
       const cta = document.querySelector<HTMLElement>(`[data-testid="job-inbox-primary-cta-${anchorId}"]`);
       const card = document.querySelector<HTMLElement>(`[data-testid="job-inbox-card-${anchorId}"]`);
       const decisionFilterEl = document.querySelector<HTMLElement>('[data-testid="job-queue-filter-decision"]');
-
       const ctaActionable = isOpportunityQueueControlActionable(cta);
+      const filterActionable = isOpportunityQueueControlActionable(decisionFilterEl);
+
+      // Queue chrome (filters) mounts only after jobs hydrate. Do not consume the
+      // session anchor until a real restore/skip target exists — otherwise a later
+      // paint cannot retry and focus stays on body.
+      const finish = (apply: () => void) => {
+        pendingAnchorRef.current = null;
+        consumeOpportunityQueueAnchor();
+        apply();
+      };
+
       if (ctaActionable && document.activeElement === cta) {
-        cta.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        finish(() => cta.scrollIntoView({ block: "nearest", behavior: "smooth" }));
         return;
       }
       if (userInteracted) {
-        card?.scrollIntoView({ block: "center", behavior: "smooth" });
+        finish(() => {
+          card?.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
         return;
       }
       if (ctaActionable) {
-        cta.focus({ preventScroll: true });
-        cta.scrollIntoView({ block: "center", behavior: "smooth" });
+        finish(() => {
+          cta.focus({ preventScroll: true });
+          cta.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
         return;
       }
-      if (isOpportunityQueueControlActionable(decisionFilterEl)) {
-        decisionFilterEl.focus({ preventScroll: true });
-        decisionFilterEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      if (filterActionable) {
+        finish(() => {
+          decisionFilterEl.focus({ preventScroll: true });
+          decisionFilterEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
       }
     });
 
