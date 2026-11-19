@@ -23,6 +23,7 @@ async function seedLocalResume(page: Page) {
   await expect(page.getByRole("button", { name: "Editar perfil" })).toBeVisible({ timeout: 20_000 });
 }
 
+/** Lock Match decisions so hydrate reevaluation cannot change fixture filters. */
 async function seedQueueJobs(page: Page) {
   await page.evaluate(() => {
     const applyJob = {
@@ -32,7 +33,10 @@ async function seedQueueJobs(page: Page) {
       source: "paste",
       status: "reviewing",
       url: "https://example.test/jobs/focus-apply-1",
-      jobContext: { skills: ["React", "TypeScript"] },
+      jobContext: {
+        skills: ["React", "TypeScript"],
+        networking: { manualMatchOverride: true },
+      },
       jobMatch: {
         score: 86,
         decision: "apply",
@@ -54,8 +58,11 @@ async function seedQueueJobs(page: Page) {
         ...applyJob.jobMatch,
         score: 55,
         decision: "stretch",
+        matchedSkills: ["React"],
+        missingSkills: ["TypeScript"],
       },
     };
+    window.sessionStorage.removeItem("APPLYFLOW_OPPORTUNITY_QUEUE_NAV_V1");
     window.localStorage.setItem(
       "APPLYFLOW_DASHBOARD_JOBS_V1",
       JSON.stringify({
@@ -67,6 +74,10 @@ async function seedQueueJobs(page: Page) {
   });
 }
 
+async function focusedTestId(page: Page): Promise<string | null> {
+  return page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? null);
+}
+
 test.describe("Oportunidades return focus", () => {
   test("keyboard open → Voltar restores CTA focus; browser back too; filter fallback", async ({ page }) => {
     await e2eLogin(page.request);
@@ -75,13 +86,15 @@ test.describe("Oportunidades return focus", () => {
 
     await page.goto("/dashboard/opportunities");
     await expect(page.getByTestId("job-inbox-card-job_focus_apply_1")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toBeVisible();
 
     await page.getByTestId("job-queue-filter-decision").selectOption("apply");
+    await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
     await expect(page.getByTestId("job-inbox-card-job_focus_apply_1")).toBeVisible();
     await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toHaveCount(0);
 
-    const cta = page.getByTestId("job-inbox-primary-cta-job_focus_apply_1");
-    await cta.focus();
+    // Setup: place focus on CTA then open with Enter (app marks the nav anchor).
+    await page.getByTestId("job-inbox-primary-cta-job_focus_apply_1").focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/dashboard\/jobs\/job_focus_apply_1/);
 
@@ -92,14 +105,13 @@ test.describe("Oportunidades return focus", () => {
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
 
     await expect
-      .poll(async () => page.evaluate(() => document.activeElement?.getAttribute("data-testid")))
+      .poll(async () => focusedTestId(page), { timeout: 10_000 })
       .toBe("job-inbox-primary-cta-job_focus_apply_1");
 
     await page.keyboard.press("Tab");
-    const afterTab = await page.evaluate(() => document.activeElement?.getAttribute("data-testid"));
-    expect(afterTab).not.toBe("job-inbox-primary-cta-job_focus_apply_1");
+    expect(await focusedTestId(page)).not.toBe("job-inbox-primary-cta-job_focus_apply_1");
 
-    // Browser back from a second detail open.
+    // Browser back from a second keyboard open.
     await page.getByTestId("job-inbox-primary-cta-job_focus_apply_1").focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/dashboard\/jobs\/job_focus_apply_1/);
@@ -107,10 +119,10 @@ test.describe("Oportunidades return focus", () => {
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
     await expect
-      .poll(async () => page.evaluate(() => document.activeElement?.getAttribute("data-testid")))
+      .poll(async () => focusedTestId(page), { timeout: 10_000 })
       .toBe("job-inbox-primary-cta-job_focus_apply_1");
 
-    // Anchor a job that the APPLY filter will hide, then return via remount.
+    // Isolated fixture: APPLY filter + anchor for a job that the filter hides.
     await page.evaluate(() => {
       window.sessionStorage.setItem(
         "APPLYFLOW_OPPORTUNITY_QUEUE_NAV_V1",
@@ -127,7 +139,7 @@ test.describe("Oportunidades return focus", () => {
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
     await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toHaveCount(0);
     await expect
-      .poll(async () => page.evaluate(() => document.activeElement?.getAttribute("data-testid")))
+      .poll(async () => focusedTestId(page), { timeout: 10_000 })
       .toBe("job-queue-filter-decision");
   });
 
@@ -146,7 +158,8 @@ test.describe("Oportunidades return focus", () => {
 
     await page.getByTestId("job-queue-filter-decision").focus();
     await page.keyboard.press("Tab");
-    const focused = await page.evaluate(() => document.activeElement?.getAttribute("data-testid"));
+    const focused = await focusedTestId(page);
     expect(focused).toBeTruthy();
+    expect(focused).not.toBe("job-inbox-primary-cta-job_focus_apply_1");
   });
 });
