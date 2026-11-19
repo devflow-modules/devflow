@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ApplyFlowJob } from "@devflow/applyflow-core";
 
@@ -14,16 +15,23 @@ import {
 import {
   OPPORTUNITY_QUEUE_NAV_STORAGE_KEY,
   markOpportunityQueueAnchor,
+  readOpportunityQueueNavState,
   saveOpportunityQueueFilters,
 } from "@/lib/opportunity-queue-nav-state";
 
 afterEach(() => {
   cleanup();
   window.sessionStorage.clear();
+  vi.restoreAllMocks();
 });
 
 beforeEach(() => {
   window.sessionStorage.clear();
+  vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+    cb(0);
+    return 1;
+  });
+  HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 function reviewingJob(overrides: Partial<ApplyFlowJob> = {}): ApplyFlowJob {
@@ -47,6 +55,18 @@ function reviewingJob(overrides: Partial<ApplyFlowJob> = {}): ApplyFlowJob {
     updatedAt: "2026-11-18T12:00:00.000Z",
     ...overrides,
   };
+}
+
+function renderQueue(jobs: ApplyFlowJob[]) {
+  return render(
+    <JobInboxPanel
+      focus="queue"
+      jobs={jobs}
+      error={null}
+      onEvaluatePaste={() => undefined}
+      onIgnoreJob={() => undefined}
+    />,
+  );
 }
 
 describe("Oportunidades queue navigation context", () => {
@@ -124,15 +144,63 @@ describe("Oportunidades queue navigation context", () => {
         ],
       },
     });
-    render(
-      <JobInboxPanel
-        focus="queue"
-        jobs={[packed]}
-        error={null}
-        onEvaluatePaste={() => undefined}
-        onIgnoreJob={() => undefined}
-      />,
-    );
+    renderQueue([packed]);
     expect(screen.getByTestId("application-pack-open-job_queue_nav_packed")).toBeTruthy();
+  });
+
+  it("restores focus to the origin CTA after returning from the detail (keyboard open)", async () => {
+    const user = userEvent.setup();
+    const job = reviewingJob({ id: "job_focus_cta", jobMatch: { ...reviewingJob().jobMatch, decision: "apply" } });
+    const first = renderQueue([job]);
+
+    const cta = screen.getByTestId("job-inbox-primary-cta-job_focus_cta");
+    cta.focus();
+    expect(document.activeElement).toBe(cta);
+    await user.keyboard("{Enter}");
+    expect(readOpportunityQueueNavState()?.anchorJobId).toBe("job_focus_cta");
+
+    first.unmount();
+    // Simulate Voltar às oportunidades / history.back remounting the queue with saved nav state.
+    renderQueue([job]);
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId("job-inbox-primary-cta-job_focus_cta"));
+    });
+    expect(readOpportunityQueueNavState()?.anchorJobId).toBeUndefined();
+  });
+
+  it("falls back to the decision filter when the anchored job left the filtered queue", async () => {
+    const stretchOnly = reviewingJob({
+      id: "job_left_filter",
+      jobMatch: { ...reviewingJob().jobMatch, decision: "stretch" },
+    });
+    saveOpportunityQueueFilters({
+      view: "active",
+      sort: "match",
+      decision: "apply",
+      source: "all",
+    });
+    markOpportunityQueueAnchor("job_left_filter");
+
+    renderQueue([stretchOnly]);
+
+    await waitFor(() => {
+      expect((screen.getByTestId("job-queue-filter-decision") as HTMLSelectElement).value).toBe("apply");
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByTestId("job-queue-filter-decision"));
+    });
+    expect(screen.queryByTestId("job-inbox-card-job_left_filter")).toBeNull();
+    expect(readOpportunityQueueNavState()?.anchorJobId).toBeUndefined();
+  });
+
+  it("does not steal focus when opening Oportunidades without a return anchor", async () => {
+    renderQueue([reviewingJob()]);
+    await waitFor(() => {
+      expect(screen.getByTestId("job-inbox-primary-cta-job_queue_nav_1")).toBeTruthy();
+    });
+    expect(document.activeElement === document.body || document.activeElement === document.documentElement).toBe(
+      true,
+    );
   });
 });
