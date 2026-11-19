@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { applyFlowButtonClass } from "@/components/ui/ApplyFlowButton";
 import { ApplyFlowCard } from "@/components/ui/ApplyFlowCard";
 import { ApplyFlowSection } from "@/components/ui/ApplyFlowSection";
@@ -9,38 +7,34 @@ import { ApplyFlowSiteFooter } from "@/components/ui/ApplyFlowSiteFooter";
 const workflowSteps = [
   {
     title: "Descobrir",
-    body: "Pesquisa providers ou cola um anúncio. O currículo não vai nos pedidos de busca.",
+    body: "Busque vagas nos providers ou cole um anúncio e salve para revisar. Salvar ainda não é candidatar.",
   },
   {
     title: "Avaliar",
-    body: "Vê um Match explicável — score e decisão de orientação, não uma caixa negra.",
+    body: "Veja o que a vaga pede, o que seu perfil demonstra e o que ainda precisa ser confirmado antes de investir tempo.",
   },
   {
-    title: "Priorizar",
-    body: "Guarda só o que merece tempo. Uma vaga salva ainda não é uma candidatura.",
-  },
-  {
-    title: "Preparar",
-    body: "Checklist de prontidão antes de registar. Sem envio automático.",
+    title: "Preparar e enviar",
+    body: "Use a preparação manual ou o Pack quando disponível. O envio acontece no portal da empresa — não no ApplyFlow.",
   },
   {
     title: "Acompanhar",
-    body: "Marca o envio real e segue o estado (triagem, entrevista, oferta…).",
+    body: "Volte ao ApplyFlow, registre o envio e consulte Candidaturas para saber o que já saiu e o que ficou pendente.",
   },
 ];
 
 const valueCards = [
   {
-    title: "Um fluxo em vez de abas soltas",
-    body: "Descoberta, fit, fila e acompanhamento no mesmo produto — sem misturar salvar com candidatar.",
+    title: "Um fluxo, do anúncio ao registro",
+    body: "Descobrir, avaliar, preparar e acompanhar no mesmo produto — sem misturar salvar com enviar.",
   },
   {
-    title: "Match que podes entender",
-    body: "Motor determinístico de cobertura de skills. Recomendação é advisory; a decisão é tua.",
+    title: "Leitura que você consegue explicar",
+    body: "Requisitos, evidências do perfil e lacunas ficam visíveis. A recomendação orquestra; a decisão é sua.",
   },
   {
-    title: "Os teus dados sob o teu controlo",
-    body: "O perfil fica no browser na descoberta. Não há auto-apply. Conta autenticada é opcional para sync.",
+    title: "Envio sob o seu controle",
+    body: "Abrir o anúncio, candidatar no site da empresa e registrar o envio no ApplyFlow são passos distintos. Sem auto-envio.",
   },
 ];
 
@@ -58,7 +52,7 @@ export default function HomePage() {
               <div className="text-center lg:text-left">
                 <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
                   <span className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300/95">
-                    Fluxo de carreira
+                    ApplyFlow
                   </span>
                   <span className="rounded-full border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-3 py-1 text-[11px] font-medium text-[color:var(--af-text-muted)]">
                     Sem auto-envio
@@ -68,22 +62,17 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <h1 className="mt-7 text-5xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-6xl lg:text-7xl">
-                  ApplyFlow
+                <h1 className="mt-7 text-balance text-4xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-5xl lg:text-6xl">
+                  Organize sua busca de emprego, da vaga à candidatura
                 </h1>
 
-                <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[color:var(--af-text-muted)] sm:text-xl lg:mx-0 lg:max-w-xl">
-                  Organiza a tua busca por vagas — do{" "}
-                  <strong className="text-[color:var(--af-text)]">descobrimento ao acompanhamento</strong>.
-                </p>
-
-                <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[color:var(--af-text-muted)] sm:text-[15px] lg:mx-0 lg:max-w-xl">
-                  Descobre oportunidades em vários providers, entende o fit, prioriza onde investir tempo, prepara a
-                  candidatura e acompanha o estado depois de enviares tu — fora do ApplyFlow.
+                <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-[color:var(--af-text-muted)] sm:text-lg lg:mx-0 lg:max-w-xl">
+                  Encontre ou traga vagas, compare os requisitos com seu perfil e acompanhe os envios — no mesmo
+                  fluxo, com você no controle do envio externo.
                 </p>
 
                 <p className="mx-auto mt-4 max-w-xl text-sm font-medium text-emerald-200/90 lg:mx-0">
-                  O teu currículo não é enviado aos provedores de busca.
+                  O currículo não é enviado aos provedores de busca.
                 </p>
 
                 <div className="mx-auto mt-10 flex max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap lg:mx-0">
@@ -99,21 +88,15 @@ export default function HomePage() {
                   >
                     Começar
                   </a>
-                  <Link
-                    href="/login"
+                  <a
+                    href="#como-funciona"
                     className={applyFlowButtonClass({
                       variant: "outlineBrand",
                       size: "lg",
-                      className: "w-full min-h-[48px] sm:w-auto sm:min-w-[140px]",
+                      className: "w-full min-h-[48px] sm:w-auto sm:min-w-[160px]",
                     })}
                   >
-                    Entrar
-                  </Link>
-                  <a
-                    href="#como-funciona"
-                    className="inline-flex min-h-[48px] items-center justify-center px-2 text-sm font-medium text-emerald-400/90 underline-offset-4 hover:text-emerald-300 hover:underline sm:min-w-0"
-                  >
-                    Ver como funciona
+                    Como funciona
                   </a>
                 </div>
               </div>
@@ -130,10 +113,16 @@ export default function HomePage() {
             id="como-funciona"
             className={sectionShell}
             eyebrow="Fluxo"
-            title="Como o ApplyFlow funciona"
-            description="Passos com controlo humano — a recomendação nunca substitui a tua intenção."
+            title="Como funciona"
+            description={
+              <>
+                Quatro passos com os mesmos nomes que você encontra no app. Exemplo fictício: você cola o anúncio de{" "}
+                <strong className="text-[color:var(--af-text)]">Senior Product Engineer</strong> na Northstar Labs,
+                avalia o que ainda falta confirmar, prepara o envio e registra depois em Candidaturas.
+              </>
+            }
           >
-            <ol className="mt-6 grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <ol className="mt-2 grid list-none gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {workflowSteps.map((step, index) => (
                 <li
                   key={step.title}
@@ -146,12 +135,30 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
+
+            <div className="mt-6 rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-black/20 px-4 py-4 text-sm leading-relaxed text-[color:var(--af-text-muted)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400/85">Três ações distintas</p>
+              <ul className="mt-3 list-disc space-y-2 pl-5">
+                <li>
+                  <strong className="text-[color:var(--af-text)]">Abrir o anúncio</strong> — ler a vaga no site de
+                  origem ou no detalhe salvo.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--af-text)]">Enviar no portal da empresa</strong> — a candidatura
+                  real acontece fora do ApplyFlow.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--af-text)]">Registrar o envio no ApplyFlow</strong> — marcar que
+                  você enviou e acompanhar em Candidaturas.
+                </li>
+              </ul>
+            </div>
           </ApplyFlowSection>
 
           <section className={sectionShell}>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/90">Porquê</p>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
-              Menos fragmentação, mais clareza
+              Menos abas soltas, mais clareza na busca
             </h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
               {valueCards.map((f) => (
@@ -169,63 +176,31 @@ export default function HomePage() {
             </h2>
             <ul className="mt-6 grid list-none gap-3 text-sm text-[color:var(--af-text-muted)] sm:grid-cols-2">
               <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3">
-                O perfil e o currículo ficam no teu browser durante a descoberta e o Match.
+                O perfil e o currículo ficam no seu browser durante a descoberta e a avaliação.
               </li>
               <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3">
-                O ApplyFlow não envia candidaturas por ti — o envio é sempre externo e explícito.
+                O ApplyFlow não envia candidaturas por você — o envio é sempre externo e explícito.
               </li>
               <li className="rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)] bg-[color:var(--af-surface-muted)] px-4 py-3 sm:col-span-2">
-                Podes usar só neste dispositivo. Entrar com conta é opcional para sincronizar vagas e candidaturas.
+                Você pode usar só neste dispositivo. Entrar com conta é opcional para sincronizar vagas e candidaturas.
               </li>
             </ul>
           </section>
 
-          <section className={sectionShell}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400/90">Pré-visualização</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--af-text)] sm:text-3xl">
-              O produto em ecrã
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm text-[color:var(--af-text-muted)]">
-              Capturas com dados fictícios — Discovery, fila e lifecycle do produto atual.
-            </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {(
-                [
-                  ["applyflow-discovery.png", "Discovery + Match"],
-                  ["applyflow-queue.png", "Fila de oportunidades"],
-                  ["applyflow-lifecycle.png", "Lifecycle"],
-                ] as const
-              ).map(([file, label]) => (
-                <figure key={file} className="overflow-hidden rounded-[var(--af-radius-sm)] border border-[color:var(--af-border)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/portfolio/${file}`}
-                    alt={label}
-                    className="aspect-video w-full object-cover object-top bg-zinc-950"
-                    loading="lazy"
-                  />
-                  <figcaption className="border-t border-[color:var(--af-border)] px-3 py-2 text-xs text-[color:var(--af-text-muted)]">
-                    {label}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-            <p className="mt-3 text-xs text-[color:var(--af-text-muted)]">
-              Assets canónicos também em{" "}
-              <code className="rounded bg-zinc-900 px-1 py-0.5 text-[11px]">docs/applyflow/assets/</code> no repositório.
-            </p>
-          </section>
-
           <div className="flex flex-col items-center gap-3 border-t border-[color:var(--af-border)] pt-12 text-center">
             <p className="max-w-lg text-sm text-[color:var(--af-text-muted)]">
-              Pronto para organizar a próxima vaga — sem auto-envio e com Match que consegues explicar.
+              Pronto para organizar a próxima vaga — sem auto-envio e com a próxima ação clara.
             </p>
-            <Link
+            <a
               href="/dashboard"
-              className={applyFlowButtonClass({ variant: "primary", size: "lg", className: "min-h-[48px] justify-center" })}
+              className={applyFlowButtonClass({
+                variant: "primary",
+                size: "lg",
+                className: "min-h-[48px] justify-center",
+              })}
             >
-              Começar no ApplyFlow
-            </Link>
+              Começar
+            </a>
           </div>
         </div>
       </main>

@@ -40,10 +40,16 @@ test.describe("ApplyFlow closed-beta critical funnel", () => {
     const api = page.request;
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "ApplyFlow", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Organize sua busca de emprego, da vaga à candidatura",
+        exact: true,
+      }),
+    ).toBeVisible();
     const homeCta = page.getByTestId("home-primary-cta");
     await expect(homeCta).toBeVisible();
     await expect(homeCta).toHaveAttribute("href", "/dashboard");
+    await expect(page.locator('a[href="#como-funciona"]').filter({ hasText: "Como funciona" })).toBeVisible();
     await Promise.all([
       page.waitForURL(/\/dashboard(?:\/|$|\?)/, { timeout: 30_000 }),
       homeCta.click(),
