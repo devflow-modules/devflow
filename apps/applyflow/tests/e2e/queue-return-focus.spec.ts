@@ -78,13 +78,20 @@ async function focusedTestId(page: Page): Promise<string | null> {
   return page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? null);
 }
 
+/** Observable: queue chrome (filters) is mounted — jobs have hydrated. */
+async function waitForOpportunityQueueChrome(page: Page) {
+  await expect(page.getByTestId("job-opportunity-queue")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("job-queue-filter-decision")).toBeVisible();
+}
+
 test.describe("Oportunidades return focus", () => {
-  test("keyboard open → Voltar restores CTA focus; browser back too; filter fallback", async ({ page }) => {
+  test("keyboard open → Voltar restores CTA focus; browser back too", async ({ page }) => {
     await e2eLogin(page.request);
     await seedLocalResume(page);
     await seedQueueJobs(page);
 
     await page.goto("/dashboard/opportunities");
+    await waitForOpportunityQueueChrome(page);
     await expect(page.getByTestId("job-inbox-card-job_focus_apply_1")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toBeVisible();
 
@@ -93,7 +100,6 @@ test.describe("Oportunidades return focus", () => {
     await expect(page.getByTestId("job-inbox-card-job_focus_apply_1")).toBeVisible();
     await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toHaveCount(0);
 
-    // Setup: place focus on CTA then open with Enter (app marks the nav anchor).
     await page.getByTestId("job-inbox-primary-cta-job_focus_apply_1").focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/dashboard\/jobs\/job_focus_apply_1/);
@@ -102,6 +108,7 @@ test.describe("Oportunidades return focus", () => {
     await back.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);
+    await waitForOpportunityQueueChrome(page);
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
 
     await expect
@@ -111,18 +118,23 @@ test.describe("Oportunidades return focus", () => {
     await page.keyboard.press("Tab");
     expect(await focusedTestId(page)).not.toBe("job-inbox-primary-cta-job_focus_apply_1");
 
-    // Browser back from a second keyboard open.
     await page.getByTestId("job-inbox-primary-cta-job_focus_apply_1").focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/dashboard\/jobs\/job_focus_apply_1/);
     await page.goBack();
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);
+    await waitForOpportunityQueueChrome(page);
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
     await expect
       .poll(async () => focusedTestId(page), { timeout: 10_000 })
       .toBe("job-inbox-primary-cta-job_focus_apply_1");
+  });
 
-    // Isolated fixture: APPLY filter + anchor for a job that the filter hides.
+  test("filter fallback focuses decision control when anchored job is hidden", async ({ page }) => {
+    await e2eLogin(page.request);
+    await seedLocalResume(page);
+    await seedQueueJobs(page);
+
     await page.evaluate(() => {
       window.sessionStorage.setItem(
         "APPLYFLOW_OPPORTUNITY_QUEUE_NAV_V1",
@@ -136,8 +148,10 @@ test.describe("Oportunidades return focus", () => {
       );
     });
     await page.goto("/dashboard/opportunities");
+    await waitForOpportunityQueueChrome(page);
     await expect(page.getByTestId("job-queue-filter-decision")).toHaveValue("apply");
     await expect(page.getByTestId("job-inbox-card-job_focus_stretch_1")).toHaveCount(0);
+    await expect(page.getByTestId("job-queue-filter-decision")).toBeVisible();
     await expect
       .poll(async () => focusedTestId(page), { timeout: 10_000 })
       .toBe("job-queue-filter-decision");
@@ -155,6 +169,7 @@ test.describe("Oportunidades return focus", () => {
     await page.getByRole("link", { name: "Voltar às oportunidades" }).click();
     await expect(page).toHaveURL(/\/dashboard\/opportunities/);
     await expect(page.getByTestId("job-inbox")).toBeVisible();
+    await waitForOpportunityQueueChrome(page);
 
     await page.getByTestId("job-queue-filter-decision").focus();
     await page.keyboard.press("Tab");
