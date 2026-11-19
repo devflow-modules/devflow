@@ -16,7 +16,7 @@ export function trackCtaDemoClick(source?: string): void {
 
 /** CTAs do funil WhatsApp Platform — home, demo, contato, header, footer. */
 export function trackFunnelCtaClick(props: {
-  cta: "agendar_diagnostico" | "ver_demo_guiada" | "falar_whatsapp";
+  cta: "agendar_diagnostico" | "ver_demo_guiada" | "falar_whatsapp" | "ver_como_funciona";
   surface: string;
 }): void {
   track("funnel_cta_click", props);

@@ -1,21 +1,21 @@
 const stories = [
   {
     id: "ownership-heading",
-    kicker: "Responsabilidade",
-    title: "Nenhuma conversa sem contexto de responsabilidade.",
-    copy: "Cada conversa mostra quem assumiu e o que já foi dito. A equipe não precisa reconstruir o caso no privado.",
+    kicker: "Quem atende",
+    title: "O time sabe quem está atendendo cada conversa.",
+    copy: "Cada conversa mostra quem assumiu e o que já foi dito. Ninguém precisa reconstruir o caso no privado ou no celular.",
   },
   {
     id: "routing-heading",
     kicker: "Filas",
-    title: "Distribua a operação sem perder contexto.",
-    copy: "A fila configurada no diagnóstico recebe a conversa com o histórico. Isso não é roteamento por IA, presença ou carga.",
+    title: "Distribua pedidos sem perder o histórico.",
+    copy: "A fila combinada no diagnóstico recebe a conversa com o contexto. Não é sorteio automático por presença ou carga — é a fila que a operação definiu.",
   },
   {
     id: "handoff-heading",
-    kicker: "Pessoa e automação",
-    title: "Automação quando faz sentido. Pessoa quando precisa.",
-    copy: "Dúvida frequente pode seguir um fluxo permitido. Pedido fora do combinado, sensível ou que precisa de contexto vai para uma pessoa, com a conversa inteira.",
+    kicker: "Automação e pessoa",
+    title: "A IA cobre o repetitivo. Uma pessoa assume o que precisa de julgamento.",
+    copy: "Dúvida frequente pode seguir o fluxo permitido. Pedido sensível, fora do combinado ou sem resposta pronta vai para alguém da equipe, com a conversa inteira.",
   },
 ] as const;
 

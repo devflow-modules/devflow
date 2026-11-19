@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import Home from "../page";
 import { trackFunnelCtaClick, trackHomeCta } from "@/lib/analytics";
+import { HOW_IT_WORKS_STEPS } from "@/lib/how-it-works-steps";
 
 vi.mock("@/lib/analytics", () => ({
   trackFunnelCtaClick: vi.fn(),
@@ -77,31 +78,36 @@ describe("home conversion cleanup", () => {
     expect(text).not.toContain("Próximo produto");
     expect(text).not.toContain("Quero saber");
     expect(text).toContain("API oficial da Meta");
-    expect(text).toContain("Inbox multiatendente");
-    expect(text).toContain("Responsáveis e filas");
-    expect(text).toContain("Handoff humano");
-    expect(text).toContain("Quer entender como essa operação funcionaria na sua empresa?");
-    expect(screen.getByRole("heading", { name: "O que entra na operação" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Como sua operação de WhatsApp sai do improviso" })).toBeTruthy();
+    expect(text).toContain("Inbox da equipe");
+    expect(text).toContain("O time sabe quem está atendendo cada conversa");
+    expect(text).toContain("Quer ver a plataforma ou falar sobre a sua operação?");
+    expect(screen.getByRole("heading", { name: "O que a plataforma coloca na operação" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Como a solução entra na sua operação" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Perguntas frequentes" })).toBeTruthy();
+
+    for (const step of HOW_IT_WORKS_STEPS) {
+      expect(text).toContain(step.title);
+      expect(text).toContain(step.summary);
+    }
   });
 
-  it("separa CTA primário, demo e WhatsApp no hero", () => {
+  it("prioriza demonstração no hero e mantém diagnóstico como caminho secundário", () => {
     render(<Home />);
-    const hero = screen.getByRole("region", { name: /Organize cada conversa/i });
-
-    const primary = within(hero).getByRole("link", {
-      name: "Agendar diagnóstico da operação no WhatsApp",
-    });
-    expect(primary).toHaveAttribute("href", "/contato");
-    expect(primary.className).toContain("df-btn-primary");
+    const hero = screen.getByRole("region", { name: /Organize o atendimento da sua equipe no WhatsApp/i });
 
     const demo = within(hero).getByRole("link", {
       name: "Ver demonstração guiada de atendimento no WhatsApp",
     });
     expect(demo).toHaveAttribute("href", "/demo");
-    expect(demo).toHaveTextContent("Ver demo");
-    expect(demo.className).not.toContain("df-btn-primary");
+    expect(demo).toHaveTextContent("Ver demonstração");
+    expect(demo.className).toContain("df-btn-primary");
+
+    const convert = within(hero).getByRole("link", {
+      name: "Solicitar diagnóstico da operação no WhatsApp",
+    });
+    expect(convert).toHaveAttribute("href", "/contato");
+    expect(convert).toHaveTextContent("Solicitar diagnóstico");
+    expect(convert.className).not.toContain("df-btn-primary");
 
     const whatsapp = within(hero).getByRole("link", {
       name: "Falar no WhatsApp com a DevFlow Labs",
@@ -109,46 +115,64 @@ describe("home conversion cleanup", () => {
     expect(whatsapp.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/5511999999999/);
     expect(whatsapp.className).not.toContain("df-btn");
 
-    fireEvent.click(primary);
-    expect(trackFunnelCtaClick).toHaveBeenCalledWith({
-      cta: "agendar_diagnostico",
-      surface: "hero_primary",
-    });
-    expect(trackHomeCta).toHaveBeenCalledWith("hero_agendar_diagnostico");
-
     fireEvent.click(demo);
     expect(trackFunnelCtaClick).toHaveBeenCalledWith({
       cta: "ver_demo_guiada",
+      surface: "hero_primary",
+    });
+    expect(trackHomeCta).toHaveBeenCalledWith("hero_ver_demo");
+
+    fireEvent.click(convert);
+    expect(trackFunnelCtaClick).toHaveBeenCalledWith({
+      cta: "agendar_diagnostico",
       surface: "hero_secondary",
+    });
+  });
+
+  it("liga o hub resumido à página Como funciona sem disparar CTA só por render", () => {
+    render(<Home />);
+    expect(trackFunnelCtaClick).not.toHaveBeenCalled();
+
+    const hub = screen.getByRole("region", { name: "Como a solução entra na sua operação" });
+    const detail = within(hub).getByRole("link", {
+      name: "Ver como funciona a implantação da plataforma de WhatsApp",
+    });
+    expect(detail).toHaveAttribute("href", "/como-funciona");
+
+    fireEvent.click(detail);
+    expect(trackFunnelCtaClick).toHaveBeenCalledWith({
+      cta: "ver_como_funciona",
+      surface: "how_it_works_detail",
     });
   });
 
   it("mantém o CTA final imediatamente relevante e rastreado", () => {
     render(<Home />);
     const finalCta = screen.getByRole("region", {
-      name: "Quer entender como essa operação funcionaria na sua empresa?",
+      name: "Quer ver a plataforma ou falar sobre a sua operação?",
     });
 
-    const primary = within(finalCta).getByRole("link", {
-      name: "Agendar diagnóstico da operação no WhatsApp",
-    });
     const demo = within(finalCta).getByRole("link", {
       name: "Ver demonstração guiada de atendimento no WhatsApp",
     });
-
-    expect(primary).toHaveAttribute("href", "/contato");
-    expect(demo).toHaveAttribute("href", "/demo");
-    expect(demo).toHaveTextContent("Ver demo");
-
-    fireEvent.click(primary);
-    expect(trackFunnelCtaClick).toHaveBeenCalledWith({
-      cta: "agendar_diagnostico",
-      surface: "final_cta_primary",
+    const convert = within(finalCta).getByRole("link", {
+      name: "Solicitar diagnóstico da operação no WhatsApp",
     });
+
+    expect(demo).toHaveAttribute("href", "/demo");
+    expect(demo).toHaveTextContent("Ver demonstração");
+    expect(demo.className).toContain("df-btn-primary");
+    expect(convert).toHaveAttribute("href", "/contato");
 
     fireEvent.click(demo);
     expect(trackFunnelCtaClick).toHaveBeenCalledWith({
       cta: "ver_demo_guiada",
+      surface: "final_cta_primary",
+    });
+
+    fireEvent.click(convert);
+    expect(trackFunnelCtaClick).toHaveBeenCalledWith({
+      cta: "agendar_diagnostico",
       surface: "final_cta_secondary",
     });
   });
