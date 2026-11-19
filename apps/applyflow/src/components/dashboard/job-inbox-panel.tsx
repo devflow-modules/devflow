@@ -1059,6 +1059,7 @@ export function JobInboxPanel({
       }
       if (isOpportunityQueueControlActionable(decisionFilterEl)) {
         decisionFilterEl.focus({ preventScroll: true });
+        decisionFilterEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     });
 
