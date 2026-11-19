@@ -6,6 +6,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ApplyFlowJob } from "@devflow/applyflow-core";
 
 import {
+  APPLICATION_RECORDED_BACK_TO_QUEUE,
+  APPLICATION_RECORDED_JOB_MARKED_TITLE,
+  APPLICATION_RECORDED_VIEW_APPLICATIONS,
   MANUAL_APPLICATION_CONFIRM_BLOCKED,
   MANUAL_APPLICATION_CONFIRM_LATER,
   MANUAL_APPLICATION_CONFIRM_PROMPT,
@@ -152,7 +155,14 @@ describe("ManualApplicationAction", () => {
     expect(onMarkJobApplied).toHaveBeenCalledWith("job_manual_1");
     expect(confirmFn).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId("manual-app-confirm-job_manual_1")).toBeNull();
-    expect(screen.getByTestId("manual-app-open-job_manual_1")).toBeTruthy();
+    expect(screen.getByTestId("manual-app-success-job_manual_1")).toBeTruthy();
+    expect(screen.getByText(APPLICATION_RECORDED_JOB_MARKED_TITLE)).toBeTruthy();
+    expect(screen.getByTestId("manual-app-view-applications-job_manual_1").textContent).toBe(
+      APPLICATION_RECORDED_VIEW_APPLICATIONS,
+    );
+    expect(screen.getByTestId("manual-app-back-queue-job_manual_1").textContent).toBe(
+      APPLICATION_RECORDED_BACK_TO_QUEUE,
+    );
   });
 
   it("does not call mark applied when final confirm is cancelled", async () => {

@@ -214,6 +214,15 @@ export const JOB_QUEUE_EMPTY_FILTERED = "Nenhuma vaga com estes filtros.";
 export const JOB_QUEUE_IGNORE_LABEL = "Ignorar";
 export const JOB_QUEUE_RESTORE_LABEL = "Voltar à fila";
 export const JOB_QUEUE_OPEN_SOURCE_LABEL = "Abrir anúncio";
+/** Compact queue card: stage vs fit stay visually separate. */
+export const JOB_QUEUE_STAGE_LABEL = "Etapa";
+export const JOB_QUEUE_FIT_LABEL = "Aderência";
+export const JOB_QUEUE_NEXT_ACTION_LABEL = "Próxima ação";
+export const JOB_QUEUE_NEXT_OPEN_DETAIL = "Revisar no detalhe e decidir o próximo passo.";
+export const JOB_QUEUE_NEXT_OPEN_PREP = "Abrir o detalhe para ver o que ainda falta confirmar.";
+export const JOB_QUEUE_NEXT_REEVALUATE = "Reavaliar o match com o currículo atual.";
+export const JOB_QUEUE_NEXT_APPLIED = "Envio confirmado — acompanhe em Candidaturas.";
+export const JOB_QUEUE_NEXT_IGNORED = "Restaurável na fila ativa quando quiser reconsiderar.";
 export const JOB_QUEUE_HISTORICAL_NOTE =
   "Vagas ignoradas antigas (antes da fila) permanecem em Ignoradas até as restaurares.";
 
@@ -234,7 +243,19 @@ export const MANUAL_APPLICATION_URL_UNAVAILABLE =
   "Link externo indisponível ou inválido para esta oportunidade.";
 export const MANUAL_APPLICATION_MARKING = "Registrando…";
 export const MANUAL_APPLICATION_MARK_ERROR =
-  "Não foi possível registrar a candidatura. Tente novamente.";
+  "Não foi possível registrar o envio e a etapa da vaga não mudou. Verifique a conexão e toque de novo em «Sim, enviei minha candidatura».";
+/** Feedback after the user confirms they sent the application on the external portal. */
+export const APPLICATION_RECORDED_JOB_MARKED_TITLE = "Envio marcado no ApplyFlow";
+export const APPLICATION_RECORDED_JOB_MARKED_DETAIL =
+  "A etapa desta vaga passou para Aplicada e ela já aparece em Candidaturas.";
+export const APPLICATION_RECORDED_APPLICATION_TITLE = "Candidatura registrada";
+export const APPLICATION_RECORDED_APPLICATION_DETAIL =
+  "O registro desta candidatura passou para Aplicada em Candidaturas.";
+export const APPLICATION_RECORDED_EXTERNAL_NOTE =
+  "O envio para a empresa acontece no portal externo — o ApplyFlow não envia nada por você.";
+export const APPLICATION_RECORDED_VIEW_APPLICATIONS = "Ver em Candidaturas";
+export const APPLICATION_RECORDED_BACK_TO_QUEUE = "Voltar à fila";
+export const APPLICATION_RECORDED_CONTINUE_QUEUE = "Continuar na fila";
 export const MANUAL_APPLICATION_PACK_RECORD_HINT =
   "Para registrar o envio, use a confirmação após abrir o anúncio acima. O pacote não marca applied sozinho.";
 export const OFFICIAL_APPLY_URL_FIELD_LABEL = "Link oficial de candidatura";

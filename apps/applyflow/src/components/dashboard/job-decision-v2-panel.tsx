@@ -66,11 +66,16 @@ import {
   JOB_DISCOVERY_SOURCE_REMOTEOK,
   JOB_DISCOVERY_VIEW_LISTING_REMOTEOK,
 } from "@/components/dashboard/job-inbox-content";
+import { buildJobDecisionBrief } from "@/components/dashboard/job-decision-brief";
 import { ManualApplicationAction } from "@/components/dashboard/manual-application-action";
 import { ManualPreparationPanel } from "@/components/dashboard/manual-preparation-panel";
 import { OfficialApplyUrlField } from "@/components/dashboard/official-apply-url-field";
 import { loadDashboardJobs, persistDashboardJobs } from "@/lib/local-job-storage";
 import {
+  JOB_DECISION_BRIEF_ASKS,
+  JOB_DECISION_BRIEF_CONFIRM,
+  JOB_DECISION_BRIEF_MORE,
+  JOB_DECISION_BRIEF_SHOWS,
   JOB_DECISION_V2_BACK,
   JOB_DECISION_V2_BACK_HREF,
   JOB_DECISION_V2_CLAIMS,
@@ -1042,8 +1047,12 @@ export function JobDecisionV2Panel({
               </p>
             </div>
           ) : null}
-          {job.status === "reviewing" ? (
-            <ManualApplicationAction job={job} onMarkJobApplied={markJobAppliedFromManual} />
+          {job.status === "reviewing" || job.status === "applied" ? (
+            <ManualApplicationAction
+              job={job}
+              onMarkJobApplied={markJobAppliedFromManual}
+              recordKind={application ? "application" : "job_stage"}
+            />
           ) : null}
           <OfficialApplyUrlField
             job={job}
@@ -1171,8 +1180,43 @@ export function JobDecisionV2Panel({
           </div>
 
           {tab === "overview" ? (
-            <ApplyFlowCard padding="md">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+            <ApplyFlowCard padding="md" data-testid="job-decision-brief">
+              {(() => {
+                const brief = buildJobDecisionBrief({
+                  decision,
+                  packBlock: packBlockExplanation,
+                });
+                const sections = [
+                  { title: JOB_DECISION_BRIEF_ASKS, section: brief.asks, testId: "job-decision-brief-asks" },
+                  { title: JOB_DECISION_BRIEF_SHOWS, section: brief.shows, testId: "job-decision-brief-shows" },
+                  {
+                    title: JOB_DECISION_BRIEF_CONFIRM,
+                    section: brief.confirm,
+                    testId: "job-decision-brief-confirm",
+                  },
+                ] as const;
+                return (
+                  <div className="grid gap-4">
+                    {sections.map(({ title, section, testId }) => (
+                      <div key={testId} data-testid={testId}>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
+                          {title}
+                        </p>
+                        {section.items.length > 0 ? (
+                          <ul className="mt-2 grid gap-1 text-sm text-[color:var(--af-text)]">
+                            {section.items.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-2 text-sm text-[color:var(--af-text-muted)]">{section.empty}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+              <p className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
                 {JOB_DECISION_V2_CURRENT_ANALYSIS}
               </p>
               <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_CURRENT_HINT}</p>
@@ -1208,8 +1252,11 @@ export function JobDecisionV2Panel({
               </ul>
               <details className="mt-3">
                 <summary className="cursor-pointer text-xs font-medium text-emerald-300 underline-offset-2 hover:underline">
-                  {JOB_DECISION_V2_DIMENSIONS_DETAILS}
+                  {JOB_DECISION_BRIEF_MORE}
                 </summary>
+                <p className="mt-2 text-xs font-medium text-[color:var(--af-text-muted)]">
+                  {JOB_DECISION_V2_DIMENSIONS_DETAILS}
+                </p>
                 <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">
                   {JOB_DECISION_V2_DIMENSIONS}
                 </p>
