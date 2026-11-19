@@ -160,6 +160,16 @@ function queueNextActionCopy(input: {
   return JOB_QUEUE_NEXT_OPEN_DETAIL;
 }
 
+/** Connected, enabled control suitable for keyboard return focus in the Oportunidades queue. */
+function isOpportunityQueueControlActionable(el: HTMLElement | null): el is HTMLElement {
+  if (!el || !el.isConnected) return false;
+  if (el.hasAttribute("disabled") || el.getAttribute("aria-disabled") === "true") return false;
+  if (el.getAttribute("aria-hidden") === "true") return false;
+  const style = window.getComputedStyle(el);
+  if (style.display === "none" || style.visibility === "hidden") return false;
+  return true;
+}
+
 const fieldClass = applyFlowControlClass;
 
 function JobMatchSkillLine({ job }: { job: ApplyFlowJob }) {
@@ -996,18 +1006,70 @@ export function JobInboxPanel({
   }, [focus, queueView, queueSort, decisionFilter, sourceFilter]);
 
   useEffect(() => {
-    if (focus !== "queue") return;
+    if (focus !== "queue" || !queueFiltersHydrated.current) return;
     const anchorId = pendingAnchorRef.current;
     if (!anchorId) return;
-    pendingAnchorRef.current = null;
-    // Consume once: if the job left the filter, keep filters and land at a stable list top.
-    consumeOpportunityQueueAnchor();
+
+    // Wait until React filter state matches the saved nav snapshot so we do not
+    // focus/consume against the pre-hydrate list (which can still show the card).
+    const saved = readOpportunityQueueNavState();
+    if (
+      saved &&
+      (saved.view !== queueView ||
+        saved.sort !== queueSort ||
+        saved.decision !== decisionFilter ||
+        saved.source !== sourceFilter)
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let userInteracted = false;
+    const noteUserInteraction = (event: Event) => {
+      if (!event.isTrusted) return;
+      userInteracted = true;
+    };
+    window.addEventListener("pointerdown", noteUserInteraction, true);
+    window.addEventListener("keydown", noteUserInteraction, true);
+
     const frame = window.requestAnimationFrame(() => {
+      if (cancelled) return;
+      if (pendingAnchorRef.current !== anchorId) return;
+      pendingAnchorRef.current = null;
+      // Consume once: if the job left the filter, keep filters and fall back to a queue control.
+      consumeOpportunityQueueAnchor();
+
+      const cta = document.querySelector<HTMLElement>(`[data-testid="job-inbox-primary-cta-${anchorId}"]`);
       const card = document.querySelector<HTMLElement>(`[data-testid="job-inbox-card-${anchorId}"]`);
-      card?.scrollIntoView({ block: "center", behavior: "smooth" });
+      const decisionFilterEl = document.querySelector<HTMLElement>('[data-testid="job-queue-filter-decision"]');
+
+      const ctaActionable = isOpportunityQueueControlActionable(cta);
+      if (ctaActionable && document.activeElement === cta) {
+        cta.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return;
+      }
+      if (userInteracted) {
+        card?.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+      if (ctaActionable) {
+        cta.focus({ preventScroll: true });
+        cta.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+      if (isOpportunityQueueControlActionable(decisionFilterEl)) {
+        decisionFilterEl.focus({ preventScroll: true });
+        decisionFilterEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     });
-    return () => window.cancelAnimationFrame(frame);
-  }, [focus, visibleJobs]);
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("pointerdown", noteUserInteraction, true);
+      window.removeEventListener("keydown", noteUserInteraction, true);
+    };
+  }, [focus, visibleJobs, queueView, queueSort, decisionFilter, sourceFilter]);
 
   const emptyMessage =
     visibleJobs.length === 0
