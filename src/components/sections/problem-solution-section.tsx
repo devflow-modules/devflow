@@ -1,13 +1,13 @@
 const before = [
-  "Conversas sem dono claro",
-  "Contexto espalhado no celular",
-  "Retorno dependente da memória de quem atendeu",
+  "Várias pessoas no mesmo celular, sem dono da conversa",
+  "Histórico espalhado e difícil de retomar",
+  "Ninguém sabe o que ficou pendente no fim do dia",
 ];
 
 const after = [
-  "Responsável visível",
-  "Fila e contexto compartilhados",
-  "Handoff com histórico da conversa",
+  "O time sabe quem está atendendo cada conversa",
+  "Fila e histórico na mesma inbox da equipe",
+  "Pendências visíveis para quem precisa responder",
 ];
 
 export function ProblemSolutionSection() {
@@ -16,17 +16,20 @@ export function ProblemSolutionSection() {
       <div className="df-v2-container grid gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
           <h2 id="problem-solution-heading" className="df-v2-h2 text-balance">
-            Quando todo mundo atende, quem é responsável pela conversa?
+            Quando todo mundo atende, quem responde o cliente?
           </h2>
         </div>
         <div className="lg:col-span-7">
           <p className="df-v2-lead">
-            Sem um dono, a mensagem fica no volume. A DevFlow trata isso como operação: alguém assume, a fila mostra
-            o que está parado e o histórico não fica só com uma pessoa.
+            Sem dono claro, a mensagem some no volume. A DevFlow organiza o atendimento: alguém assume, a fila mostra
+            o que está parado e o histórico fica com a equipe — não só no celular de uma pessoa.
           </p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             <div>
-              <h3 id="problem-block-heading" className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-muted)]">
+              <h3
+                id="problem-block-heading"
+                className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-muted)]"
+              >
                 Antes
               </h3>
               <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--df-v2-ink-soft)]" role="list">
@@ -36,7 +39,10 @@ export function ProblemSolutionSection() {
               </ul>
             </div>
             <div>
-              <h3 id="solution-block-heading" className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-brand)]">
+              <h3
+                id="solution-block-heading"
+                className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--df-v2-brand)]"
+              >
                 Com a DevFlow
               </h3>
               <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[var(--df-v2-ink)]" role="list">

@@ -5,8 +5,8 @@ import { ArrowRight } from "lucide-react";
 import { trackCtaWhatsAppClick, trackFunnelCtaClick, trackHomeCta } from "@/lib/analytics";
 import {
   HERO_TRUST_SIGNALS,
+  HOME_CONVERT_CTA_LABEL,
   HOME_DEMO_CTA_LABEL,
-  PRIMARY_CONVERT_CTA_LABEL,
   PRIMARY_CONVERT_HREF,
   PRIMARY_DEMO_HREF,
   PRODUCT_LIVE_HINT,
@@ -27,39 +27,39 @@ export function HeroV2() {
       <div className="df-v2-container grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-6">
           <p className="text-[13px] font-semibold tracking-[0.04em] text-[var(--df-v2-brand)]">
-            Operação de atendimento no WhatsApp
+            Para quem opera o atendimento no WhatsApp
           </p>
-          <h1 id="hero-heading" className="df-v2-h1 mt-4 max-w-[14ch] text-balance">
-            Organize cada conversa. Saiba quem está cuidando dela.
+          <h1 id="hero-heading" className="df-v2-h1 mt-4 max-w-[16ch] text-balance">
+            Organize o atendimento da sua equipe no WhatsApp
           </h1>
           <p className="df-v2-lead mt-5 max-w-[38rem]">
-            A equipe deixa de atender espalhada no celular. A DevFlow coloca dono, fila e contexto na mesma
-            operação, com a API oficial da Meta, sem trocar os sistemas que vocês já usam.
+            Distribua conversas, saiba quem atende cada cliente e acompanhe o que ficou pendente — na mesma inbox,
+            com a API oficial da Meta, sem trocar os sistemas que vocês já usam.
           </p>
 
           <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <Link
-              href={PRIMARY_CONVERT_HREF}
-              onClick={() => {
-                trackHomeCta("hero_agendar_diagnostico");
-                trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "hero_primary" });
-              }}
-              aria-label="Agendar diagnóstico da operação no WhatsApp"
-              className="df-btn-primary min-h-12 px-5 text-sm font-semibold sm:min-w-52"
-            >
-              {PRIMARY_CONVERT_CTA_LABEL}
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-            <Link
               href={PRIMARY_DEMO_HREF}
               onClick={() => {
                 trackHomeCta("hero_ver_demo");
-                trackFunnelCtaClick({ cta: "ver_demo_guiada", surface: "hero_secondary" });
+                trackFunnelCtaClick({ cta: "ver_demo_guiada", surface: "hero_primary" });
               }}
               aria-label="Ver demonstração guiada de atendimento no WhatsApp"
-              className="df-btn-secondary min-h-12 px-5 text-sm font-semibold"
+              className="df-btn-primary min-h-12 px-5 text-sm font-semibold sm:min-w-52"
             >
               {HOME_DEMO_CTA_LABEL}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+            <Link
+              href={PRIMARY_CONVERT_HREF}
+              onClick={() => {
+                trackHomeCta("hero_agendar_diagnostico");
+                trackFunnelCtaClick({ cta: "agendar_diagnostico", surface: "hero_secondary" });
+              }}
+              aria-label="Solicitar diagnóstico da operação no WhatsApp"
+              className="df-btn-secondary min-h-12 px-5 text-sm font-semibold"
+            >
+              {HOME_CONVERT_CTA_LABEL}
             </Link>
           </div>
           <p className="mt-4">
@@ -83,7 +83,10 @@ export function HeroV2() {
             </a>
           </p>
           <p className="mt-3 text-sm text-[var(--df-v2-muted)]">{PRODUCT_LIVE_HINT}</p>
-          <ul className="mt-6 flex flex-col gap-2 text-sm text-[var(--df-v2-ink-soft)] sm:flex-row sm:flex-wrap sm:gap-x-4" role="list">
+          <ul
+            className="mt-6 flex flex-col gap-2 text-sm text-[var(--df-v2-ink-soft)] sm:flex-row sm:flex-wrap sm:gap-x-4"
+            role="list"
+          >
             {HERO_TRUST_SIGNALS.map((signal) => (
               <li key={signal}>{signal}</li>
             ))}

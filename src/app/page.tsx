@@ -87,7 +87,7 @@ export default function Home() {
 
       <ProductStories />
 
-      <HowItWorksHub />
+      <HowItWorksHub variant="summary" />
 
       <WhatsAppProductSection />
 

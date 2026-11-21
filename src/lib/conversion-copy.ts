@@ -3,8 +3,11 @@
 /** Demo guiada no portal (`/demo`). */
 export const PRIMARY_DEMO_HREF = "/demo";
 export const PRIMARY_DEMO_CTA_LABEL = "Ver demo guiada";
-/** Home: secundário mais curto. As outras páginas mantêm `PRIMARY_DEMO_CTA_LABEL`. */
-export const HOME_DEMO_CTA_LABEL = "Ver demo";
+/** Home / Como funciona: descoberta da plataforma (CTA visual primário). */
+export const HOME_DEMO_CTA_LABEL = "Ver demonstração";
+
+/** Página dedicada às quatro etapas de implantação. */
+export const COMO_FUNCIONA_HREF = "/como-funciona";
 
 /** WhatsApp — baixa fricção quando o bloco já tem demo como primário. */
 export const QUICK_WHATSAPP_CTA_LABEL = "Falar no WhatsApp";
@@ -22,8 +25,10 @@ export const NICHE_RESOLVER_NEGOCIO_CTA_LABEL = "Resolver isso no meu negócio";
 export const NICHE_VER_FLUXO_COMPLETO_CTA_LABEL = "Ver fluxo completo";
 export const NICHE_QUERO_NO_MEU_NEGOCIO_CTA_LABEL = "Quero isso no meu negócio";
 
-/** CTA primário da oferta consultiva. */
+/** CTA da oferta consultiva (destino `/contato`). */
 export const PRIMARY_CONVERT_CTA_LABEL = "Agendar diagnóstico";
+/** Home / Como funciona: caminho secundário para quem já quer discutir a operação. */
+export const HOME_CONVERT_CTA_LABEL = "Solicitar diagnóstico";
 export const PRIMARY_CONVERT_HREF = "/contato";
 
 /** Header: CTA principal (desktop + mobile). */
@@ -47,8 +52,8 @@ export const ECOSYSTEM_PRODUCTS_DESCRIPTION =
 /** Sinais técnicos do hero — capacidades da oferta, sem resultado de cliente. */
 export const HERO_TRUST_SIGNALS = [
   "WhatsApp Cloud API oficial",
-  "Inbox para a equipe",
-  "Handoff para uma pessoa",
+  "Inbox da equipe",
+  "Responsável por conversa",
   "Implementação acompanhada",
 ] as const;
 
