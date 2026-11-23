@@ -94,7 +94,11 @@ export function assessJobDescriptionQuality(
   return { status: signals.length > 0 ? "partial" : "complete", signals, length: trimmed.length };
 }
 
-/** Partial in a way that hides requirements — not merely cut at the storage limit. */
+/**
+ * Any partial/unavailable signal means the engine cannot see a trustworthy full
+ * requirements section — including a hard cut at the storage limit, where
+ * knockouts may sit after the retained prefix.
+ */
 export function hidesRequirements(quality: JobDescriptionQuality): boolean {
-  return quality.signals.some((signal) => signal !== "truncated_at_limit");
+  return quality.status !== "complete";
 }

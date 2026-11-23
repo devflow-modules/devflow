@@ -25,6 +25,7 @@ import {
   type NetworkingStrategy,
   type OpportunityAvailabilityStatus,
 } from "./networking-strategy.js";
+import { snapshotJobDescription } from "./job-description-snapshot.js";
 import { normalizeRecommendedCases } from "./recommended-cases.js";
 import { INITIAL_SAVED_JOB_STATUS } from "./opportunity-queue.js";
 
@@ -344,7 +345,7 @@ export function importOpportunityPipeline(
         skills: [],
         ...(Object.keys(networking).length ? { networking } : {}),
       },
-      descriptionSnapshot: description.slice(0, 20_000),
+      descriptionSnapshot: snapshotJobDescription(description) || undefined,
       jobMatch: {
         score: seed.matchScore,
         decision: seed.decision,

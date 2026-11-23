@@ -353,9 +353,6 @@ export function evaluateJobDecisionV2(input: {
       decision = "needs_info";
       reasons = [partialDescriptionReason(descriptionQuality)];
     }
-  } else if (descriptionQuality.status === "partial" && confidence === "high") {
-    confidence = "medium";
-    reasons = [...reasons, "A descrição atingiu o limite de armazenamento; requisitos no fim do anúncio podem não ter sido avaliados."];
   }
   const eligibility = input.profile
     ? assessJobEligibility(input.profile, jobText, { title: input.jobTitle, location: input.jobLocation })

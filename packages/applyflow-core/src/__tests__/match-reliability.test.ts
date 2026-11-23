@@ -75,13 +75,101 @@ describe("2. full description", () => {
     expect(decision.reasons.join(" ")).toMatch(/API integrations/);
   });
 
-  it("caps confidence when the stored text reached the snapshot limit", () => {
+  it("does not recommend apply when the stored text reached the snapshot limit", () => {
     const long = `${fx.SENIORITY_BODY}\n${"Context paragraph about the team and product. ".repeat(400)}`;
     const snapshot = snapshotJobDescription(long) ?? "";
     expect(snapshot.length).toBe(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
     const decision = decide(snapshot, { jobTitle: fx.SENIOR_TITLE });
     expect(decision.descriptionQuality?.signals).toContain("truncated_at_limit");
-    expect(decision.confidence).not.toBe("high");
+    expect(decision.decision).toBe("needs_info");
+    expect(decision.confidence).toBe("low");
+    expect(decision.reasons.join(" ")).toMatch(/limite de armazenamento/);
+  });
+
+  it("keeps knockouts after the cut from producing a positive recommendation", () => {
+    const prefix =
+      "Senior Software Engineer\nRemote - Brazil.\nRequirements: React, TypeScript, Node.js, PostgreSQL. 5+ years.\n";
+    const filler = "Company culture paragraph about benefits and values. ".repeat(200);
+    const tail = "\nMust have 10 years Elixir and Kubernetes experience. Applicants must reside in the United States only.";
+    const snapshot = snapshotJobDescription(`${prefix}${filler}${tail}`) ?? "";
+    expect(snapshot.length).toBe(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    expect(snapshot).not.toMatch(/Elixir/);
+    const decision = decide(snapshot, { jobTitle: fx.SENIOR_TITLE });
+    expect(decision.decision).toBe("needs_info");
+    expect(decision.decision).not.toMatch(/^apply_/);
+  });
+});
+
+describe("descriptionQuality contract edges", () => {
+  it("treats a long benefits-only posting as partial, not complete", () => {
+    const text = "About Acme\nRemote - Brazil.\nBenefits: equity, stipend, unlimited PTO.\n".repeat(40);
+    expect(text.length).toBeGreaterThan(800);
+    const quality = assessJobDescriptionQuality(text, { technicalRequirementCount: 0 });
+    expect(quality.status).toBe("partial");
+    expect(quality.signals).toContain("insufficient_requirements");
+    expect(decide(text, { jobTitle: fx.SENIOR_TITLE }).decision).toBe("needs_info");
+  });
+
+  it("accepts a short structured posting with explicit technical requirements as complete", () => {
+    const text =
+      "Senior Backend Engineer\nRemote - Brazil.\nRequirements:\n- 5+ years Node.js and TypeScript\n- PostgreSQL and Redis\n";
+    const decision = decide(text, { jobTitle: "Senior Backend Engineer" });
+    expect(decision.descriptionQuality?.status).toBe("complete");
+    expect(decision.descriptionQuality?.signals).toEqual([]);
+    expect(decision.matches.filter((item) => item.requirement.requirementType === "skill").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("flags a legacy operator excerpt that only keeps the source link", () => {
+    const legacy = "Forward Deployed Engineer\nRemote LATAM\n[Fonte original: https://example.com/jobs/fde-1]";
+    const quality = assessJobDescriptionQuality(legacy, { technicalRequirementCount: 0 });
+    expect(quality.signals).toEqual(expect.arrayContaining(["source_excerpt_marker", "insufficient_requirements"]));
+    expect(hidesRequirements(quality)).toBe(true);
+  });
+
+  it("marks exactly 8000 characters as truncated_at_limit", () => {
+    const exact = "a".repeat(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    expect(exact.length).toBe(8000);
+    expect(assessJobDescriptionQuality(exact, { maxChars: JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS }).signals).toContain(
+      "truncated_at_limit",
+    );
+  });
+
+  it("hard-cuts text above 8000 and roundtrips through storage validation", () => {
+    const over = `Senior Software Engineer\nRemote - Brazil.\nReact TypeScript Node.js.\n${"Benefits line. ".repeat(700)}`;
+    expect(over.length).toBeGreaterThan(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    const snapshot = snapshotJobDescription(over);
+    expect(snapshot.length).toBe(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    expect(
+      assessJobDescriptionQuality(snapshot, {
+        maxChars: JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS,
+        technicalRequirementCount: 3,
+      }).signals,
+    ).toContain("truncated_at_limit");
+  });
+
+  it("rejects a raw >8k snapshot that bypassed the canonical cutter", async () => {
+    const { parseStoredApplyFlowJob } = await import("../imported-job-schema.js");
+    const raw = {
+      id: "job_oversize",
+      title: "Senior Software Engineer",
+      company: "Acme",
+      source: "json",
+      status: "reviewing",
+      url: "https://example.com/j",
+      descriptionSnapshot: "x".repeat(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS + 1),
+      jobContext: { skills: [] },
+      jobMatch: {
+        score: 50,
+        decision: "needs_info",
+        matchedSkills: [],
+        missingSkills: [],
+        evaluatedAt: "2026-11-23T12:00:00.000Z",
+        scoringVersion: "v1",
+      },
+      createdAt: "2026-11-23T12:00:00.000Z",
+      updatedAt: "2026-11-23T12:00:00.000Z",
+    };
+    expect(parseStoredApplyFlowJob(raw)).toBeNull();
   });
 });
 
@@ -206,6 +294,42 @@ describe("11. unknown vs unmet", () => {
     expect(quality.status).toBe("complete");
     expect(hidesRequirements(quality)).toBe(false);
     expect(assessJobDescriptionQuality("", {}).status).toBe("unavailable");
+  });
+});
+
+describe("pipeline snapshot contract", () => {
+  it("uses the canonical 8k snapshot instead of a 20k raw slice", async () => {
+    const { importOpportunityPipeline } = await import("../opportunity-pipeline-import.js");
+    const { parseStoredApplyFlowJob } = await import("../imported-job-schema.js");
+    const long = `Senior Software Engineer\nRemote - Brazil.\nReact TypeScript Node.js PostgreSQL.\n${"Benefits line. ".repeat(700)}`;
+    expect(long.length).toBeGreaterThan(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    const result = importOpportunityPipeline({
+      version: 1,
+      kind: "applyflow-opportunity-pipeline",
+      opportunities: [
+        {
+          company: "Acme",
+          role: "Senior Software Engineer",
+          location: "Remote - Brazil",
+          url: "https://example.com/jobs/acme-1",
+          description: long,
+          matchScore: 70,
+          decision: "stretch",
+        },
+      ],
+    });
+    expect(result.ok).toBe(true);
+    const job = result.jobs[0];
+    expect(job?.descriptionSnapshot?.length).toBe(JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS);
+    expect(parseStoredApplyFlowJob(job)).not.toBeNull();
+  });
+});
+
+describe("RabbitMQ skill extraction", () => {
+  it("recognizes rabbitmq (not a mistyped pattern)", () => {
+    const text = "Senior Backend Engineer\nRemote - Brazil.\nStack: Node.js, TypeScript, RabbitMQ, PostgreSQL.";
+    const labels = extractJobRequirements(text).map((item) => item.label);
+    expect(labels).toEqual(expect.arrayContaining(["RabbitMQ", "Node.js", "TypeScript", "PostgreSQL"]));
   });
 });
 
