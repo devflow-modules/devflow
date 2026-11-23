@@ -56,6 +56,13 @@ function withSkills(overrides: Partial<CandidateProfile["skills"]>): CandidatePr
 }
 
 function frontendProfile(): CandidateProfile {
+  return validateCandidateProfile({
+    ...frontendSkills(),
+    roles: ["Frontend React/Next.js"],
+  });
+}
+
+function frontendSkills(): CandidateProfile {
   return withSkills({
     Nodejs: 0,
     Python: 0,

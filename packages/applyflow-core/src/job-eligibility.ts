@@ -1,4 +1,6 @@
+import { normalizeJobDescriptionEncoding } from "./job-description-quality.js";
 import { normalizeJobTextForIntel } from "./job-intelligence.js";
+import { postingSeniority, type PostingSeniority, type RoleLevel } from "./job-seniority.js";
 import { profileLocation, type CandidateProfile, type RemotePreference } from "./profile-schema.js";
 
 /**
@@ -64,6 +66,7 @@ const LATAM = new Set([
 ]);
 
 const EUROPE = new Set([
+  "Finland",
   "France",
   "Germany",
   "Ireland",
@@ -71,10 +74,26 @@ const EUROPE = new Set([
   "Netherlands",
   "Poland",
   "Portugal",
+  "Romania",
   "Spain",
   "Sweden",
   "United Kingdom",
 ]);
+
+const SOUTH_AMERICA = new Set([
+  "Argentina",
+  "Bolivia",
+  "Brazil",
+  "Chile",
+  "Colombia",
+  "Ecuador",
+  "Paraguay",
+  "Peru",
+  "Uruguay",
+  "Venezuela",
+]);
+
+const NORTH_AMERICA = new Set(["United States", "Canada", "Mexico"]);
 
 const COUNTRY_NAMES: { id: string; names: string[] }[] = [
   { id: "Brazil", names: ["brazil", "brasil"] },
@@ -86,18 +105,52 @@ const COUNTRY_NAMES: { id: string; names: string[] }[] = [
   { id: "Mexico", names: ["mexico"] },
   { id: "Chile", names: ["chile"] },
   { id: "Colombia", names: ["colombia"] },
+  { id: "Uruguay", names: ["uruguay"] },
+  { id: "Peru", names: ["peru"] },
+  { id: "Canada", names: ["canada"] },
   { id: "Portugal", names: ["portugal"] },
   { id: "Spain", names: ["spain", "espana"] },
   { id: "France", names: ["france"] },
+  { id: "Netherlands", names: ["netherlands"] },
+  { id: "Poland", names: ["poland"] },
+  { id: "Romania", names: ["romania"] },
+  { id: "Finland", names: ["finland"] },
   { id: "United Kingdom", names: ["united kingdom", "uk"] },
   { id: "Ireland", names: ["ireland"] },
 ];
 
+/** Adjective and city forms that name exactly one country. */
+const COUNTRY_ALIASES: { id: string; pattern: RegExp }[] = [
+  { id: "Brazil", pattern: /\bbrazilian (?:city|state|resident|territory)\b|\bbrazil-based\b/ },
+];
+
+type Region = "LATAM" | "South America" | "North America" | "Europe";
+
+const REGION_MEMBERS: Record<Region, Set<string>> = {
+  LATAM,
+  "South America": SOUTH_AMERICA,
+  "North America": NORTH_AMERICA,
+  Europe: EUROPE,
+};
+
+const REGION_NAMES: { id: Region; pattern: string }[] = [
+  { id: "LATAM", pattern: "latam|latin america|america latina|latinoamerica" },
+  { id: "South America", pattern: "south america|america do sul|sudamerica" },
+  { id: "North America", pattern: "north america" },
+  { id: "Europe", pattern: "europe|the european union|european union|the eu" },
+];
+
 type GeoConstraint =
-  | { kind: "worldwide" }
-  | { kind: "region"; region: "LATAM" | "Europe" }
-  | { kind: "countries"; countries: string[] }
-  | { kind: "unstated" };
+  | { kind: "worldwide"; excluded: string[] }
+  | { kind: "places"; countries: string[]; regions: Region[]; excluded: string[] }
+  | { kind: "unstated"; excluded: string[] };
+
+export type JobEligibilityOptions = {
+  /** Posting title from a structured field. Preferred over titles quoted in the body. */
+  title?: string;
+  /** Posting location from a structured field (ATS metadata). */
+  location?: string;
+};
 
 export function eligibilitySortRank(status: EligibilityStatus | undefined): number {
   if (status === "eligible") return 0;
@@ -143,11 +196,16 @@ export function canonicalizeCandidateLocation(raw: string | undefined): Canonica
   };
 }
 
-export function assessJobEligibility(profile: CandidateProfile, jobText: string): JobEligibility {
+export function assessJobEligibility(
+  profile: CandidateProfile,
+  jobText: string,
+  options: JobEligibilityOptions = {},
+): JobEligibility {
+  const text = normalizeJobDescriptionEncoding(jobText);
   const findings = [
-    locationFinding(profile, jobText),
-    workModeFinding(profile, jobText),
-    ...seniorityFindings(profile, jobText),
+    locationFinding(profile, text, options),
+    workModeFinding(profile, text, options),
+    ...seniorityFindings(profile, text, options),
   ].filter((item): item is EligibilityFinding => item !== undefined);
 
   return { status: aggregate(findings), findings };
@@ -160,12 +218,21 @@ function aggregate(findings: readonly EligibilityFinding[]): EligibilityStatus {
   return "eligible";
 }
 
-function locationFinding(profile: CandidateProfile, jobText: string): EligibilityFinding | undefined {
+function locationFinding(
+  profile: CandidateProfile,
+  jobText: string,
+  options: JobEligibilityOptions,
+): EligibilityFinding | undefined {
   const text = withoutEmployerLocation(fold(jobText));
   const place = canonicalizeCandidateLocation(profile.facts ? profileLocation(profile) : profile.location);
   const relocation = relocationRequirement(text);
-  const geo = geographicConstraint(text);
-  const geoFinding = geographicFinding(geo, place);
+  const textGeo = geographicConstraint(text, locationLines(jobText));
+  const metadata = options.location?.trim();
+  const metadataGeo = metadata ? constraintFromLocationField(metadata) : undefined;
+  const geoFinding = withTimezone(
+    reconcileGeography(textGeo, metadataGeo, metadata, place, jobText),
+    timezoneRequirement(text),
+  );
   if (geoFinding.status === "ineligible") return geoFinding;
 
   if (relocation === "required" && profile.facts?.relocation !== true) {
@@ -193,6 +260,15 @@ function geographicFinding(
   geo: GeoConstraint,
   place: CanonicalCandidateLocation | undefined,
 ): EligibilityFinding {
+  if (place?.country && geo.excluded.includes(place.country)) {
+    return {
+      dimension: "location",
+      status: "ineligible",
+      reason: `A vaga exclui explicitamente ${place.country}.`,
+      evidence: [`excluded: ${geo.excluded.join(", ")}`],
+    };
+  }
+
   if (geo.kind === "unstated") {
     return {
       dimension: "location",
@@ -206,8 +282,11 @@ function geographicFinding(
     return {
       dimension: "location",
       status: "eligible",
-      reason: "A vaga aceita trabalho remoto mundial. A sede do empregador não foi tratada como restrição.",
-      evidence: ["worldwide"],
+      reason:
+        geo.excluded.length > 0
+          ? `A vaga aceita trabalho remoto mundial, exceto ${geo.excluded.join(", ")}.`
+          : "A vaga aceita trabalho remoto mundial. A sede do empregador não foi tratada como restrição.",
+      evidence: ["worldwide", ...geo.excluded.map((item) => `excluded: ${item}`)],
     };
   }
 
@@ -220,42 +299,91 @@ function geographicFinding(
     };
   }
 
-  if (geo.kind === "region") {
-    const allowed = geo.region === "LATAM" ? LATAM : EUROPE;
-    if (allowed.has(place.country)) {
-      return {
-        dimension: "location",
-        status: "eligible",
-        reason: `O local do perfil (${place.country}) está na região exigida (${geo.region}).`,
-        evidence: [geo.region],
-      };
-    }
-    return {
-      dimension: "location",
-      status: "ineligible",
-      reason: `A vaga restringe candidatos a ${geo.region}. O local do perfil é ${place.country}.`,
-      evidence: [geo.region, place.country],
-    };
-  }
-
-  if (geo.countries.includes(place.country)) {
+  const allowedLabels = [...geo.countries, ...geo.regions];
+  const byCountry = geo.countries.includes(place.country);
+  const byRegion = geo.regions.find((region) => REGION_MEMBERS[region].has(place.country as string));
+  if (byCountry || byRegion) {
     return {
       dimension: "location",
       status: "eligible",
-      reason: `O local do perfil (${place.country}) atende a restrição geográfica da vaga.`,
-      evidence: geo.countries,
+      reason: byCountry
+        ? `O local do perfil (${place.country}) atende a restrição geográfica da vaga.`
+        : `O local do perfil (${place.country}) está na região exigida (${byRegion}).`,
+      evidence: allowedLabels,
     };
   }
   return {
     dimension: "location",
     status: "ineligible",
-    reason: `A vaga restringe o local a ${geo.countries.join(", ")}. O local do perfil é ${place.country}.`,
-    evidence: [...geo.countries, place.country],
+    reason:
+      geo.countries.length === 0 && geo.regions.length === 1
+        ? `A vaga restringe candidatos a ${geo.regions[0]}. O local do perfil é ${place.country}.`
+        : `A vaga restringe o local a ${allowedLabels.join(", ")}. O local do perfil é ${place.country}.`,
+    evidence: [...allowedLabels, place.country],
   };
 }
 
-function workModeFinding(profile: CandidateProfile, jobText: string): EligibilityFinding | undefined {
-  const mode = detectWorkMode(fold(jobText));
+/**
+ * Text and ATS metadata are separate sources. Agreement keeps the result; a
+ * disagreement, or remote metadata against an office requirement in the text,
+ * stays unknown and asks for confirmation.
+ */
+function reconcileGeography(
+  textGeo: GeoConstraint,
+  metadataGeo: GeoConstraint | undefined,
+  metadata: string | undefined,
+  place: CanonicalCandidateLocation | undefined,
+  jobText: string,
+): EligibilityFinding {
+  const fromText = geographicFinding(textGeo, place);
+  if (!metadata || !metadataGeo) return fromText;
+
+  const office = officeRequirement(fold(jobText));
+  if (office && /\bremote\b/.test(fold(metadata)) && !/\bhybrid|on-?site|office\b/.test(fold(metadata))) {
+    return {
+      dimension: "location",
+      status: "unknown",
+      reason: `Os metadados indicam remoto (${metadata}), mas o texto exige presença em escritório (${office}). Confirmação necessária.`,
+      evidence: [`metadata: ${metadata}`, `text: ${office}`],
+      requiresConfirmation: true,
+    };
+  }
+
+  const fromMetadata = geographicFinding(metadataGeo, place);
+  if (textGeo.kind === "unstated" && textGeo.excluded.length === 0) {
+    return {
+      ...fromMetadata,
+      reason: `${fromMetadata.reason} Fonte: localização estruturada da vaga (${metadata}).`,
+      evidence: [...(fromMetadata.evidence ?? []), `metadata: ${metadata}`],
+    };
+  }
+  if (metadataGeo.kind === "unstated" || fromText.status === fromMetadata.status) return fromText;
+  if (fromText.status === "ineligible" && textGeo.excluded.length > 0) return fromText;
+  return {
+    dimension: "location",
+    status: "unknown",
+    reason: `Texto e metadados de localização divergem (texto: ${fromText.status}; metadados: ${metadata}). Confirmação necessária.`,
+    evidence: [...(fromText.evidence ?? []), `metadata: ${metadata}`],
+    requiresConfirmation: true,
+  };
+}
+
+function withTimezone(finding: EligibilityFinding, timezone: string | undefined): EligibilityFinding {
+  if (!timezone) return finding;
+  return {
+    ...finding,
+    reason: `${finding.reason} Fuso exigido: ${timezone} (disponibilidade de horário é confirmada à parte).`,
+    evidence: [...(finding.evidence ?? []), `timezone: ${timezone}`],
+  };
+}
+
+function workModeFinding(
+  profile: CandidateProfile,
+  jobText: string,
+  options: JobEligibilityOptions,
+): EligibilityFinding | undefined {
+  const textMode = detectWorkMode(fold(jobText));
+  const mode = textMode === "unspecified" && options.location ? detectWorkMode(fold(options.location)) : textMode;
   if (mode === "unspecified") {
     return {
       dimension: "work_mode",
@@ -283,12 +411,16 @@ function workModeFinding(profile: CandidateProfile, jobText: string): Eligibilit
   };
 }
 
-function seniorityFindings(profile: CandidateProfile, jobText: string): EligibilityFinding[] {
+function seniorityFindings(
+  profile: CandidateProfile,
+  jobText: string,
+  options: JobEligibilityOptions,
+): EligibilityFinding[] {
   const text = fold(jobText);
   const findings: EligibilityFinding[] = [];
   const years = recordedCareerYears(profile);
   const minimum = professionalMinimumYears(text);
-  const elevated = elevatedTitle(text);
+  const elevated = elevatedTitle(postingSeniority({ title: options.title, text: jobText }));
 
   if (minimum !== undefined) {
     if (years === undefined) {
@@ -349,39 +481,128 @@ function seniorityFindings(profile: CandidateProfile, jobText: string): Eligibil
 const REMOTE_BASED_IN_PREFIX =
   String.raw`\bremote(?:ly)?(?:\s+(?:role|position|opportunity|job|opening|engineer(?:ing)?|developer)){0,2}\s+(?:based|located)\s+(?:in|within)\s+`;
 
-function geographicConstraint(text: string): GeoConstraint {
+function places(countries: string[], regions: Region[] = []): GeoConstraint {
+  return { kind: "places", countries: [...new Set(countries)], regions: [...new Set(regions)], excluded: [] };
+}
+
+function geographicConstraint(text: string, locationFields: readonly string[] = []): GeoConstraint {
+  const excluded = excludedCountries(text);
+  const stated = statedConstraint(text, locationFields);
+  return { ...stated, excluded: [...new Set([...stated.excluded, ...excluded])] };
+}
+
+function statedConstraint(text: string, locationFields: readonly string[]): GeoConstraint {
   const exclusive = exclusiveConstraint(text);
   if (exclusive) return exclusive;
   const allowed = remoteAllowList(text);
-  if (allowed.length > 0) return { kind: "countries", countries: allowed };
+  if (allowed.length > 0) return places(allowed);
+  for (const field of locationFields) {
+    const fromField = constraintFromLocationField(field);
+    if (fromField.kind !== "unstated") return fromField;
+  }
   if (/\b(worldwide|work from anywhere|anywhere in the world|globally remote)\b/.test(text)) {
-    return { kind: "worldwide" };
+    return { kind: "worldwide", excluded: [] };
   }
-  if (
-    /\bremote(?:ly)?\s+(?:in\s+|within\s+|- )?(?:latam|latin america|america latina)\b/.test(text) ||
-    /\b(?:latam|latin america|america latina) only\b/.test(text) ||
-    /\bmust (?:reside|live|be located|be based) (?:in|within) (?:latam|latin america|america latina)\b/.test(text) ||
-    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:latam|latin america|america latina)\\b`).test(text)
-  ) {
-    return { kind: "region", region: "LATAM" };
+  const regions = REGION_NAMES.filter((region) => regionStated(text, region.pattern)).map((region) => region.id);
+  const countries = COUNTRY_NAMES.filter((country) => country.names.some((name) => countryStated(text, name))).map(
+    (country) => country.id,
+  );
+  for (const alias of COUNTRY_ALIASES) {
+    if (alias.pattern.test(text)) countries.push(alias.id);
   }
-  if (
-    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:europe|the european union|the eu|european union)\\b`).test(text)
-  ) {
-    return { kind: "region", region: "Europe" };
+  if (regions.length > 0 || countries.length > 0) return places(countries, regions);
+  return { kind: "unstated", excluded: [] };
+}
+
+const PLACE_PREPOSITION = String.raw`(?:in\s+|within\s+|across\s+|from\s+|- |-|,\s*|\(\s*|:\s*|\|\s*)?(?:the\s+)?`;
+
+function regionStated(text: string, pattern: string): boolean {
+  const name = `(?:${pattern})`;
+  return [
+    new RegExp(`\\bremote(?:ly)?\\s*${PLACE_PREPOSITION}${name}\\b`),
+    new RegExp(`\\b${name}\\s*(?:[,(|-]\\s*)?\\(?\\s*remote\\b`),
+    new RegExp(`\\b${name} only\\b`),
+    new RegExp(`\\bmust (?:reside|live|be located|be based) (?:in|within) (?:the\\s+)?${name}\\b`),
+    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:the\\s+)?${name}\\b`),
+    new RegExp(
+      `\\b(?:candidates|applicants|engineers|people|talent)\\s+(?:based|located|living|residing)\\s+(?:in|within|across)\\s+(?:the\\s+)?${name}\\b`,
+    ),
+  ].some((rx) => rx.test(text));
+}
+
+function countryStated(text: string, name: string): boolean {
+  const escaped = escapeRegExp(name);
+  return [
+    new RegExp(`\\b(?:remoto|remote)(?:ly)?\\s*${PLACE_PREPOSITION}${escaped}\\b`),
+    new RegExp(`\\b${escaped}\\s*(?:[,(|-]\\s*)?\\(?\\s*(?:remote|remoto)\\b`),
+    new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:the\\s+)?${escaped}\\b`),
+    new RegExp(
+      `\\b(?:must be|candidates|applicants|you are|you're|you must be)\\s+(?:based|located|residing) in (?:the\\s+)?${escaped}\\b`,
+    ),
+  ].some((rx) => rx.test(text));
+}
+
+/** "Location: Remote (Brazil) · Reporting To: …" lines, read before whitespace folding. */
+function locationLines(jobText: string): string[] {
+  const out: string[] = [];
+  for (const line of jobText.split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:job\s+)?(?:location|localiza[cç][aã]o|local)\s*:\s*(.+)$/i);
+    const value = match?.[1]?.split(/[·•]/)[0]?.trim();
+    if (value) out.push(value);
+  }
+  return out;
+}
+
+/** Parses a structured location value such as "Remote - North America - South America" or "Recife, Brazil". */
+function constraintFromLocationField(raw: string): GeoConstraint {
+  const folded = fold(raw);
+  if (!folded) return { kind: "unstated", excluded: [] };
+  const excluded = excludedCountries(folded);
+  const withoutExclusions = folded.replace(/\((?:excluding|except)[^)]*\)|\b(?:excluding|except)\b.*$/g, " ");
+  if (/\b(worldwide|anywhere|global(?:ly)?)\b/.test(withoutExclusions)) return { kind: "worldwide", excluded };
+  const regions = REGION_NAMES.filter((region) => new RegExp(`\\b(?:${region.pattern})\\b`).test(withoutExclusions)).map(
+    (region) => region.id,
+  );
+  const countries = COUNTRY_NAMES.filter((country) =>
+    country.names.some((name) => new RegExp(`\\b${escapeRegExp(name)}\\b`).test(withoutExclusions)),
+  ).map((country) => country.id);
+  const tokens = withoutExclusions.split(/[,/;|()]|\s-\s/).map((token) => token.trim()).filter(Boolean);
+  if (tokens.some((token) => BRAZIL_STATE_NAMES[token] || BRAZIL_STATE_CODES.has(token))) countries.push("Brazil");
+  if (regions.length === 0 && countries.length === 0) return { kind: "unstated", excluded };
+  return { ...places(countries, regions), excluded };
+}
+
+function excludedCountries(text: string): string[] {
+  const out: string[] = [];
+  const lists = text.matchAll(
+    /\b(?:excluding|except(?:\s+for)?|other than|not (?:available|open|eligible) (?:in|to candidates in|for candidates in))\s+([a-z][a-z .,]{1,80}?)(?=[).;:]|$)/g,
+  );
+  for (const match of lists) {
+    const list = match[1] ?? "";
+    for (const country of COUNTRY_NAMES) {
+      if (country.names.some((name) => new RegExp(`\\b${escapeRegExp(name)}\\b`).test(list))) out.push(country.id);
+    }
   }
   for (const country of COUNTRY_NAMES) {
     for (const name of country.names) {
-      const escaped = escapeRegExp(name);
-      if (
-        new RegExp(`\\b(?:remoto|remote)(?:ly)?\\s+(?:in\\s+|within\\s+|- )?(?:the\\s+)?${escaped}\\b`).test(text) ||
-        new RegExp(`${REMOTE_BASED_IN_PREFIX}(?:the\\s+)?${escaped}\\b`).test(text)
-      ) {
-        return { kind: "countries", countries: [country.id] };
-      }
+      if (new RegExp(`\\b${escapeRegExp(name)} (?:is )?excluded\\b`).test(text)) out.push(country.id);
     }
   }
-  return { kind: "unstated" };
+  return [...new Set(out)];
+}
+
+/** Office presence the text requires ("hybrid … in our Lisbon office"). */
+function officeRequirement(text: string): string | undefined {
+  if (!/\b(hybrid|hibrido|on-?site|in-office|presencial)\b/.test(text)) return undefined;
+  const office = text.match(/\b(?:in|at|from) our ([a-z][a-z .]{1,40}?) (?:office|offices|hq|headquarters)\b|\boffices? in ([a-z][a-z .,]{1,40}?)(?=[.;]|$)/);
+  return (office?.[1] ?? office?.[2])?.trim();
+}
+
+function timezoneRequirement(text: string): string | undefined {
+  const match = text.match(
+    /\b(?:us|u\.s\.|eastern|pacific|central european|cet|est|pst|brt)\s+(?:business hours|working hours|time ?zones?|hours)\b|\boverlap (?:with )?(?:the )?(?:us|u\.s\.|eastern|pacific)[a-z ]{0,30}\b/,
+  );
+  return match?.[0]?.trim();
 }
 
 function exclusiveConstraint(text: string): GeoConstraint | undefined {
@@ -389,7 +610,7 @@ function exclusiveConstraint(text: string): GeoConstraint | undefined {
     /\b(?:europe|european union|eu) only\b/.test(text) ||
     /\bmust (?:reside|live|be located|be based) (?:in|within) (?:europe|the european union|the eu)\b/.test(text)
   ) {
-    return { kind: "region", region: "Europe" };
+    return places([], ["Europe"]);
   }
   for (const country of COUNTRY_NAMES) {
     for (const name of country.names) {
@@ -405,7 +626,7 @@ function exclusiveConstraint(text: string): GeoConstraint | undefined {
         exclusive.push(/\bus only\b/, /\bus-only\b/);
       }
       if (exclusive.some((pattern) => pattern.test(text))) {
-        return { kind: "countries", countries: [country.id] };
+        return places([country.id]);
       }
     }
   }
@@ -475,13 +696,21 @@ function professionalMinimumYears(text: string): number | undefined {
   return minimum;
 }
 
-function elevatedTitle(text: string): string | undefined {
-  if (/\bengineering manager\b/.test(text)) return "Engineering Manager";
-  if (/\bprincipal engineer\b/.test(text)) return "Principal";
-  if (/\bstaff engineer\b/.test(text)) return "Staff";
-  if (/\bhead of (?:technology|engineering)\b/.test(text)) return "Head";
-  if (/\b(?:tech lead|engineering lead|product engineering lead)\b/.test(text)) return "Lead";
-  return undefined;
+const ELEVATED_LABELS: Partial<Record<RoleLevel, string>> = {
+  manager: "Engineering Manager",
+  principal: "Principal",
+  staff: "Staff",
+  lead: "Lead",
+};
+
+/**
+ * Elevated only when the posting's own title (or a title-like line) says so.
+ * Managers named in responsibilities ("partner with the engineering manager") are ignored.
+ * "Senior / Staff" accepts Senior, so it is not elevated.
+ */
+function elevatedTitle(posted: PostingSeniority): string | undefined {
+  if (posted.level === "unknown") return undefined;
+  return ELEVATED_LABELS[posted.level];
 }
 
 function requiresPeopleManagement(text: string): boolean {

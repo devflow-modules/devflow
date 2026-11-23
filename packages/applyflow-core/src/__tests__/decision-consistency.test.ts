@@ -174,8 +174,9 @@ describe("I20 decision consistency across resume routing", () => {
     const { decision, pack } = evaluate(ENGLISH_POSTGRES_JOB, lib);
 
     expect(pack.evaluatedResumeVariantId).toBe("rv_en");
-    expect(decision.decision).toBe("needs_info");
-    expect(pack.status).toBe("blocked");
+    expect(decision.decision).toBe("apply_normal");
+    expect(decision.matches.find((item) => /postgres/i.test(item.requirement.label))?.status).toBe("unknown");
+    expect(decision.candidateInputRequests.some((item) => /postgres/i.test(item.question))).toBe(true);
     expect(decision).toBe(pack.evaluation);
     const used = usedEvidenceIds(pack, decision.matches);
     expect(used).not.toContain("ev-prospecta-pt");
@@ -209,8 +210,8 @@ describe("I20 decision consistency across resume routing", () => {
     expect(callerDecision.decision).toBe("apply_normal");
     expect(pack.evaluatedResumeVariantId).toBe("rv_en");
     expect(pack.evaluation).not.toBe(callerDecision);
-    expect(pack.evaluation?.decision).toBe("needs_info");
-    expect(pack.status).toBe("blocked");
+    expect(pack.evaluation?.matches.find((item) => /postgres/i.test(item.requirement.label))?.status).toBe("unknown");
+    expect(callerDecision.matches.find((item) => /postgres/i.test(item.requirement.label))?.status).toBe("proven");
     expect(pack.evaluation?.matches.some((item) => item.matchedEvidence.some((ev) => ev.id === "ev-prospecta-pt"))).toBe(false);
   });
 

@@ -2,6 +2,7 @@ import type { Evidence } from "./evidence-types.js";
 import { provenanceForEvidence, rankEvidenceForRequirement, type EvidenceProvenance } from "./evidence-provenance.js";
 import type { JobRequirement } from "./job-requirement-types.js";
 import { locationMentionsMatch, normalizeJobTextForIntel } from "./job-intelligence.js";
+import { candidateSeniority, ROLE_LEVELS, satisfiesLevel, type RoleLevel } from "./job-seniority.js";
 import { textMentionsTechnology } from "./technology-identity.js";
 import {
   documentedYearsFromMonths,
@@ -572,6 +573,43 @@ function matchYearsRequirement(req: JobRequirement, evidence: Evidence[]): Evide
   return null;
 }
 
+function matchSeniorityRequirement(req: JobRequirement, evidence: Evidence[]): EvidenceMatch | null {
+  if (req.id !== "req-seniority") return null;
+  const levels = (req.qualifiers ?? []).filter((item): item is RoleLevel =>
+    (ROLE_LEVELS as readonly string[]).includes(item),
+  );
+  const required = levels[0];
+  if (!required) return null;
+  const candidate = candidateSeniority(evidence);
+  if (candidate.level === "unknown") {
+    return {
+      requirement: req,
+      status: "unknown",
+      matchedEvidence: [],
+      reason: `The posting asks for ${levels.join(" or ")}. No role or period on the profile states a seniority level.`,
+    };
+  }
+  const labels = candidate.evidence.map((item) => item.label).join("; ");
+  const satisfied = levels.find((level) => satisfiesLevel(candidate.level as RoleLevel, level));
+  if (satisfied) {
+    return {
+      requirement: req,
+      status: "proven",
+      matchedEvidence: candidate.evidence,
+      reason: `Documented level ${candidate.level} meets the posted ${satisfied} level (${labels}). Overlapping periods were not summed.`,
+    };
+  }
+  return {
+    requirement: req,
+    status: "partial",
+    matchedEvidence: candidate.evidence,
+    reason:
+      required === "manager"
+        ? `The posting asks for formal people management. Documented level is ${candidate.level}; founder roles do not establish it.`
+        : `Documented level is ${candidate.level}. ${levels.join(" or ")} scope is not demonstrated.`,
+  };
+}
+
 export type EvidenceMatchOptions = {
   jobId?: string;
 };
@@ -581,6 +619,8 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
     const english = matchEnglish(req, evidence);
     if (english) return english;
   }
+  const seniority = matchSeniorityRequirement(req, evidence);
+  if (seniority) return seniority;
   const education = matchEducationRequirement(req, evidence);
   if (education) return education;
   const compoundTs = matchCompoundTypeScriptBackend(req, evidence);

@@ -5,7 +5,15 @@ import { evaluateApplicationGates, hasFailingRequiredGate } from "./application-
 import type { Evidence } from "./evidence-types.js";
 import { matchRequirementsToEvidence, type EvidenceMatch } from "./evidence-matching.js";
 import { extractJobRequirements } from "./extract-job-requirements.js";
-import type { JobRequirementCategory } from "./job-requirement-types.js";
+import {
+  assessJobDescriptionQuality,
+  hidesRequirements,
+  normalizeJobDescriptionEncoding,
+  type JobDescriptionQuality,
+  type JobDescriptionQualitySignal,
+} from "./job-description-quality.js";
+import { JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS } from "./job-description-snapshot.js";
+import type { JobRequirement, JobRequirementCategory } from "./job-requirement-types.js";
 import { REQUIREMENT_IMPORTANCE_WEIGHTS } from "./job-requirement-types.js";
 import type { CandidateProfile } from "./profile-schema.js";
 import type { Confidence } from "./types.js";
@@ -33,12 +41,42 @@ function clamp(n: number): number {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
+/** Location is an eligibility question; a favourable location is not technical fit. */
 function isNonTechnicalRequirement(match: EvidenceMatch): boolean {
   return (
     match.requirement.requirementType === "salary" ||
     match.requirement.requirementType === "schedule" ||
-    match.requirement.requirementType === "work_model"
+    match.requirement.requirementType === "work_model" ||
+    match.requirement.requirementType === "location"
   );
+}
+
+const PARTIAL_SIGNAL_LABELS: Record<JobDescriptionQualitySignal, string> = {
+  empty: "descrição vazia",
+  source_excerpt_marker: "o texto é um trecho com referência à fonte",
+  page_chrome: "o texto contém cabeçalho de página em vez do anúncio",
+  truncated_at_limit: "o texto atingiu o limite de armazenamento",
+  insufficient_requirements: "o texto não traz requisitos técnicos suficientes",
+};
+
+function partialDescriptionReason(quality: JobDescriptionQuality): string {
+  const why = quality.signals.map((signal) => PARTIAL_SIGNAL_LABELS[signal]).join("; ");
+  return `Descrição parcial (${why}). Investigue o anúncio completo antes de decidir; localização e modelo remoto não substituem requisitos técnicos.`;
+}
+
+const NON_TECHNICAL_REQUIREMENT_IDS = new Set(["req-seniority", "req-education", "req-english"]);
+
+/** Requirements that describe the work itself (stack, experience, product scope). */
+function countTechnicalRequirements(requirements: readonly JobRequirement[]): number {
+  return requirements.filter(
+    (item) =>
+      !NON_TECHNICAL_REQUIREMENT_IDS.has(item.id) &&
+      item.requirementType !== "salary" &&
+      item.requirementType !== "schedule" &&
+      item.requirementType !== "work_model" &&
+      item.requirementType !== "location" &&
+      item.requirementType !== "language",
+  ).length;
 }
 
 function weightedScore(matches: readonly EvidenceMatch[]): { score: number | undefined; known: number; unknown: number; weight: number } {
@@ -245,12 +283,21 @@ export function evaluateJobDecisionV2(input: {
   profile?: CandidateProfile;
   claims?: readonly string[];
   jobId?: string;
+  /** Structured posting title; seniority prefers it over titles quoted in the body. */
+  jobTitle?: string;
+  /** Structured posting location (ATS metadata); reconciled with the body text. */
+  jobLocation?: string;
 }): JobDecisionV2 {
-  const requirements = extractJobRequirements(input.jobText);
+  const jobText = normalizeJobDescriptionEncoding(input.jobText);
+  const requirements = extractJobRequirements(jobText, { title: input.jobTitle });
+  const descriptionQuality = assessJobDescriptionQuality(jobText, {
+    technicalRequirementCount: countTechnicalRequirements(requirements),
+    maxChars: JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS,
+  });
   const matches = matchRequirementsToEvidence(requirements, input.evidence, { jobId: input.jobId });
   const dimensions = scoreDimensions(matches);
-  const confidence = confidenceFrom(matches, input.jobText);
-  const gates = evaluateApplicationGates({ jobText: input.jobText, profile: input.profile, matches });
+  let confidence = confidenceFrom(matches, jobText);
+  const gates = evaluateApplicationGates({ jobText, profile: input.profile, matches });
   const failedRequiredGate = hasFailingRequiredGate(gates);
   const hiring = bandFromScore(dimensions.overall, 80, 62) as HiringProbability;
   const upside = careerUpside(dimensions, matches);
@@ -300,7 +347,19 @@ export function evaluateJobDecisionV2(input: {
       reasons = [...reasons, "Muitos requisitos estão sem evidência. Isso não é uma recomendação forte de candidatura."];
     }
   }
-  const eligibility = input.profile ? assessJobEligibility(input.profile, input.jobText) : undefined;
+  if (hidesRequirements(descriptionQuality)) {
+    confidence = "low";
+    if (!provenIncompatible) {
+      decision = "needs_info";
+      reasons = [partialDescriptionReason(descriptionQuality)];
+    }
+  } else if (descriptionQuality.status === "partial" && confidence === "high") {
+    confidence = "medium";
+    reasons = [...reasons, "A descrição atingiu o limite de armazenamento; requisitos no fim do anúncio podem não ter sido avaliados."];
+  }
+  const eligibility = input.profile
+    ? assessJobEligibility(input.profile, jobText, { title: input.jobTitle, location: input.jobLocation })
+    : undefined;
   if (eligibility?.status === "ineligible" && decision !== "skip") {
     decision = "skip";
     reasons = [
@@ -318,7 +377,7 @@ export function evaluateJobDecisionV2(input: {
       ...eligibility.findings.filter((item) => item.status === "unknown").map((item) => item.reason),
     ];
   }
-  const claims = auditClaims(input.claims ?? defaultClaims(input.jobText, matches), input.evidence);
+  const claims = auditClaims(input.claims ?? defaultClaims(jobText, matches), input.evidence);
   const candidateInputRequests = buildCandidateInputRequests({ matches, jobId: input.jobId });
   const priority =
     decision === "skip"
@@ -350,5 +409,6 @@ export function evaluateJobDecisionV2(input: {
     candidateInputRequests,
     reasons,
     eligibility,
+    descriptionQuality,
   };
 }

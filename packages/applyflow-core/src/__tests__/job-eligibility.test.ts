@@ -286,7 +286,7 @@ Requirements: React, TypeScript, Python. ${STACK}`;
     expect(decision.decision).toBe("apply_normal");
     expect(canCreateApplicationPackV2(decision.decision)).toBe(true);
     const seniorityMatch = decision.matches.find((item) => item.requirement.id === "req-seniority");
-    expect(seniorityMatch?.status).toBe("unknown");
+    expect(seniorityMatch?.status).toBe("proven");
   });
 });
 
