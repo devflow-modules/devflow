@@ -201,6 +201,7 @@ export type {
   EligibilityFinding,
   EligibilityStatus,
   JobEligibility,
+  JobEligibilityOptions,
 } from "./job-eligibility.js";
 export {
   JOB_MATCH_THRESHOLDS_V1,
@@ -241,6 +242,21 @@ export {
   hashJobDescription,
   snapshotJobDescription,
 } from "./job-description-snapshot.js";
+export {
+  MIN_TECHNICAL_REQUIREMENTS_FOR_DECISION,
+  assessJobDescriptionQuality,
+  hidesRequirements,
+  normalizeJobDescriptionEncoding,
+} from "./job-description-quality.js";
+export type {
+  JobDescriptionQuality,
+  JobDescriptionQualitySignal,
+  JobDescriptionQualityStatus,
+} from "./job-description-quality.js";
+export { candidateSeniority, detectRoleLevels, postingSeniority, ROLE_LEVELS } from "./job-seniority.js";
+export type { CandidateSeniority, PostingSeniority, RoleLevel } from "./job-seniority.js";
+export { findSalaryAmountMention } from "./salary-context.js";
+export type { SalaryAmountMention } from "./salary-context.js";
 export {
   createApplyFlowJobId,
   ingestApplyFlowJob,

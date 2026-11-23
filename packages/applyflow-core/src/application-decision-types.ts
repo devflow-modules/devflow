@@ -2,6 +2,7 @@ import type { ClaimAudit } from "./claim-safety.js";
 import type { EvidenceMatch } from "./evidence-matching.js";
 import type { ApplicationGate } from "./application-gates.js";
 import type { CandidateInputRequest } from "./candidate-input.js";
+import type { JobDescriptionQuality } from "./job-description-quality.js";
 import type { JobEligibility } from "./job-eligibility.js";
 import type { Confidence } from "./types.js";
 
@@ -68,4 +69,6 @@ export type JobDecisionV2 = {
   reasons: string[];
   /** Separate from overall/technical coverage. Absent on older snapshots. */
   eligibility?: JobEligibility;
+  /** How much of the posting the engine saw. Absent on older snapshots. */
+  descriptionQuality?: JobDescriptionQuality;
 };

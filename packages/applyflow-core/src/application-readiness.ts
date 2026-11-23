@@ -123,7 +123,7 @@ export function deriveApplicationReadiness(input: {
   const eligibility =
     pack?.evaluation?.eligibility ??
     (matchProfile && job.descriptionSnapshot?.trim()
-      ? assessJobEligibility(matchProfile, job.descriptionSnapshot)
+      ? assessJobEligibility(matchProfile, job.descriptionSnapshot, { title: job.title, location: job.location })
       : undefined);
 
   if (eligibility?.status === "ineligible") {

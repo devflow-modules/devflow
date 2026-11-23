@@ -98,7 +98,10 @@ export function evaluateDiscoveredJobHitPreview(
     return {
       ok: true,
       preview: projectJobMatch(prepared.job.jobMatch),
-      eligibility: assessJobEligibility(options.profile, hit.description ?? ""),
+      eligibility: assessJobEligibility(options.profile, hit.description ?? "", {
+        title: hit.title,
+        location: hit.location,
+      }),
     };
   } catch {
     return { ok: false, reason: "evaluation_failed" };

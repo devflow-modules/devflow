@@ -1,5 +1,7 @@
 /** Heurísticas locais sobre texto já disponível da vaga — não persistir o texto através desta API. */
 
+import { findSalaryAmountMention } from "./salary-context.js";
+
 export type JobSeniority = "junior" | "mid" | "senior" | "lead" | "unknown";
 export type JobRoleType =
   | "frontend"
@@ -54,7 +56,7 @@ const SKILL_PATTERNS: { pattern: RegExp; canonical: string }[] = [
   { pattern: /\bnestjs\b|\bnest\s*js\b/i, canonical: "NestJS" },
   { pattern: /\bexpress(?:\.js)?\b/i, canonical: "Express" },
   { pattern: /\bmongodb\b/i, canonical: "MongoDB" },
-  { pattern: /\bracebitmq\b/i, canonical: "RabbitMQ" },
+  { pattern: /\brabbitmq\b/i, canonical: "RabbitMQ" },
   { pattern: /\bkafka\b/i, canonical: "Kafka" },
   { pattern: /\bplaywright\b/i, canonical: "Playwright" },
   { pattern: /\bcypress\b/i, canonical: "Cypress" },
@@ -135,11 +137,24 @@ export function extractScheduleWindow(text: string): JobScheduleWindow | undefin
   };
 }
 
+const STARTING_SALARY_WITH_INCREASE =
+  /starting salary of\s*\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?\s+with the opportunity to increase to\s*\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?/i;
+
+function salaryAmountText(text: string): string | undefined {
+  const increase = text.match(STARTING_SALARY_WITH_INCREASE);
+  if (increase) return increase[0];
+  const mention = findSalaryAmountMention(text);
+  if (!mention) return undefined;
+  const perPeriod = mention.sentence
+    .slice(mention.sentence.indexOf(mention.extractedText) + mention.extractedText.length)
+    .match(/^\s*(?:per\s+(?:year|month|hour)|annually|monthly|hourly)/i);
+  return perPeriod ? `${mention.extractedText}${perPeriod[0]}` : mention.extractedText;
+}
+
 export function extractCompensationMention(text: string): JobCompensationMention | undefined {
   const folded = normalizeJobTextForIntel(text);
-  const amount = text.match(
-    /(?:starting salary of\s*)?\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?(?:\s+with the opportunity to increase to\s*\$\s*\d{1,3}(?:,\d{3})+(?:\s*usd)?)?|(?:compensation(?:\s+is)?\s*)?\$\s*\d{1,3}(?:,\d{3})+\s*usd(?:\s+per\s+(?:year|month|hour))?/i,
-  );
+  const amountText = salaryAmountText(text);
+  const amount = amountText ? [amountText] : null;
   if (!amount && !/\bsalary\b|\bcompensation\b|\bsalario\b|\bfaixa\s+salar|\busd\b/.test(folded)) {
     return undefined;
   }

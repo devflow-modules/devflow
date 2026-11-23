@@ -2,6 +2,7 @@ import type { CandidateInputRequest } from "./candidate-input.js";
 import type { JobDecisionV2 } from "./application-decision-types.js";
 import { extractJobIntelligence, normalizeJobTextForIntel, type JobContractType } from "./job-intelligence.js";
 import { salaryField, type CandidateProfile } from "./profile-schema.js";
+import { findSalaryAmountMention, isNonSalaryMoneyContext, sentenceOf } from "./salary-context.js";
 import type { Confidence } from "./types.js";
 
 export const COMPENSATION_CURRENCIES = ["BRL", "USD", "unknown"] as const;
@@ -91,27 +92,32 @@ export function parseEmployerCompensation(jobText: string): EmployerCompensation
   );
   const brlSingle = jobText.match(/(?:BRL|R\$)\s*(\d{1,3}(?:[.,]\d{3})+(?:,\d+)?|\d+(?:,\d{1,2})?)/i);
   const usdSingle = jobText.match(/(?:USD|US\$)\s*(\d{1,3}(?:[.,]\d{3})+|\d+(?:\.\d+)?)/i);
-  if (brl?.[1] && brl[2]) {
+  const payContext = (match: RegExpMatchArray | null) =>
+    match?.index !== undefined && !isNonSalaryMoneyContext(sentenceOf(jobText, match.index));
+  if (brl?.[1] && brl[2] && payContext(brl)) {
     return { currency: "BRL", min: parseAmount(brl[1]), max: parseAmount(brl[2]), period, employmentType, source: "job_posting" };
   }
-  if (usd?.[1] && usd[2]) {
+  if (usd?.[1] && usd[2] && payContext(usd)) {
     return { currency: "USD", min: parseAmount(usd[1]), max: parseAmount(usd[2]), period, employmentType, source: "job_posting" };
   }
-  if (brlSingle?.[1]) {
+  if (brlSingle?.[1] && payContext(brlSingle)) {
     const amount = parseAmount(brlSingle[1]);
     return { currency: "BRL", min: amount, max: amount, period, employmentType, source: "job_posting" };
   }
-  if (usdSingle?.[1]) {
+  if (usdSingle?.[1] && payContext(usdSingle)) {
     const amount = parseAmount(usdSingle[1]);
     return { currency: "USD", min: amount, max: amount, period, employmentType, source: "job_posting" };
   }
-  const usdTrailing = jobText.match(
-    /\$\s*(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*usd\b(?:\s*(?:[-–—]|to)\s*\$?\s*(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*usd\b)?/i,
-  );
-  if (usdTrailing?.[1]) {
-    const min = parseAmount(usdTrailing[1]);
-    const max = usdTrailing[2] ? parseAmount(usdTrailing[2]) : min;
-    return { currency: "USD", min, max, period, employmentType, source: "job_posting" };
+  const dollar = findSalaryAmountMention(jobText);
+  if (dollar) {
+    return {
+      currency: dollar.currency,
+      min: dollar.min,
+      max: dollar.max,
+      period: periodOf(dollar.sentence) === "unknown" ? period : periodOf(dollar.sentence),
+      employmentType,
+      source: "job_posting",
+    };
   }
   const generic = jobText.match(/(?:salary|compensation|range|faixa)\D{0,24}(\d{3,6})\s*(?:[-–—]|to)\s*(\d{3,6})/i);
   if (generic?.[1] && generic[2]) {
@@ -123,11 +129,6 @@ export function parseEmployerCompensation(jobText: string): EmployerCompensation
       employmentType,
       source: "job_posting",
     };
-  }
-  const bare = jobText.match(/(?:^|[^\w])\$\s*(\d{1,3}(?:,\d{3})+|\d{3,6})/i);
-  if (bare?.[1] && !/\b(?:usd|us\$|brl|r\$)\b/i.test(jobText)) {
-    const amount = parseAmount(bare[1]);
-    return { currency: "unknown", min: amount, max: amount, period, employmentType, source: "job_posting" };
   }
   return { currency: "unknown", period, employmentType, source: "job_posting" };
 }

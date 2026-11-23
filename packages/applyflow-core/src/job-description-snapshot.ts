@@ -1,13 +1,20 @@
+import { normalizeJobDescriptionEncoding } from "./job-description-quality.js";
 import { normalizeJobTextForIntel } from "./job-intelligence.js";
 
-export const JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS = 4000;
+/**
+ * Upper bound for the stored posting text. Requirements often sit after 4k
+ * characters; 8k covers typical ATS postings while keeping local storage bounded.
+ * Text at this length is reported as `truncated_at_limit` by the quality contract.
+ */
+export const JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS = 8000;
 
 /**
- * Display snapshot: collapsed whitespace, original casing, truncated.
+ * Evaluation snapshot: repaired encoding, collapsed whitespace, original casing.
+ * A hard cut keeps the length equal to the limit so truncation stays detectable.
  * Not a full posting archive.
  */
 export function snapshotJobDescription(text: string, maxChars = JOB_DESCRIPTION_SNAPSHOT_MAX_CHARS): string {
-  const collapsed = text
+  const collapsed = normalizeJobDescriptionEncoding(text)
     .replace(/\r\n/g, "\n")
     .split("\n")
     .map((line) => line.replace(/[ \t]+/g, " ").trimEnd())
