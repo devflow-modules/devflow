@@ -44,6 +44,8 @@ export function presentInboxJobAnalysis(
     evidence: buildCandidateEvidence(profile),
     profile,
     jobId: job.id,
+    jobTitle: job.title,
+    jobLocation: job.location,
   });
   return {
     decision: mapV2DecisionToInbox(v2.decision),

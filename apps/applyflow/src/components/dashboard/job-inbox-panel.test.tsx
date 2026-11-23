@@ -527,7 +527,7 @@ describe("JobInboxPanel", () => {
   });
 
   it.skipIf(!hasWagmoLocalFixture)(
-    "Pack Wagmo (fixture local): 71 análise atual V2 vs 27 snapshot V1; sem 80 do ingest",
+    "Pack Wagmo (fixture local): 100 análise atual V2 (Senior documentado) vs 27 snapshot V1; sem 80 do ingest",
     () => {
       const parsed = parseResumeLibrary(JSON.parse(fs.readFileSync(WAGMO_FIXTURE_LIB, "utf8")));
       expect(parsed.ok).toBe(true);
@@ -611,7 +611,7 @@ describe("JobInboxPanel", () => {
       };
 
       const live = presentInboxJobAnalysis(wagmoJob, defaultVariant.profile);
-      expect(live).toMatchObject({ source: "v2", decision: "apply", score: 71 });
+      expect(live).toMatchObject({ source: "v2", decision: "apply", score: 100 });
 
       const html = renderToStaticMarkup(
         <JobInboxPanel
@@ -628,7 +628,7 @@ describe("JobInboxPanel", () => {
       expect(html).toContain(
         formatApplicationPackMatchLine({
           decisionLabel: JOB_MATCH_DECISION_LABELS.apply,
-          score: 71,
+          score: 100,
           variantName: defaultVariant.name,
         }),
       );
