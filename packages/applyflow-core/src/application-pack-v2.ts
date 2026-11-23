@@ -73,6 +73,8 @@ export function createApplicationPackV2(input: {
   jobId: string;
   jobText: string;
   jobTitle?: string;
+  /** Structured posting location; used only by the eligibility reconciliation. */
+  jobLocation?: string;
   companyName?: string;
   source?: ApplyFlowJobSource;
   profile: CandidateProfile;
@@ -277,7 +279,14 @@ export function evaluateJobApplicationV2(input: Omit<PackInput, "decision">): {
   const switched = variant !== undefined && isOtherVariant(variant, input.profile);
   const profile = switched ? variant.profile : input.profile;
   const evidence = switched ? buildCandidateEvidence(variant.profile, [], input.now) : input.evidence;
-  const decision = evaluateJobDecisionV2({ jobText: input.jobText, evidence, profile, jobId: input.jobId });
+  const decision = evaluateJobDecisionV2({
+    jobText: input.jobText,
+    evidence,
+    profile,
+    jobId: input.jobId,
+    jobTitle: input.jobTitle,
+    jobLocation: input.jobLocation,
+  });
   const pack = createApplicationPackV2({ ...input, profile, evidence, decision });
   return { decision: pack.evaluation ?? decision, pack };
 }
@@ -312,7 +321,14 @@ function evaluationForSelectedResume(input: PackInput): {
   }
   const evidence = buildCandidateEvidence(variant.profile, [], input.now);
   return {
-    decision: evaluateJobDecisionV2({ jobText: input.jobText, evidence, profile: variant.profile, jobId: input.jobId }),
+    decision: evaluateJobDecisionV2({
+      jobText: input.jobText,
+      evidence,
+      profile: variant.profile,
+      jobId: input.jobId,
+      jobTitle: input.jobTitle,
+      jobLocation: input.jobLocation,
+    }),
     profile: variant.profile,
     evidence,
     variantId: variant.id,

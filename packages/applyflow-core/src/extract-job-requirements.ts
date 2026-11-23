@@ -1,6 +1,7 @@
 import { splitRequiredPreferredSkills } from "./copilot-job-match.js";
 import { extractJobIntelligence, normalizeJobTextForIntel } from "./job-intelligence.js";
 import type { JobRequirement, JobRequirementCategory, JobRequirementImportance } from "./job-requirement-types.js";
+import { postingSeniority } from "./job-seniority.js";
 
 const SKILL_CATEGORY: Record<string, JobRequirementCategory> = {
   react: "frontend",
@@ -100,6 +101,21 @@ const PHRASE_SPECS: {
     label: "Preferred experience",
     category: "seniority",
     requirementType: "years",
+  },
+  {
+    id: "shipping-software-years",
+    pattern: /(\d+)\s*\+?\s*years?\s+(?:of\s+)?(?:building|shipping|developing|writing)(?:\s+(?:and|&)\s+(?:building|shipping|developing|maintaining))?\s+(?:production\s+)?software\b/i,
+    label: "Professional experience",
+    category: "seniority",
+    requirementType: "years",
+  },
+  {
+    id: "api-integrations",
+    pattern: /\bapis?\s+(?:and|&)\s+integrations?\b|\bthird[\s-]party\s+integrations?\b|\bsdk\s+integrations?\b/i,
+    label: "API integrations",
+    category: "backend",
+    requirementType: "experience",
+    qualifiers: ["integrations"],
   },
   {
     id: "fullstack-years",
@@ -280,7 +296,7 @@ function extractRequiredDegree(text: string): { label: string; extractedText: st
  * Builds structured requirements from posting text.
  * "3+ years architecting AWS" stays as AWS + 3 years + architecture — not skill=AWS alone.
  */
-export function extractJobRequirements(jobText: string): JobRequirement[] {
+export function extractJobRequirements(jobText: string, options: { title?: string } = {}): JobRequirement[] {
   const text = jobText.trim();
   const folded = normalizeJobTextForIntel(text);
   const intel = extractJobIntelligence(text);
@@ -388,7 +404,22 @@ export function extractJobRequirements(jobText: string): JobRequirement[] {
     });
   }
 
-  if (intel.seniority !== "unknown") {
+  if (options.title?.trim()) {
+    const posted = postingSeniority({ title: options.title, text });
+    if (posted.level !== "unknown") {
+      const elevated = posted.level !== "junior" && posted.level !== "mid" && posted.level !== "senior";
+      out.push({
+        id: "req-seniority",
+        label: `Seniority: ${[posted.level, ...posted.alternatives].join(" or ")}`,
+        category: "seniority",
+        importance: posted.level === "junior" || posted.level === "mid" ? "important" : "fundamental",
+        requirementType: "experience",
+        extractedText: posted.extractedText ?? posted.level,
+        qualifiers: [posted.level, ...posted.alternatives, `source:${posted.source}`],
+        mandatory: elevated,
+      });
+    }
+  } else if (intel.seniority !== "unknown") {
     out.push({
       id: "req-seniority",
       label: `Seniority: ${intel.seniority}`,

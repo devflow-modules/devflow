@@ -106,7 +106,7 @@ export function selectOpportunityQueueJobs(
 function jobEligibilityStatus(job: ApplyFlowJob, profile: CandidateProfile) {
   const text = job.descriptionSnapshot?.trim();
   if (!text) return undefined;
-  return assessJobEligibility(profile, text).status;
+  return assessJobEligibility(profile, text, { title: job.title, location: job.location }).status;
 }
 
 /** Human dismisses an opportunity — persists as ignored; does not delete. */

@@ -123,6 +123,7 @@ export function loadJobDecisionV2Snapshot(
     jobId: found.id,
     jobText: text,
     jobTitle: found.title,
+    jobLocation: found.location,
     companyName: found.company,
     source: found.source,
     profile: ctx.profile,
