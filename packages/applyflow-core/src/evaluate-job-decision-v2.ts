@@ -79,6 +79,17 @@ function countTechnicalRequirements(requirements: readonly JobRequirement[]): nu
   ).length;
 }
 
+function isPendingConfirmation(match: EvidenceMatch): boolean {
+  if (match.status !== "unknown") return false;
+  if (isNonTechnicalRequirement(match)) return false;
+  if (match.requirement.importance === "nice_to_have") return false;
+  return Boolean(
+    match.requirement.mandatory ||
+      (match.requirement.importance === "fundamental" &&
+        (match.requirement.category === "ai" || (match.requirement.alternatives?.length ?? 0) > 0)),
+  );
+}
+
 function weightedScore(matches: readonly EvidenceMatch[]): { score: number | undefined; known: number; unknown: number; weight: number } {
   let weighted = 0;
   let weight = 0;
@@ -87,7 +98,8 @@ function weightedScore(matches: readonly EvidenceMatch[]): { score: number | und
     if (isNonTechnicalRequirement(match)) continue;
     const w = REQUIREMENT_IMPORTANCE_WEIGHTS[match.requirement.importance];
     if (match.status === "unknown") {
-      unknown += w;
+      // Mandatory/central unknowns are confirmation gates — they must not dilute technical fit.
+      if (!isPendingConfirmation(match)) unknown += w;
       continue;
     }
     weighted += STATUS_POINTS[match.status] * w;
@@ -322,6 +334,16 @@ export function evaluateJobDecisionV2(input: {
     failedRequiredGate,
     confidence,
   });
+  const isNonBlockingUnknown = (item: EvidenceMatch) =>
+    isNonTechnicalUnknown(item) || item.requirement.importance === "nice_to_have";
+  const pendingMandatoryUnknown = matches.filter(
+    (item) =>
+      item.status === "unknown" &&
+      !isNonBlockingUnknown(item) &&
+      (item.requirement.mandatory ||
+        (item.requirement.importance === "fundamental" &&
+          (item.requirement.category === "ai" || (item.requirement.alternatives?.length ?? 0) > 0))),
+  );
   const provenIncompatible =
     failedRequiredGate ||
     matches.some(
@@ -342,9 +364,41 @@ export function evaluateJobDecisionV2(input: {
     } else if (decision === "skip" && gapCount === 0 && unknownCount > 0) {
       decision = "needs_info";
       reasons = incompleteReasons;
+    } else if (
+      pendingMandatoryUnknown.length > 0 &&
+      (decision === "apply_high" ||
+        decision === "apply_normal" ||
+        decision === "apply_stretch" ||
+        decision === "skip")
+    ) {
+      decision = "needs_info";
+      reasons = [
+        ...reasons,
+        "Há requisito obrigatório sem evidência suficiente. A aderência técnica não autoriza candidatura incondicional.",
+        ...pendingMandatoryUnknown.slice(0, 4).map((item) => `Confirmar: ${item.requirement.label}.`),
+      ];
     } else if ((decision === "apply_high" || decision === "apply_normal") && unknownRatio >= 0.5) {
       decision = "apply_stretch";
       reasons = [...reasons, "Muitos requisitos estão sem evidência. Isso não é uma recomendação forte de candidatura."];
+    }
+  } else {
+    const mandatoryGaps = matches.filter((item) => item.status === "gap" && item.requirement.mandatory);
+    if (
+      mandatoryGaps.length > 0 &&
+      (decision === "apply_high" || decision === "apply_normal" || decision === "apply_stretch")
+    ) {
+      decision = "skip";
+      reasons = [
+        ...reasons,
+        "Requisito obrigatório comprovadamente incompatível. A aderência técnica não autoriza candidatura.",
+        ...mandatoryGaps.slice(0, 4).map((item) => item.requirement.label),
+      ];
+    } else if (decision === "apply_high" || decision === "apply_normal") {
+      decision = "apply_stretch";
+      reasons = [
+        ...reasons,
+        "Há lacuna fundamental comprovada. Isso não é uma recomendação incondicional de candidatura.",
+      ];
     }
   }
   if (hidesRequirements(descriptionQuality)) {

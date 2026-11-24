@@ -17,7 +17,18 @@ export const JOB_DECISION_V2_BACK = "Voltar às oportunidades";
 export const JOB_DECISION_V2_BACK_HREF = "/dashboard/opportunities";
 export const JOB_DECISION_V2_OTHER_TRANSITIONS = "Outras atualizações de status";
 export const JOB_DECISION_V2_MATCH_LABEL = "Match";
+export const JOB_DECISION_V2_TECHNICAL_FIT_LABEL = "Aderência técnica";
+export const JOB_DECISION_V2_SCORE_NOT_HIRE_PROB =
+  "Pontuação técnica — não é probabilidade de contratação nem aprovação integral.";
+export const JOB_DECISION_V2_RECOMMENDATION_LABEL = "Recomendação";
+export const JOB_DECISION_V2_ELIGIBILITY_LABEL = "Elegibilidade";
+export const JOB_DECISION_V2_MANDATORY_PENDING = "Requisito obrigatório pendente";
 export const JOB_DECISION_V2_APPLICATION_LABEL = "Candidatura";
+export const JOB_DECISION_V2_ELIGIBILITY_STATUS_LABELS = {
+  eligible: "Compatível",
+  ineligible: "Inelegível",
+  unknown: "A confirmar",
+} as const;
 export const JOB_DECISION_V2_NOT_REGISTERED = "Ainda não registrada";
 export const JOB_DECISION_V2_READINESS_SUMMARY = "Preparação";
 export const JOB_DECISION_V2_READINESS_DETAILS = "Ver checklist completo";
@@ -67,6 +78,7 @@ export const JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS = {
   announcement: "No anúncio",
   profile: "No perfil",
   evidence: "Sem evidência suficiente",
+  incompatible: "Incompatível declarada",
   neutral: "A confirmar",
 } as const;
 export const JOB_DECISION_V2_NO_SEND = "Nenhum envio automático. Copie e use os rascunhos manualmente.";
