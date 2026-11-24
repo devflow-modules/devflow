@@ -69,8 +69,8 @@ export function buildJobDecisionBrief(input: {
       if (match.status === "unknown") {
         return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${mandatoryTag}${match.requirement.label}`;
       }
-      // gap = still to confirm / insufficient evidence — not a hard "failed requirement"
-      return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${mandatoryTag}${match.requirement.label}`;
+      // Explicit negative evidence / below-bar tenure — distinct from unknown pending confirmation.
+      return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.incompatible}: ${mandatoryTag}${match.requirement.label}`;
     });
 
   const confirmFromBlock = (input.packBlock?.items ?? []).map((item) => {

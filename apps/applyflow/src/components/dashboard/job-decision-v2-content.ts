@@ -78,6 +78,7 @@ export const JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS = {
   announcement: "No anúncio",
   profile: "No perfil",
   evidence: "Sem evidência suficiente",
+  incompatible: "Incompatível declarada",
   neutral: "A confirmar",
 } as const;
 export const JOB_DECISION_V2_NO_SEND = "Nenhum envio automático. Copie e use os rascunhos manualmente.";

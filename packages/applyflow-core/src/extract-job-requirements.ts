@@ -514,10 +514,13 @@ export function extractJobRequirements(jobText: string, options: { title?: strin
       ...(spec.skillHint ? { skillHint: spec.skillHint } : {}),
       mandatory,
     });
-    // The contextual AI requirement already covers the bare LLM/Embeddings token; avoid a duplicate generic skill.
-    if (spec.category === "ai" && (spec.skillHint === "LLM" || spec.qualifiers?.includes("llm"))) {
-      claimed.add("skill:llm");
-      claimed.add("skill:embeddings");
+    // Bare skill tokens already covered by contextual phrases — avoid duplicate rows.
+    if (spec.id === "kafka" || (spec.category === "ai" && (spec.skillHint === "LLM" || spec.qualifiers?.includes("llm")))) {
+      if (spec.skillHint) claimed.add(`skill:${normalizeJobTextForIntel(spec.skillHint)}`);
+      if (spec.category === "ai") {
+        claimed.add("skill:llm");
+        claimed.add("skill:embeddings");
+      }
     }
   });
 

@@ -276,6 +276,32 @@ describe("mandatory requirements sprint — extraction & equivalence", () => {
     expect(alt?.status === "gap" || alt?.status === "partial").toBe(true);
   });
 
+  it("7b. Linguagem alternativa mencionada sem duração documentada permanece unknown", () => {
+    const goMentionOnly: Evidence[] = [
+      ev({
+        id: "ev-go-mention",
+        label: "Go",
+        description: "Hobby Go scripts; duration not documented",
+        technologies: ["Go"],
+      }),
+    ];
+    const reqs = extractJobRequirements(ALPACA_INTERNAL);
+    const matches = matchRequirementsToEvidence(reqs, goMentionOnly);
+    const alt = matches.find((item) => (item.requirement.alternatives?.length ?? 0) >= 2);
+    expect(alt?.status).toBe("unknown");
+    expect(alt?.reason).toMatch(/duration is not|stays unknown/i);
+    const { profile } = stackEvidenceWithProfile();
+    const result = evaluate(ALPACA_INTERNAL, goMentionOnly, profile);
+    expect(result.decision).toBe("needs_info");
+    expect(["apply_high", "apply_normal"]).not.toContain(result.decision);
+  });
+
+  it("7c. Phrase Kafka não duplica skill Kafka genérico", () => {
+    const reqs = extractJobRequirements(ALTERNATIVE_PAYMENTS);
+    const kafka = reqs.filter((item) => /kafka/i.test(item.label));
+    expect(kafka).toHaveLength(1);
+  });
+
   it("8. Tempo mínimo comprovado via Go", () => {
     const reqs = extractJobRequirements(ALPACA_INTERNAL);
     const matches = matchRequirementsToEvidence(reqs, GO_EVIDENCE);
@@ -375,6 +401,28 @@ Requirements:
     };
     const matches = matchRequirementsToEvidence([forced], absent);
     expect(matches[0]?.status).toBe("gap");
+  });
+
+  it("15b. Gap obrigatório de LLM não gera apply_normal/high", () => {
+    const absentLlm: Evidence[] = [
+      ...STACK_EVIDENCE,
+      ev({
+        id: "ev-no-llm",
+        subject: "project",
+        label: "Production LLM / GenAI system",
+        description: "No production LLM, RAG, or GenAI system is recorded.",
+        technologies: ["LLM"],
+        usableForClaims: false,
+        stance: "absent",
+        confidence: "verified",
+      }),
+    ];
+    const { profile } = stackEvidenceWithProfile();
+    const result = evaluate(SIENA_AI, absentLlm, profile);
+    const llm = result.matches.find((item) => /llm/i.test(item.requirement.label) && item.requirement.mandatory);
+    expect(llm?.status).toBe("gap");
+    expect(["apply_high", "apply_normal", "apply_stretch"]).not.toContain(result.decision);
+    expect(result.decision).toBe("skip");
   });
 
   it("16. Anúncio com descrição parcial → confiança baixa / needs_info", () => {

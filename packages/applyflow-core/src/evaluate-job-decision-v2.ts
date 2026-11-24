@@ -381,6 +381,25 @@ export function evaluateJobDecisionV2(input: {
       decision = "apply_stretch";
       reasons = [...reasons, "Muitos requisitos estão sem evidência. Isso não é uma recomendação forte de candidatura."];
     }
+  } else {
+    const mandatoryGaps = matches.filter((item) => item.status === "gap" && item.requirement.mandatory);
+    if (
+      mandatoryGaps.length > 0 &&
+      (decision === "apply_high" || decision === "apply_normal" || decision === "apply_stretch")
+    ) {
+      decision = "skip";
+      reasons = [
+        ...reasons,
+        "Requisito obrigatório comprovadamente incompatível. A aderência técnica não autoriza candidatura.",
+        ...mandatoryGaps.slice(0, 4).map((item) => item.requirement.label),
+      ];
+    } else if (decision === "apply_high" || decision === "apply_normal") {
+      decision = "apply_stretch";
+      reasons = [
+        ...reasons,
+        "Há lacuna fundamental comprovada. Isso não é uma recomendação incondicional de candidatura.",
+      ];
+    }
   }
   if (hidesRequirements(descriptionQuality)) {
     confidence = "low";
