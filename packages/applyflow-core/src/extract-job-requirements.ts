@@ -440,8 +440,11 @@ export function extractJobRequirements(jobText: string, options: { title?: strin
       mandatory,
     });
     for (const alt of systemsLang.alternatives) {
-      claimed.add(`skill:${normalizeJobTextForIntel(alt)}`);
-      claimed.add(`skill-years:${normalizeJobTextForIntel(alt)}`);
+      const names = alt === "Go" ? [alt, "Golang"] : [alt];
+      for (const name of names) {
+        claimed.add(`skill:${normalizeJobTextForIntel(name)}`);
+        claimed.add(`skill-years:${normalizeJobTextForIntel(name)}`);
+      }
     }
   }
 
@@ -511,6 +514,11 @@ export function extractJobRequirements(jobText: string, options: { title?: strin
       ...(spec.skillHint ? { skillHint: spec.skillHint } : {}),
       mandatory,
     });
+    // The contextual AI requirement already covers the bare LLM/Embeddings token; avoid a duplicate generic skill.
+    if (spec.category === "ai" && (spec.skillHint === "LLM" || spec.qualifiers?.includes("llm"))) {
+      claimed.add("skill:llm");
+      claimed.add("skill:embeddings");
+    }
   });
 
   const degree = extractRequiredDegree(text);

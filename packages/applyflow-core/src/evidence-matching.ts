@@ -148,9 +148,6 @@ function transferableReason(req: JobRequirement, evidence: Evidence): string | n
   ) {
     return "JWT/RBAC is not OAuth/OIDC implementation experience.";
   }
-  if (hasAny(reqText, ["kubernetes", "k8s"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["kubernetes", "k8s"])) {
-    return "Docker is not operational Kubernetes experience.";
-  }
   if (hasAny(reqText, ["leadership", "managed a team", "people management"]) && hasAny(evText, ["founder"]) && !hasAny(evText, ["managed", "lead", "leadership"])) {
     return "Founder experience is not formal team leadership.";
   }
@@ -160,7 +157,9 @@ function transferableReason(req: JobRequirement, evidence: Evidence): string | n
 function isFalseFriend(req: JobRequirement, evidence: Evidence): boolean {
   const reqText = requirementBlob(req);
   const evText = evidenceBlob(evidence);
-  if (hasAny(reqText, ["aws"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["aws"])) return true;
+  if (hasAny(reqText, ["kubernetes", "k8s"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["kubernetes", "k8s"])) {
+    return true;
+  }
   if (hasAny(reqText, ["aws"]) && hasAny(evText, ["github", "actions", "ci"]) && !hasAny(evText, ["aws"])) return true;
   if (hasAny(reqText, ["aws"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["aws"])) return true;
   if (
