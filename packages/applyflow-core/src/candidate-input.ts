@@ -18,7 +18,18 @@ export type CandidateInputRequest = {
   canBecomeEvidence: boolean;
 };
 
-function questionFor(label: string, requirementType: string): { question: string; expectedType: CandidateInputExpectedType } {
+function questionFor(
+  label: string,
+  requirementType: string,
+  category?: string,
+): { question: string; expectedType: CandidateInputExpectedType } {
+  if (/\bllm\b|\bgenai\b|\bembedding\b|\bgenerative\s+ai\b/i.test(label) || category === "ai") {
+    return {
+      question:
+        "Você já entregou funcionalidades com LLM/IA generativa a usuários reais? Se sim, descreva o produto e o seu papel.",
+      expectedType: "text",
+    };
+  }
   if (requirementType === "years" || /\byears?\b/i.test(label)) {
     return {
       question: `Quantos anos de experiência profissional você tem com ${label.replace(/\s*\(\d+\+ years\)/, "").trim()}?`,
@@ -52,7 +63,7 @@ export function buildCandidateInputRequests(input: {
     if (match.status !== "unknown") continue;
     const req = match.requirement;
     if (req.requirementType === "salary" || req.requirementType === "other") continue;
-    const asked = questionFor(req.label, req.requirementType);
+    const asked = questionFor(req.label, req.requirementType, req.category);
     out.push({
       id: `input-${req.id}`,
       question: asked.question,

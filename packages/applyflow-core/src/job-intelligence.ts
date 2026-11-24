@@ -68,6 +68,9 @@ const SKILL_PATTERNS: { pattern: RegExp; canonical: string }[] = [
   { pattern: /\btailwind(?:\s*css)?\b/i, canonical: "Tailwind" },
   { pattern: /\.net\b|\bdot\s*net\b|\basp\.net\b/i, canonical: ".NET" },
   { pattern: /\bc#\b|\bcsharp\b/i, canonical: "C#" },
+  { pattern: /\bc\+\+\b/i, canonical: "C++" },
+  { pattern: /\bgolang\b|\bgo\b(?![a-z])/i, canonical: "Go" },
+  { pattern: /\brust\b/i, canonical: "Rust" },
   { pattern: /\bjava\b(?![a-z])/i, canonical: "Java" },
   { pattern: /\belixir\b/i, canonical: "Elixir" },
   { pattern: /\bruby\b/i, canonical: "Ruby" },
@@ -80,6 +83,9 @@ const SKILL_PATTERNS: { pattern: RegExp; canonical: string }[] = [
   { pattern: /\bsupabase\s+edge\s+functions?\b/i, canonical: "Supabase Edge Functions" },
   { pattern: /\bsupabase\b/i, canonical: "Supabase" },
   { pattern: /\breact(?:\.js)?\b/i, canonical: "React" },
+  { pattern: /\bembeddings?\b/i, canonical: "Embeddings" },
+  { pattern: /\bopenai\b/i, canonical: "OpenAI" },
+  { pattern: /\bllms?\b|\blarge\s+language\s+models?\b/i, canonical: "LLM" },
 ];
 
 const LOCATION_PATTERNS: { pattern: RegExp; canonical: string }[] = [
@@ -213,7 +219,7 @@ export function extractJobIntelligence(text: string): JobIntelligence {
       seniority = label;
     }
   };
-  bumpSen("lead", /\b(?:tech\s+)?team\s+lead\b|\btech\s+lead\b|\bstaff\s+engineer\b|\bprincipal\s+engineer\b/, 42);
+  bumpSen("lead", /\b(?:tech\s+)?team\s+lead\b|\btech\s+lead\b|\bstaff(?:\s+software)?\s+engineer\b|\bprincipal(?:\s+software)?\s+engineer\b/, 42);
   bumpSen("lead", /\blead\s+developer\b|\bengineering\s+lead\b/, 36);
   bumpSen("senior", /\bspecialist\b|\bespecialista\b/, 31);
   bumpSen("senior", /\bsenior\b|\bsnr\b/, 30);
