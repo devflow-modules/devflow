@@ -43,7 +43,14 @@ export function buildJobDecisionBrief(input: {
   const decision = input.decision;
   const matches = decision?.matches ?? [];
 
-  const asks = uniqueLabels(matches.map((match) => match.requirement.label));
+  const asks = uniqueLabels(
+    matches.map((match) => {
+      const req = match.requirement;
+      if (req.importance === "nice_to_have") return `${req.label} (desejável)`;
+      if (req.mandatory || req.importance === "fundamental") return `${req.label} (obrigatório)`;
+      return req.label;
+    }),
+  );
 
   const shows = uniqueLabels(
     matches
@@ -57,11 +64,13 @@ export function buildJobDecisionBrief(input: {
   const confirmFromMatches = matches
     .filter((match) => match.status === "gap" || match.status === "unknown")
     .map((match) => {
+      const mandatoryTag =
+        match.requirement.mandatory || match.requirement.importance === "fundamental" ? "obrigatório · " : "";
       if (match.status === "unknown") {
-        return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${match.requirement.label}`;
+        return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${mandatoryTag}${match.requirement.label}`;
       }
       // gap = still to confirm / insufficient evidence — not a hard "failed requirement"
-      return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${match.requirement.label}`;
+      return `${JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence}: ${mandatoryTag}${match.requirement.label}`;
     });
 
   const confirmFromBlock = (input.packBlock?.items ?? []).map((item) => {

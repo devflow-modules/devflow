@@ -120,6 +120,12 @@ import {
   JOB_DECISION_V2_MARK_SENT_HINT,
   JOB_DECISION_V2_MARKED_SENT,
   JOB_DECISION_V2_MATCH_LABEL,
+  JOB_DECISION_V2_TECHNICAL_FIT_LABEL,
+  JOB_DECISION_V2_SCORE_NOT_HIRE_PROB,
+  JOB_DECISION_V2_RECOMMENDATION_LABEL,
+  JOB_DECISION_V2_ELIGIBILITY_LABEL,
+  JOB_DECISION_V2_ELIGIBILITY_STATUS_LABELS,
+  JOB_DECISION_V2_MANDATORY_PENDING,
   JOB_DECISION_V2_NEXT_STEP,
   JOB_DECISION_V2_NOT_REGISTERED,
   JOB_DECISION_V2_OTHER_TRANSITIONS,
@@ -1095,10 +1101,39 @@ export function JobDecisionV2Panel({
                   <ApplyFlowBadge tone={applicationDecisionTone(decision.decision)}>
                     {JOB_DECISION_V2_LABELS[decision.decision]}
                   </ApplyFlowBadge>
-                  <span className="tabular-nums text-sm font-medium text-[color:var(--af-text)]">
-                    {decision.overall}/100
+                  <span className="tabular-nums text-sm font-medium text-[color:var(--af-text)]" data-testid="job-workspace-technical-fit">
+                    {JOB_DECISION_V2_TECHNICAL_FIT_LABEL}: {decision.overall}/100
                   </span>
                 </div>
+                <p className="mt-1 text-xs text-[color:var(--af-text-muted)]">{JOB_DECISION_V2_SCORE_NOT_HIRE_PROB}</p>
+                <p className="mt-1 text-xs text-[color:var(--af-text-muted)]" data-testid="job-workspace-recommendation">
+                  {JOB_DECISION_V2_RECOMMENDATION_LABEL}: {JOB_DECISION_V2_LABELS[decision.decision]}
+                </p>
+                {decision.matches.some(
+                  (item) =>
+                    item.status === "unknown" &&
+                    (item.requirement.mandatory || item.requirement.importance === "fundamental"),
+                ) ? (
+                  <p className="mt-1 text-xs text-[color:var(--af-text-muted)]" data-testid="job-workspace-mandatory-pending">
+                    {JOB_DECISION_V2_MANDATORY_PENDING}:{" "}
+                    {decision.matches
+                      .filter(
+                        (item) =>
+                          item.status === "unknown" &&
+                          (item.requirement.mandatory || item.requirement.importance === "fundamental"),
+                      )
+                      .slice(0, 3)
+                      .map((item) => item.requirement.label)
+                      .join(", ")}
+                  </p>
+                ) : null}
+                {decision.eligibility ? (
+                  <p className="mt-1 text-xs text-[color:var(--af-text-muted)]" data-testid="job-workspace-eligibility">
+                    {JOB_DECISION_V2_ELIGIBILITY_LABEL}:{" "}
+                    {JOB_DECISION_V2_ELIGIBILITY_STATUS_LABELS[decision.eligibility.status] ??
+                      decision.eligibility.status}
+                  </p>
+                ) : null}
               </div>
               <div data-testid="job-workspace-application-status">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--af-text-muted)]">

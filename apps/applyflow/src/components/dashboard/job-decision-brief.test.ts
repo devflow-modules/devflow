@@ -75,7 +75,9 @@ describe("buildJobDecisionBrief", () => {
     };
 
     const brief = buildJobDecisionBrief({ decision: decisionFixture(), packBlock });
-    expect(brief.asks.items).toEqual(expect.arrayContaining(["React", "Kubernetes", "Localização"]));
+    expect(brief.asks.items).toEqual(
+      expect.arrayContaining(["React (obrigatório)", "Kubernetes (obrigatório)", "Localização"]),
+    );
     expect(brief.shows.items.some((item) => item.startsWith("React"))).toBe(true);
     expect(brief.confirm.items.some((item) => item.startsWith(JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.announcement))).toBe(
       true,
