@@ -85,6 +85,9 @@ describe("buildJobDecisionBrief", () => {
     expect(brief.confirm.items.some((item) => item.startsWith(JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.evidence))).toBe(
       true,
     );
+    expect(
+      brief.confirm.items.some((item) => item.startsWith(JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.incompatible)),
+    ).toBe(true);
     expect(brief.confirm.items.some((item) => item.startsWith(JOB_DECISION_V2_PACK_BLOCK_KIND_LABELS.profile))).toBe(
       true,
     );

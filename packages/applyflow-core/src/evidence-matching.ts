@@ -512,7 +512,8 @@ function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): Evid
   if (alternatives.length < 2) return null;
 
   const proven: { alt: string; item: Evidence }[] = [];
-  const partial: { alt: string; item: Evidence; reason: string }[] = [];
+  const durationUnknown: { alt: string; item: Evidence; reason: string }[] = [];
+  const shortTenure: { alt: string; item: Evidence; reason: string }[] = [];
   const gaps: Evidence[] = [];
 
   for (const alt of alternatives) {
@@ -529,7 +530,8 @@ function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): Evid
       const periods = positives.filter((item) => item.kind === "experience_period");
       const unionYears = periods.length > 0 ? documentedYearsFromEvidence(periods) : yearsDeclaredInEvidence(best);
       if (unionYears === undefined) {
-        partial.push({
+        // Mention without documented duration is unknown — not proven incompatibility.
+        durationUnknown.push({
           alt,
           item: best,
           reason: `${alt} is recorded but duration is not. The ${req.minYears}+ years bar stays unknown.`,
@@ -537,7 +539,7 @@ function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): Evid
         continue;
       }
       if (unionYears + 1e-9 < req.minYears) {
-        partial.push({
+        shortTenure.push({
           alt,
           item: best,
           reason: `Recorded ${alt} covers ${unionYears.toFixed(1)} year(s); the posting asks for ${req.minYears}+.`,
@@ -558,8 +560,18 @@ function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): Evid
     };
   }
 
-  if (partial.length > 0) {
-    const hit = partial[0]!;
+  if (durationUnknown.length > 0) {
+    const hit = durationUnknown[0]!;
+    return {
+      requirement: req,
+      status: "unknown",
+      matchedEvidence: [hit.item],
+      reason: hit.reason,
+    };
+  }
+
+  if (shortTenure.length > 0) {
+    const hit = shortTenure[0]!;
     return {
       requirement: req,
       status: req.mandatory ? "gap" : "partial",
@@ -568,7 +580,7 @@ function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): Evid
     };
   }
 
-  if (gaps.length > 0 && proven.length === 0 && partial.length === 0) {
+  if (gaps.length > 0 && proven.length === 0 && durationUnknown.length === 0 && shortTenure.length === 0) {
     return {
       requirement: req,
       status: "gap",
