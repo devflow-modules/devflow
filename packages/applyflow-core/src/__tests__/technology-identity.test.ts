@@ -28,6 +28,10 @@ describe("technology identity", () => {
     expect(textMentionsTechnology("dotnet", ".NET")).toBe(true);
     expect(textMentionsTechnology("REST API", "REST")).toBe(true);
     expect(textMentionsTechnology("C++", "C++")).toBe(true);
+    expect(textMentionsTechnology("Golang services", "Go")).toBe(true);
+    expect(textMentionsTechnology("Rust systems", "Rust")).toBe(true);
+    expect(textMentionsTechnology("LLM-powered features", "LLM")).toBe(true);
+    expect(textMentionsTechnology("OpenAI embeddings", "Embeddings")).toBe(true);
   });
 
   it("keeps token boundaries across case, punctuation and line breaks", () => {

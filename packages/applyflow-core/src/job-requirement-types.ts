@@ -49,6 +49,8 @@ export type JobRequirement = {
   qualifiers?: string[];
   /** Canonical skill token when one exists (AWS, Python). Never the only signal. */
   skillHint?: string;
+  /** OR group: the requirement is met when ANY alternative is evidenced (e.g. Go / C++ / Rust). */
+  alternatives?: string[];
   mandatory?: boolean;
 };
 

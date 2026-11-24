@@ -134,6 +134,26 @@ function transferableReason(req: JobRequirement, evidence: Evidence): string | n
   if (hasAny(reqText, ["llm", "genai"]) && hasAny(reqText, ["production"]) && hasAny(evText, ["optional", "feature"]) && !hasAny(evText, ["production"])) {
     return "An optional AI feature is not a production LLM system.";
   }
+  if (
+    hasAny(reqText, ["llm", "genai", "embedding", "openai"]) &&
+    hasAny(evText, ["cursor", "copilot", "claude code", "github copilot"]) &&
+    !hasAny(evText, ["llm", "openai", "embedding", "genai", "gpt", "agent sdk"])
+  ) {
+    return "AI coding assistants are not production LLM product experience.";
+  }
+  if (
+    hasAny(reqText, ["oauth", "oidc"]) &&
+    hasAny(evText, ["jwt", "rbac"]) &&
+    !hasAny(evText, ["oauth", "oidc"])
+  ) {
+    return "JWT/RBAC is not OAuth/OIDC implementation experience.";
+  }
+  if (hasAny(reqText, ["kubernetes", "k8s"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["kubernetes", "k8s"])) {
+    return "Docker is not operational Kubernetes experience.";
+  }
+  if (hasAny(reqText, ["leadership", "managed a team", "people management"]) && hasAny(evText, ["founder"]) && !hasAny(evText, ["managed", "lead", "leadership"])) {
+    return "Founder experience is not formal team leadership.";
+  }
   return null;
 }
 
@@ -143,6 +163,20 @@ function isFalseFriend(req: JobRequirement, evidence: Evidence): boolean {
   if (hasAny(reqText, ["aws"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["aws"])) return true;
   if (hasAny(reqText, ["aws"]) && hasAny(evText, ["github", "actions", "ci"]) && !hasAny(evText, ["aws"])) return true;
   if (hasAny(reqText, ["aws"]) && hasAny(evText, ["docker"]) && !hasAny(evText, ["aws"])) return true;
+  if (
+    hasAny(reqText, ["llm", "genai", "embedding", "openai", "shipped"]) &&
+    hasAny(evText, ["react", "node", "nodejs", "typescript", "javascript", "saas"]) &&
+    !hasAny(evText, ["llm", "openai", "embedding", "genai", "gpt", "claude", "vector"])
+  ) {
+    return true;
+  }
+  if (
+    hasAny(reqText, ["go", "golang", "rust", "c++"]) &&
+    hasAny(evText, ["node", "nodejs", "python", "c#", "csharp", "typescript"]) &&
+    !hasAny(evText, ["go", "golang", "rust", "c++"])
+  ) {
+    return true;
+  }
   return false;
 }
 
@@ -474,6 +508,84 @@ function mentionsSkill(item: Evidence, hint: string): boolean {
   return textMentionsTechnology(blob, hint);
 }
 
+function matchAlternativeSkills(req: JobRequirement, evidence: Evidence[]): EvidenceMatch | null {
+  const alternatives = req.alternatives ?? [];
+  if (alternatives.length < 2) return null;
+
+  const proven: { alt: string; item: Evidence }[] = [];
+  const partial: { alt: string; item: Evidence; reason: string }[] = [];
+  const gaps: Evidence[] = [];
+
+  for (const alt of alternatives) {
+    const related = evidence.filter((item) => mentionsSkill(item, alt));
+    const stanceAbsent = related.filter((item) => item.stance === "absent" || isNegativeEvidence(item));
+    const positives = related.filter((item) => !stanceAbsent.includes(item));
+    if (positives.length === 0 && stanceAbsent.length > 0) {
+      gaps.push(...stanceAbsent);
+      continue;
+    }
+    if (positives.length === 0) continue;
+    const best = positives[0]!;
+    if (typeof req.minYears === "number") {
+      const periods = positives.filter((item) => item.kind === "experience_period");
+      const unionYears = periods.length > 0 ? documentedYearsFromEvidence(periods) : yearsDeclaredInEvidence(best);
+      if (unionYears === undefined) {
+        partial.push({
+          alt,
+          item: best,
+          reason: `${alt} is recorded but duration is not. The ${req.minYears}+ years bar stays unknown.`,
+        });
+        continue;
+      }
+      if (unionYears + 1e-9 < req.minYears) {
+        partial.push({
+          alt,
+          item: best,
+          reason: `Recorded ${alt} covers ${unionYears.toFixed(1)} year(s); the posting asks for ${req.minYears}+.`,
+        });
+        continue;
+      }
+    }
+    proven.push({ alt, item: best });
+  }
+
+  if (proven.length > 0) {
+    const hit = proven[0]!;
+    return {
+      requirement: req,
+      status: "proven",
+      matchedEvidence: [hit.item],
+      reason: `Satisfied via ${hit.alt} (one of ${alternatives.join(" / ")}). Node.js, Python, or C# alone do not satisfy this alternative group.`,
+    };
+  }
+
+  if (partial.length > 0) {
+    const hit = partial[0]!;
+    return {
+      requirement: req,
+      status: req.mandatory ? "gap" : "partial",
+      matchedEvidence: [hit.item],
+      reason: hit.reason,
+    };
+  }
+
+  if (gaps.length > 0 && proven.length === 0 && partial.length === 0) {
+    return {
+      requirement: req,
+      status: "gap",
+      matchedEvidence: gaps.slice(0, 3),
+      reason: `Recorded evidence states none of ${alternatives.join(" / ")} is present.`,
+    };
+  }
+
+  return {
+    requirement: req,
+    status: "unknown",
+    matchedEvidence: [],
+    reason: `No recorded evidence for ${alternatives.join(" / ")}. Node.js, Python, or C# are not automatic substitutes.`,
+  };
+}
+
 function matchEducationRequirement(req: JobRequirement, evidence: Evidence[]): EvidenceMatch | null {
   if (!isEducationRequirement(req)) return null;
   const relevant = evidence.filter((item) => {
@@ -623,6 +735,8 @@ function matchOne(req: JobRequirement, evidence: Evidence[], options?: EvidenceM
   if (seniority) return seniority;
   const education = matchEducationRequirement(req, evidence);
   if (education) return education;
+  const alternatives = matchAlternativeSkills(req, evidence);
+  if (alternatives) return alternatives;
   const compoundTs = matchCompoundTypeScriptBackend(req, evidence);
   if (compoundTs) return compoundTs;
   const supabase = matchSupabaseRequirement(req, evidence);

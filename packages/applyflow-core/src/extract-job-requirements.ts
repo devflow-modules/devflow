@@ -19,6 +19,10 @@ const SKILL_CATEGORY: Record<string, JobRequirementCategory> = {
   django: "backend",
   flask: "backend",
   java: "backend",
+  go: "backend",
+  golang: "backend",
+  rust: "backend",
+  "c++": "backend",
   elixir: "backend",
   ruby: "backend",
   postgresql: "backend",
@@ -49,6 +53,10 @@ const SKILL_CATEGORY: Record<string, JobRequirementCategory> = {
   cypress: "core_engineering",
   "ci/cd": "core_engineering",
   "github actions": "core_engineering",
+  llm: "ai",
+  llms: "ai",
+  openai: "ai",
+  embeddings: "ai",
 };
 
 const PHRASE_SPECS: {
@@ -160,11 +168,30 @@ const PHRASE_SPECS: {
   },
   {
     id: "production-llm",
-    pattern: /\bproduction\s+(?:llm|genai|generative\s+ai)\b|\bllm\s+in\s+production\b|\bproduction\s+genai\b/i,
+    pattern: /\bproduction\s+(?:llm|genai|generative\s+ai)\b|\bllm\s+in\s+production\b|\bproduction\s+genai\b|\bproduction[-\s]?ready\s+ai\b/i,
     label: "Production LLM / GenAI system",
     category: "ai",
     requirementType: "experience",
     qualifiers: ["production", "llm"],
+  },
+  {
+    id: "shipped-llm-features",
+    pattern:
+      /\bshipped\s+llm[-\s]?powered\s+features?\b|\bllm[-\s]?powered\s+features?\s+to\s+real\s+users\b|\bhands[-\s]?on\s+experience\b[^.?\n]{0,80}\bllms?\b|\bexperience\s+(?:delivering|shipping)\s+[^.?\n]{0,80}\b(?:llms?|gen(?:erative)?\s*ai|ai[-\s]?powered)\b/i,
+    label: "Shipped LLM-powered features",
+    category: "ai",
+    requirementType: "experience",
+    skillHint: "LLM",
+    qualifiers: ["production", "llm", "shipped"],
+  },
+  {
+    id: "llm-apis-embeddings",
+    pattern: /\bllm\s+apis?\b|\bembeddings?\b|\bvector\s+(?:databases?|stores?)\b|\bretrieval[-\s]?augmented\b/i,
+    label: "LLM APIs / embeddings / retrieval",
+    category: "ai",
+    requirementType: "experience",
+    skillHint: "LLM",
+    qualifiers: ["llm", "embeddings"],
   },
   {
     id: "ai-agents",
@@ -183,6 +210,90 @@ const PHRASE_SPECS: {
     skillHint: "Kafka",
   },
 ];
+
+const MANDATORY_CUE =
+  /\b(?:required|must[- ]have|essential|non[- ]negotiable|you must|this is a must|minimum qualifications|must,?\s+not a bonus)\b/i;
+const PREFERRED_CUE = /\b(?:nice to have|preferred|bonus|plus|optional)\b/i;
+
+function lineHasMandatoryCue(line: string): boolean {
+  if (PREFERRED_CUE.test(line) && !MANDATORY_CUE.test(line)) return false;
+  return MANDATORY_CUE.test(line);
+}
+
+function sectionBounds(text: string, matchIndex: number): { lastRequired: number; lastPreferred: number } {
+  const section = text.slice(0, matchIndex).toLowerCase();
+  return {
+    lastRequired: Math.max(
+      section.lastIndexOf("requirements"),
+      section.lastIndexOf("minimum qualifications"),
+      section.lastIndexOf("what you'll need"),
+      section.lastIndexOf("you must"),
+    ),
+    lastPreferred: Math.max(
+      section.lastIndexOf("nice to have"),
+      section.lastIndexOf("preferred qualifications"),
+      section.lastIndexOf("\nnice to have"),
+      section.lastIndexOf("\npreferred"),
+      section.lastIndexOf("\nbonus"),
+    ),
+  };
+}
+
+function contextIsPreferred(text: string, matchIndex: number): boolean {
+  const { lastRequired, lastPreferred } = sectionBounds(text, matchIndex);
+  return lastPreferred >= 0 && lastPreferred > lastRequired;
+}
+
+function contextMakesMandatory(text: string, matchIndex: number, matchLength: number): boolean {
+  if (contextIsPreferred(text, matchIndex)) return false;
+  const start = Math.max(0, matchIndex - 160);
+  const end = Math.min(text.length, matchIndex + matchLength + 160);
+  const window = text.slice(start, end);
+  if (/\bthis is a must\b|\bmust,?\s+not a bonus\b|\bmust have\b|\bessential\b|\bnon[- ]negotiable\b/i.test(window)) {
+    return true;
+  }
+  const lineStart = text.lastIndexOf("\n", matchIndex) + 1;
+  const lineEnd = text.indexOf("\n", matchIndex);
+  const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
+  if (lineHasMandatoryCue(line)) return true;
+  // Do not infer mandatory solely from "Requirements" section membership.
+  return false;
+}
+
+function contextInRequiredSection(text: string, matchIndex: number): boolean {
+  if (contextIsPreferred(text, matchIndex)) return false;
+  const { lastRequired, lastPreferred } = sectionBounds(text, matchIndex);
+  return lastRequired >= 0 && lastRequired > lastPreferred;
+}
+
+const SYSTEMS_LANG_ALT =
+  /(\d+)\s*\+?\s*years?\s+(?:of\s+)?(?:professional\s+)?(?:software\s+)?(?:development\s+)?(?:experience\s+)?(?:with|in|using|working with)?\s*([^\n.]{0,120}?(?:golang|\bgo\b|c\+\+|rust)[^\n.]{0,80}?(?:golang|\bgo\b|c\+\+|rust)[^\n.]{0,80}?(?:golang|\bgo\b|c\+\+|rust))/i;
+
+const SYSTEMS_LANG_TOKEN = /golang|\bgo\b|c\+\+|rust/gi;
+
+function normalizeSystemsLang(raw: string): string {
+  const folded = normalizeJobTextForIntel(raw.replace(/^\b|\b$/g, ""));
+  if (folded.includes("golang") || folded === "go") return "Go";
+  if (folded.includes("c++")) return "C++";
+  if (folded.includes("rust")) return "Rust";
+  return raw;
+}
+
+function extractSystemsLanguageAlternatives(
+  text: string,
+): { minYears: number; alternatives: string[]; extractedText: string } | undefined {
+  const match = SYSTEMS_LANG_ALT.exec(text);
+  if (!match) return undefined;
+  const years = Number(match[1]);
+  if (!Number.isFinite(years)) return undefined;
+  const alts = [
+    ...new Set(
+      [...(match[2] ?? "").matchAll(SYSTEMS_LANG_TOKEN)].map((item) => normalizeSystemsLang(item[0] ?? "")),
+    ),
+  ].filter(Boolean);
+  if (alts.length < 2) return undefined;
+  return { minYears: years, alternatives: alts, extractedText: match[0].trim() };
+}
 
 function slugId(prefix: string, label: string, index: number): string {
   const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 36);
@@ -310,21 +421,47 @@ export function extractJobRequirements(jobText: string, options: { title?: strin
     return true;
   };
 
+  const systemsLang = extractSystemsLanguageAlternatives(text);
+  if (systemsLang && remember("systems-lang-alternatives")) {
+    const at = text.indexOf(systemsLang.extractedText);
+    const mandatory =
+      contextMakesMandatory(text, at, systemsLang.extractedText.length) ||
+      contextInRequiredSection(text, at);
+    out.push({
+      id: "req-systems-lang-alt",
+      label: `${systemsLang.alternatives.join(" / ")} (${systemsLang.minYears}+ years)`,
+      category: "backend",
+      importance: mandatory ? "fundamental" : "important",
+      requirementType: "years",
+      extractedText: systemsLang.extractedText,
+      minYears: systemsLang.minYears,
+      alternatives: systemsLang.alternatives,
+      skillHint: systemsLang.alternatives[0],
+      mandatory,
+    });
+    for (const alt of systemsLang.alternatives) {
+      claimed.add(`skill:${normalizeJobTextForIntel(alt)}`);
+      claimed.add(`skill-years:${normalizeJobTextForIntel(alt)}`);
+    }
+  }
+
   for (const item of extractWorkingWithSkillYears(text)) {
     const skillKey = `skill-years:${normalizeJobTextForIntel(item.skill)}`;
     if (!remember(skillKey)) continue;
     const skillHint = canonicalSkillHint(item.skill, intel.detectedSkills);
     const preferred = split.preferred.some((entry) => normalizeJobTextForIntel(entry) === normalizeJobTextForIntel(skillHint));
+    const mandatory =
+      !preferred && contextMakesMandatory(text, text.indexOf(item.extractedText), item.extractedText.length);
     out.push({
       id: slugId("phrase", `${skillHint} experience`, out.length),
       label: `${skillHint} (${item.years}+ years)`,
       category: categoryForSkill(skillHint),
-      importance: preferred ? "nice_to_have" : "important",
+      importance: preferred ? "nice_to_have" : mandatory ? "fundamental" : "important",
       requirementType: "years",
       extractedText: item.extractedText,
       minYears: item.years,
       skillHint,
-      mandatory: false,
+      mandatory,
     });
   }
 
@@ -339,19 +476,40 @@ export function extractJobRequirements(jobText: string, options: { title?: strin
       (spec.skillHint
         ? split.preferred.some((item) => normalizeJobTextForIntel(item) === normalizeJobTextForIntel(spec.skillHint ?? ""))
         : false);
+    const matchIndex = match.index ?? 0;
+    const preferredBySection = contextIsPreferred(text, matchIndex);
+    const treatedPreferred = inPreferred || preferredBySection || spec.id === "preferred-experience-years";
+    const cueMandatory = !treatedPreferred && contextMakesMandatory(text, matchIndex, match[0].length);
+    const aiCentral =
+      !treatedPreferred &&
+      spec.category === "ai" &&
+      (Boolean(spec.qualifiers?.includes("shipped")) ||
+        Boolean(spec.qualifiers?.includes("production")) ||
+        (Boolean(spec.qualifiers?.includes("llm")) && !spec.qualifiers?.includes("agents")) ||
+        (Boolean(spec.qualifiers?.includes("agents")) && cueMandatory) ||
+        (Boolean(spec.qualifiers?.includes("embeddings")) && contextInRequiredSection(text, matchIndex))) &&
+      (cueMandatory ||
+        contextInRequiredSection(text, matchIndex) ||
+        Boolean(spec.qualifiers?.includes("shipped")));
+    const mandatory =
+      !treatedPreferred &&
+      (Boolean(spec.qualifiers?.includes("senior") && spec.category === "backend") || cueMandatory || aiCentral);
+    const importance: JobRequirementImportance = treatedPreferred
+      ? "nice_to_have"
+      : mandatory || spec.qualifiers?.includes("architecture") || spec.qualifiers?.includes("backend")
+        ? "fundamental"
+        : "important";
     out.push({
       id: slugId("phrase", spec.label, index),
       label: minYears ? `${spec.label} (${minYears}+ years)` : spec.label,
       category: spec.category,
-      importance: inPreferred ? "nice_to_have" : spec.qualifiers?.includes("architecture") || spec.qualifiers?.includes("backend")
-        ? "fundamental"
-        : "important",
+      importance,
       requirementType: spec.requirementType,
       extractedText: match[0].trim(),
       ...(minYears ? { minYears } : {}),
       ...(spec.qualifiers ? { qualifiers: spec.qualifiers } : {}),
       ...(spec.skillHint ? { skillHint: spec.skillHint } : {}),
-      mandatory: !inPreferred && Boolean(spec.qualifiers?.includes("senior") && spec.category === "backend"),
+      mandatory,
     });
   });
 
