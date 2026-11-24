@@ -149,7 +149,7 @@ describe("evaluateJobDecisionV2 scenarios", () => {
       true,
     );
     expect(result.matches.filter((item) => item.status === "gap")).toHaveLength(0);
-    expect(result.candidateInputRequests.length).toBeGreaterThanOrEqual(1);
+    expect(result.candidateInputRequests.length).toBeGreaterThanOrEqual(2);
     expect(result.decision).toBe("needs_info");
     expect(result.reasons.join(" ")).toMatch(/Complete seu perfil para concluir a análise/i);
   });

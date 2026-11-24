@@ -344,6 +344,16 @@ Requirements:
     expect(elixir?.status).toBe("unknown");
   });
 
+  it("14b. Falsos amigos: Docker ≠ Kubernetes e Node ≠ Go permanecem unknown", () => {
+    const docker: Evidence[] = [
+      ev({ id: "ev-docker", label: "Docker", description: "Docker containers for local dev", technologies: ["Docker"] }),
+    ];
+    const k8s = matchRequirementsToEvidence(extractJobRequirements("Requirements:\n- Kubernetes"), docker);
+    expect(k8s.find((item) => /kubernetes/i.test(item.requirement.label))?.status).toBe("unknown");
+    const go = matchRequirementsToEvidence(extractJobRequirements(ALPACA_INTERNAL), STACK_EVIDENCE);
+    expect(go.find((item) => (item.requirement.alternatives?.length ?? 0) >= 2)?.status).toBe("unknown");
+  });
+
   it("15. Requisito explicitamente incompatível → gap", () => {
     const absent: Evidence[] = [
       ev({
